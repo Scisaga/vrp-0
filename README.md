@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./docs/design/vrp-0-light.png" alt="x-force" width="256" height="256">
+  <img src="./docs/design/VRP-0-light.png" alt="VRP-0" width="256" height="256">
 </p>
 
 # vrp-0
