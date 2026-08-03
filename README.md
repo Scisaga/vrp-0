@@ -8,16 +8,17 @@
 
 [![VRP-0 Web 控制台演示](./docs/design/VRP-0-web-demo-12s.gif)](./docs/design/VRP-0-web-demo-12s.mp4)
 
-点击上方 GIF 或[查看 12 秒 MP4 演示视频](./docs/design/VRP-0-web-demo-12s.mp4)。
+[查看演示视频](./docs/design/VRP-0-web-demo-12s.mp4)。
 
 ## Features
 
-- 单当前场景的录入、读取、删除和求解
-- 基于脱敏 demo 数据的快速验证与调试
-- 静态控制台页面，使用单一 `scenario.html` Web Component 覆盖场景创建、求解任务、Gantt、地图和一张图
-- Swagger UI 与 Metrics 端点，便于接口联调和运行观测
-- 可通过环境变量选择 AMap 或 HERE 的地址解析、POI、路径与浏览器地图能力
-- 可选 HTTP MCP 接入，支持通过 tools 操作当前场景和求解任务
+- **统一场景状态**：REST、MCP 与控制台操作同一份当前场景和任务数据，避免多入口带来的状态漂移。
+- **复杂约束求解**：支持多仓、多车型、工程师技能、工单关联、时间窗与成本参数，在持续搜索中生成可执行的调度方案。
+- **全过程可观测**：从矩阵构建、任务历史和得分演进，到 Gantt 排程、路线地图与一张图播放，完整呈现求解过程与结果。
+- **双地图能力**：可按环境切换 AMap 或 HERE，覆盖地址解析、POI、路径规划与浏览器地图，并保留场景求解时的地图上下文。
+- **智能体原生接入**：同时提供 REST API 与 HTTP MCP Tools，配套鉴权、Origin 白名单和运行状态管理。
+- **可嵌入 Web 控制台**：单一 `scenario.html` Web Component 统一承载场景维护、任务求解和结果分析，静态资源完全本地化。
+- **工程化交付**：内置 OpenAPI、Swagger UI、Metrics、Docker 与分层测试体系，便于集成、验证和部署。
 
 ## Tech Stack
 
