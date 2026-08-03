@@ -4,7 +4,7 @@
 
 # vrp-0
 
-`vrp-0` 是一个基于 Quarkus 和 OptaPlanner 的车辆路径规划服务，提供 REST API、HTTP MCP 接入和静态控制台页面，用于维护当前场景、构建矩阵、触发求解并查看结果。
+`vrp-0` 是面向复杂现场服务与车辆调度的开源规划引擎。它以 Quarkus 构建轻量服务底座，以 OptaPlanner 编排多仓、多车型、工程师技能、工单关联与时间窗等业务约束，在持续搜索中生成可解释、可追踪的调度方案。REST API、HTTP MCP 与静态控制台共享同一运行状态，贯通场景建模、矩阵构建、求解观测、甘特排程与地图复盘，为智能体接入和业务系统集成提供一条完整、可嵌入的优化链路。
 
 [![VRP-0 Web 控制台演示](./docs/design/VRP-0-web-demo-12s.gif)](./docs/design/VRP-0-web-demo-12s.mp4)
 
