@@ -1,0 +1,433 @@
+<div
+  x-data="solverJobMapPage"
+  x-init="init()"
+  x-ref="pageRoot"
+  class="responsive-page-root"
+  :data-mode="isBigScreenMode ? 'bigscreen' : 'default'"
+>
+  <div
+    x-show="hoveredBusinessId"
+    x-cloak
+    class="fixed z-50 rounded-[0.46875rem] border-[1.25px] border-slate-300 bg-white px-[0.9375rem] py-[0.625rem] shadow-[0_25px_31.25px_-6.25px_rgba(0,0,0,0.1),0_10px_12.5px_-7.5px_rgba(0,0,0,0.1)]"
+    :style="`left:${businessIdTooltip.left}px;top:${businessIdTooltip.top}px;max-width:calc(100vw - 30px);`"
+    @mouseenter="clearBusinessIdHideTimer()"
+    @mouseleave="hideBusinessIdTooltip(hoveredBusinessId)"
+  >
+    <button type="button" class="block text-left" @click="copyBusinessId()">
+      <div class="whitespace-nowrap font-mono text-[0.9375rem]/[1.25rem] text-slate-700" x-text="hoveredBusinessId"></div>
+    </button>
+  </div>
+  <template x-if="!isBigScreenMode">
+    <div class="toolbar map-replay-toolbar">
+      <div class="map-replay-context flex flex-wrap items-center gap-[0.625rem]">
+        <button type="button" class="action-secondary" @click="backToDetail()"><span class="material-symbols-rounded text-[22.5px]">arrow_back</span><span x-text="t('map.toolbar.backToDetail')"></span></button>
+        <span class="status-pill identifier-trigger" x-show="job" @mouseenter="showBusinessIdTooltip(job?.id, $event)" @mouseleave="hideBusinessIdTooltip(job?.id)"><span class="material-symbols-rounded text-[20px]">badge</span><span class="identifier-value" x-text="job?.name || job?.id"></span></span>
+        <span class="status-pill"><span class="material-symbols-rounded text-[20px]">schedule</span><span x-text="formattedSimulationTime()"></span></span>
+      </div>
+      <div class="map-replay-actions flex max-w-full flex-nowrap items-center gap-[0.625rem] overflow-x-auto pb-[0.3125rem] min-[1600px]:flex-wrap min-[1600px]:overflow-visible min-[1600px]:pb-0">
+        <button type="button" class="action-secondary" @click="toggleBigScreenMode()"><span class="material-symbols-rounded text-[22.5px]">tv</span><span x-text="t('map.toolbar.bigScreen')"></span></button>
+        <button type="button" class="action-secondary" @click="togglePlay()"><span class="material-symbols-rounded text-[22.5px]" x-text="playTimer ? 'pause_circle' : 'play_circle'"></span><span x-text="t(playTimer ? 'map.toolbar.pausePlayback' : 'map.toolbar.playPlayback')"></span></button>
+        <div class="flex items-center gap-[0.3125rem] rounded-[0.46875rem] border-[1.25px] border-slate-300 bg-slate-50/80 p-[0.3125rem]">
+          <template x-for="option in playbackSpeedOptions()" :key="option.value">
+            <button
+              type="button"
+              class="rounded-[0.3125rem] px-[0.625rem] py-[0.3125rem] text-[0.9375rem]/[1.25rem] font-medium transition"
+              :class="playbackSpeed === option.value ? 'bg-emerald-500 text-slate-950' : 'text-slate-700 hover:bg-slate-200/80'"
+              @click="setPlaybackSpeed(option.value)"
+              x-text="option.label"
+            ></button>
+          </template>
+        </div>
+        <button type="button" class="action-secondary" @click="resetTime()"><span class="material-symbols-rounded text-[22.5px]">history</span><span x-text="t('map.toolbar.resetTime')"></span></button>
+        <button type="button" class="action-secondary" @click="fitView()"><span class="material-symbols-rounded text-[22.5px]">center_focus_strong</span><span x-text="t('map.toolbar.fitView')"></span></button>
+        <button type="button" class="action-secondary" @click="showAllAgents()"><span class="material-symbols-rounded text-[22.5px]">visibility</span><span x-text="t('map.toolbar.showAll')"></span></button>
+      </div>
+    </div>
+  </template>
+
+  <div class="map-page-body flex-1 min-h-0 overflow-hidden">
+    <div class="flex h-full min-h-0 flex-col gap-0">
+      <template x-if="error">
+        <div class="shrink-0 rounded-[0.46875rem] border-[1.25px] border-rose-500/30 bg-rose-500/10 px-[1.25rem] py-[0.9375rem] text-[1.09375rem]/[1.5625rem] text-rose-700">
+          <div class="flex items-center justify-between gap-[0.9375rem]">
+            <span x-text="error"></span>
+            <button type="button" class="shrink-0 text-slate-700 hover:text-slate-900" @click="clearError()" :aria-label="t('map.notification.close')">
+              <span class="material-symbols-rounded text-[22.5px]">close</span>
+            </button>
+          </div>
+        </div>
+      </template>
+
+      <template x-if="!isBigScreenMode">
+        <div class="map-default-layout grid flex-1 min-h-0 gap-0 min-[1600px]:grid-cols-[minmax(0,1fr)_425px]">
+          <section class="map-canvas-panel min-h-0">
+            <div class="relative flex-1 min-h-0 overflow-hidden">
+              <div class="map-canvas-surface" x-ref="defaultMapCanvas"></div>
+              <template x-if="shouldShowReplayEmptyState()">
+                <div class="absolute inset-0 p-[1.25rem]">
+                  <div class="empty-state h-full min-h-0 bg-white/92">
+                    <span class="material-symbols-rounded text-[2.8125rem]/[3.125rem] text-slate-500" x-text="replayEmptyStateIcon()"></span>
+                    <div class="text-[1.25rem]/[1.875rem] font-semibold text-slate-900" x-text="replayEmptyStateTitle()"></div>
+                    <div class="max-w-[45rem] text-[1.09375rem]/[1.5625rem] text-slate-600" x-text="replayEmptyStateDescription()"></div>
+                  </div>
+                </div>
+              </template>
+            </div>
+            <div class="border-t-[1.25px] border-slate-200 px-[1.25rem] py-[0.46875rem]">
+              <div class="flex items-center justify-between gap-[0.625rem]">
+                <div>
+                  <div class="field-label" x-text="t('map.timeline.title')"></div>
+                  <div class="map-timeline-description mt-[0.15625rem] text-[0.9375rem]/[1.25rem] text-slate-500" x-text="t('map.timeline.description')"></div>
+                </div>
+                <div class="monospace-meta text-slate-700" style="font-size: 17.5px; line-height: 1.5625rem;" x-text="formattedSimulationTime()"></div>
+              </div>
+              <div class="mt-[0.3125rem] px-[0.9375rem]">
+                <div x-ref="timelineTrack" class="relative h-[1.25rem] cursor-pointer" @pointerdown="jumpTimeline($event)">
+                  <div class="absolute inset-x-0 top-1/2 h-[0.46875rem] -translate-y-1/2 rounded-[12498.75px] border-[1.25px] border-stone-400/60 bg-stone-700/70 shadow-[inset_0_1.25px_0_rgba(255,255,255,0.08)]"></div>
+                  <div class="absolute left-0 top-1/2 h-[0.46875rem] -translate-y-1/2 rounded-[12498.75px] bg-emerald-400/90 shadow-[0_0_0_1.25px_rgba(16,185,129,0.25)]" :style="timelineFillStyle()"></div>
+                  <button
+                    type="button"
+                    class="absolute top-1/2 z-10 h-[1.25rem] w-[1.25rem] -translate-x-1/2 -translate-y-1/2 rounded-[12498.75px] border-[2.5px] border-emerald-300 bg-emerald-400 shadow-[0_0_0_2.5px_rgba(255,255,255,0.95)]"
+                    :style="timelineThumbStyle()"
+                    @pointerdown.stop="startTimelineDrag($event)"
+                    :aria-label="t('map.timeline.adjustTime')"
+                  ></button>
+                </div>
+              </div>
+              <div class="mt-0 px-[0.9375rem]">
+                <div class="relative" style="height: 1.25rem;">
+                  <template x-for="tick in simulationTicks()" :key="tick.key">
+                    <div class="absolute top-0 text-center" :class="tick.offsetClass" :style="`left:${tick.left}%`">
+                      <div class="font-mono text-[12.5px] tabular-nums text-slate-700" x-text="tick.timeLabel"></div>
+                    </div>
+                  </template>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <aside class="map-agent-panel panel-shell min-h-0">
+            <div class="toolbar">
+              <div>
+                <div class="field-label" x-text="t('map.agentPanel.title')"></div>
+                <div class="mt-[0.625rem] text-[1.09375rem]/[1.5625rem] text-slate-500" x-text="t('map.agentPanel.description')"></div>
+              </div>
+            </div>
+            <template x-if="!agents().length">
+              <div class="p-[1.25rem]">
+                <div class="empty-state h-full min-h-[20rem] border-slate-200 bg-slate-50/80">
+                  <span class="material-symbols-rounded text-[2.8125rem]/[3.125rem] text-slate-500" x-text="replayEmptyStateIcon()"></span>
+                  <div class="text-[1.25rem]/[1.875rem] font-semibold text-slate-900" x-text="taskPanelEmptyTitle()"></div>
+                  <div class="max-w-[25rem] text-[1.09375rem]/[1.5625rem] text-slate-600" x-text="taskPanelEmptyDescription()"></div>
+                </div>
+              </div>
+            </template>
+            <div x-show="agents().length" class="panel-scroll divide-y-[1.25px] divide-slate-200">
+              <template x-for="agent in agents()" :key="agent.id">
+                <div
+                  class="px-[1.25rem] py-[0.625rem] transition"
+                  :class="isFocused(agent.id) && focusOnlyMode ? 'bg-emerald-50 ring-[1.25px] ring-inset ring-emerald-200' : ''"
+                >
+                  <div class="flex items-start justify-between gap-[0.9375rem]">
+                    <div class="min-w-0 flex-1">
+                      <div class="identifier-value text-[1.09375rem]/[1.5625rem] font-medium text-slate-900" x-text="agentDisplayName(agent)"></div>
+                      <button type="button" class="identifier-trigger identifier-value monospace-meta mt-[0.3125rem] block max-w-full hover:text-emerald-700" @mouseenter="showBusinessIdTooltip(agent.id, $event)" @mouseleave="hideBusinessIdTooltip(agent.id)" x-text="agent.id"></button>
+                    </div>
+                    <div class="flex shrink-0 flex-nowrap items-center justify-end gap-[0.46875rem] whitespace-nowrap">
+                      <button
+                        type="button"
+                        class="compact-icon-action ui-tooltip"
+                        @click="toggleAgentRoute(agent.id)"
+                        :aria-pressed="String(isRouteVisible(agent.id))"
+                        :aria-label="t(isRouteVisible(agent.id) ? 'map.action.hideRoute' : 'map.action.showRoute')"
+                        :data-tooltip="t(isRouteVisible(agent.id) ? 'map.action.hideRoute' : 'map.action.showRoute')"
+                      ><span class="material-symbols-rounded text-[20px]" aria-hidden="true">route</span></button>
+                      <button
+                        type="button"
+                        class="compact-icon-action ui-tooltip"
+                        @click="toggleFocusAgent(agent.id)"
+                        :aria-pressed="String(isFocused(agent.id) && focusOnlyMode)"
+                        :aria-label="t(isFocused(agent.id) && focusOnlyMode ? 'map.action.cancelFocusOnly' : 'map.action.focusOnly')"
+                        :data-tooltip="t(isFocused(agent.id) && focusOnlyMode ? 'map.action.cancelFocusOnly' : 'map.action.focusOnly')"
+                      ><span class="material-symbols-rounded text-[20px]" aria-hidden="true">filter_center_focus</span></button>
+                      <button
+                        type="button"
+                        class="compact-icon-action ui-tooltip"
+                        @click="toggleAgentVisibility(agent.id)"
+                        :aria-pressed="String(visibilityMap[agent.id] !== false)"
+                        :aria-label="t(visibilityMap[agent.id] === false ? 'map.action.show' : 'map.action.hide')"
+                        :data-tooltip="t(visibilityMap[agent.id] === false ? 'map.action.show' : 'map.action.hide')"
+                      ><span class="material-symbols-rounded text-[20px]" aria-hidden="true" x-text="visibilityMap[agent.id] === false ? 'visibility' : 'visibility_off'"></span></button>
+                    </div>
+                  </div>
+                  <div class="mt-[0.625rem] flex flex-wrap items-center gap-x-[0.9375rem] gap-y-[0.625rem] text-[13.75px] text-slate-500">
+                    <span class="inline-flex items-center gap-[0.46875rem]" :class="isFocused(agent.id) && focusOnlyMode ? 'text-emerald-700' : ''">
+                      <span class="h-[0.46875rem] w-[0.46875rem] rounded-[12498.75px]" :class="isFocused(agent.id) && focusOnlyMode ? 'bg-emerald-500' : 'bg-slate-300'"></span>
+                      <span x-text="t(isFocused(agent.id) && focusOnlyMode ? 'map.action.focusOnly' : 'map.normalDisplay')"></span>
+                    </span>
+                    <span class="inline-flex items-center gap-[0.46875rem]" :class="isRouteVisible(agent.id) ? '' : 'text-amber-700'">
+                      <span class="h-[0.46875rem] w-[0.46875rem] rounded-[12498.75px]" :class="isRouteVisible(agent.id) ? 'bg-slate-300' : 'bg-amber-500'"></span>
+                      <span x-text="t(isRouteVisible(agent.id) ? 'map.routeVisible' : 'map.routeHidden')"></span>
+                    </span>
+                    <span class="inline-flex items-center gap-[0.46875rem]" :class="visibilityMap[agent.id] === false ? 'text-amber-700' : ''">
+                      <span class="h-[0.46875rem] w-[0.46875rem] rounded-[12498.75px]" :class="visibilityMap[agent.id] === false ? 'bg-amber-500' : 'bg-slate-300'"></span>
+                      <span x-text="t(visibilityMap[agent.id] === false ? 'map.mapHidden' : 'map.visible')"></span>
+                    </span>
+                  </div>
+                  <template x-if="agentRouteNotice(agent)">
+                    <div class="mt-[0.625rem] flex min-w-0 items-center gap-[0.46875rem] rounded-[0.46875rem] border-[1.25px] border-amber-300 bg-amber-50 px-[0.625rem] py-[0.3125rem] text-[0.9375rem]/[1.25rem] text-amber-900">
+                      <span class="material-symbols-rounded text-[18.75px] leading-none">info</span>
+                      <span class="truncate font-medium" x-text="t(agentRouteNotice(agent).key)"></span>
+                    </div>
+                  </template>
+                  <div class="mt-[0.9375rem] grid gap-[0.9375rem] text-[1.09375rem]/[1.5625rem] min-[800px]:grid-cols-2">
+                    <div class="min-w-0">
+                      <div class="field-label" x-text="t('map.currentTask')"></div>
+                      <div class="identifier-value monospace-meta mt-[0.3125rem]" x-text="currentStateLabel(currentState(agent).current)"></div>
+                    </div>
+                    <div class="min-w-0">
+                      <div class="field-label" x-text="t('map.nextTask')"></div>
+                      <template x-if="jumpableNextTicketId(agent)">
+                        <button type="button" class="identifier-trigger identifier-value monospace-meta mt-[0.3125rem] text-left underline decoration-emerald-500/40 decoration-dotted underline-offset-4 transition hover:text-emerald-700" @click="openScenarioTicket(jumpableNextTicketId(agent))" @mouseenter="showBusinessIdTooltip(jumpableNextTicketId(agent), $event)" @mouseleave="hideBusinessIdTooltip(jumpableNextTicketId(agent))" x-text="currentStateLabel(currentState(agent).next)"></button>
+                      </template>
+                      <template x-if="!jumpableNextTicketId(agent)">
+                        <div class="identifier-value monospace-meta mt-[0.3125rem]" x-text="currentStateLabel(currentState(agent).next)"></div>
+                      </template>
+                    </div>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </aside>
+        </div>
+      </template>
+
+      <template x-if="isBigScreenMode">
+        <div class="flex flex-1 min-h-0 flex-col gap-0">
+          <section class="bigscreen-band">
+            <div class="flex flex-wrap items-start justify-between gap-[1.25rem]">
+              <div class="min-w-0">
+                <div class="field-label text-white/70" x-text="t('map.bigScreen.title')"></div>
+                <div class="mt-[0.625rem] flex flex-wrap items-center gap-[0.625rem]">
+                  <span class="bigscreen-chip"><span class="material-symbols-rounded text-[20px]">schedule</span><span x-text="formattedSimulationTime()"></span></span>
+                  <span class="bigscreen-chip"><span class="material-symbols-rounded text-[20px]" x-text="playTimer ? 'pause_circle' : 'play_circle'"></span><span x-text="t(playTimer ? 'map.bigScreen.playingAtSpeed' : 'map.bigScreen.pausedAtSpeed', { speed: playbackSpeed })"></span></span>
+                  <span class="bigscreen-chip"><span class="material-symbols-rounded text-[20px]">groups</span><span x-text="t('map.bigScreen.visibleObjects', { visible: visibleAgentCount(), total: agents().length })"></span></span>
+                </div>
+              </div>
+              <div class="flex flex-wrap items-center justify-end gap-[0.625rem]">
+                <div class="inline-flex flex-wrap items-center gap-[0.625rem]">
+                  <template x-if="currentFocusAgent()">
+                    <span class="bigscreen-chip bigscreen-chip-highlight"><span class="material-symbols-rounded text-[20px]">person_pin_circle</span><span x-text="agentDisplayName(currentFocusAgent())"></span></span>
+                  </template>
+                  <button
+                    type="button"
+                    class="bigscreen-action"
+                    :class="followFocusedAgent ? 'border-emerald-400/30 bg-emerald-400/15 text-emerald-100' : ''"
+                    :aria-pressed="String(followFocusedAgent)"
+                    @click="toggleFollowFocusedAgent()"
+                  ><span class="material-symbols-rounded text-[22.5px]" x-text="followFocusedAgent ? 'my_location' : 'location_searching'"></span><span x-text="t(followFocusedAgent ? 'map.bigScreen.stopFollowing' : 'map.bigScreen.followCurrent')"></span></button>
+                </div>
+                <div class="inline-flex flex-wrap items-center gap-[0.625rem] border-l-[1.25px] border-white/10 pl-[0.625rem]">
+                  <button type="button" class="bigscreen-action" @click="showAllAgents()"><span class="material-symbols-rounded text-[22.5px]">visibility</span><span x-text="t('map.toolbar.showAll')"></span></button>
+                  <button type="button" class="bigscreen-action" @click="fitView()"><span class="material-symbols-rounded text-[22.5px]">center_focus_strong</span><span x-text="t('map.toolbar.fitView')"></span></button>
+                </div>
+                <div class="inline-flex flex-wrap items-center gap-[0.625rem] border-l-[1.25px] border-white/10 pl-[0.625rem]">
+                  <button type="button" class="bigscreen-action" @click="backToDetail()"><span class="material-symbols-rounded text-[22.5px]">arrow_back</span><span x-text="t('map.bigScreen.backToDetail')"></span></button>
+                  <button type="button" class="bigscreen-action-primary" @click="toggleBigScreenMode()"><span class="material-symbols-rounded text-[22.5px]">close_fullscreen</span><span x-text="t('map.bigScreen.exit')"></span></button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <div class="map-bigscreen-layout grid flex-1 min-h-0 gap-0">
+            <aside class="bigscreen-panel min-h-0 border-r-[1.25px] border-white/10">
+              <div class="border-b-[1.25px] border-white/10 px-[1.25rem] py-[1.25rem]">
+                <div class="field-label text-white/70" x-text="t('map.bigScreen.quickSwitch')"></div>
+                <div class="mt-[0.625rem] text-[1.09375rem]/[1.5625rem] text-slate-300" x-text="t('map.bigScreen.quickSwitchDescription')"></div>
+              </div>
+              <div class="panel-scroll px-0 py-0">
+                <template x-if="!agents().length">
+                  <div class="flex min-h-[22.5rem] items-center justify-center">
+                    <div class="flex max-w-[30rem] flex-col items-center gap-[0.9375rem] rounded-[1.25rem] border-[1.25px] border-white/10 bg-white/5 px-[1.875rem] py-[2.5rem] text-center">
+                      <span class="material-symbols-rounded text-[3.75rem]/[3.75rem] text-slate-300" x-text="replayEmptyStateIcon()"></span>
+                      <div class="text-[1.40625rem]/[2.1875rem] font-semibold text-white" x-text="taskPanelEmptyTitle()"></div>
+                      <div class="text-[1.09375rem]/[1.5625rem] leading-[1.875rem] text-slate-300" x-text="taskPanelEmptyDescription()"></div>
+                    </div>
+                  </div>
+                </template>
+                <template x-if="agents().length">
+                  <div class="divide-y-[1.25px] divide-white/10">
+                    <template x-for="agent in agents()" :key="agent.id">
+                      <button
+                        type="button"
+                        class="bigscreen-agent-card w-full text-left"
+                        :class="isFocused(agent.id) ? 'bigscreen-agent-card-active' : ''"
+                        @mouseenter="showBusinessIdTooltip(agent.id, $event)"
+                        @mouseleave="hideBusinessIdTooltip(agent.id)"
+                        @click="selectBigScreenAgent(agent.id)"
+                      >
+                        <div class="flex items-start justify-between gap-[0.9375rem]">
+                          <div class="min-w-0 flex-1">
+                            <div class="identifier-value text-[1.09375rem]/[1.5625rem] font-semibold text-white" x-text="agentDisplayName(agent)"></div>
+                            <div class="identifier-value mt-[0.3125rem] font-mono text-[13.75px] text-slate-400" x-text="agent.id"></div>
+                          </div>
+                          <span class="shrink-0 whitespace-nowrap rounded-[12498.75px] px-[0.46875rem] py-[0.15625rem] text-[13.75px] font-medium leading-[1.25rem]" :class="agentStatusClass(agent)" x-text="agentStatusLabel(agent)"></span>
+                        </div>
+                        <div class="mt-[0.9375rem] grid w-full min-w-0 gap-[0.625rem] overflow-hidden text-[0.9375rem]/[1.25rem] text-slate-300">
+                          <div class="min-w-0">
+                            <div class="field-label text-white/45" x-text="t('map.currentTask')"></div>
+                            <div class="mt-[0.3125rem] truncate text-[1.09375rem]/[1.5625rem] text-white" x-text="currentStateLabel(currentState(agent).current)"></div>
+                          </div>
+                          <div class="min-w-0">
+                            <div class="field-label text-white/45" x-text="t('map.nextTask')"></div>
+                            <div class="mt-[0.3125rem] truncate text-[1.09375rem]/[1.5625rem] text-white" x-text="currentStateLabel(currentState(agent).next)"></div>
+                          </div>
+                        </div>
+                      </button>
+                    </template>
+                  </div>
+                </template>
+              </div>
+            </aside>
+
+            <section class="bigscreen-panel min-h-0">
+              <div class="bigscreen-map-canvas relative flex-1 min-h-0 overflow-hidden">
+                <div class="map-canvas-surface" x-ref="bigscreenMapCanvas"></div>
+                <template x-if="shouldShowReplayEmptyState()">
+                  <div class="absolute inset-0 flex items-center justify-center bg-slate-950/88 px-[1.875rem]">
+                    <div class="flex max-w-[45rem] flex-col items-center justify-center gap-[0.9375rem] rounded-[1.25rem] border-[1.25px] border-white/10 bg-white/5 px-[2.5rem] py-[3.125rem] text-center">
+                      <span class="material-symbols-rounded text-[3.75rem]/[3.75rem] text-slate-300" x-text="replayEmptyStateIcon()"></span>
+                      <div class="text-[1.5625rem]/[2.1875rem] font-semibold text-white" x-text="replayEmptyStateTitle()"></div>
+                      <div class="text-[1.09375rem]/[1.5625rem] leading-[1.875rem] text-slate-300" x-text="replayEmptyStateDescription()"></div>
+                    </div>
+                  </div>
+                </template>
+              </div>
+              <div class="border-t-[1.25px] border-white/10 px-[1.5625rem] py-[0.9375rem]">
+                <div class="flex flex-wrap items-center justify-between gap-[0.625rem]">
+                  <div class="flex min-w-0 flex-wrap items-center gap-x-[1.25rem] gap-y-[0.3125rem]">
+                    <div class="text-[1.09375rem]/[1.5625rem] font-semibold tracking-[0.08em] text-white/80" x-text="t('map.bigScreen.replayConsole')"></div>
+                    <div class="font-mono text-[1.09375rem]/[1.5625rem] text-slate-200" x-text="formattedSimulationTime()"></div>
+                    <div class="hidden text-[0.9375rem]/[1.25rem] text-slate-400 min-[1600px]:block" x-text="t('map.bigScreen.replayConsoleHint')"></div>
+                  </div>
+                  <div class="flex flex-wrap items-center gap-[0.625rem]">
+                    <button type="button" class="bigscreen-action" style="padding-top: 0.46875rem; padding-bottom: 0.46875rem;" @click="togglePlay()"><span class="material-symbols-rounded text-[22.5px]" x-text="playTimer ? 'pause_circle' : 'play_circle'"></span><span x-text="t(playTimer ? 'map.toolbar.pausePlayback' : 'map.toolbar.playPlayback')"></span></button>
+                    <div class="flex items-center gap-[0.3125rem] rounded-[0.9375rem] border-[1.25px] border-white/10 bg-slate-950/35 p-[0.3125rem]">
+                      <template x-for="option in playbackSpeedOptions()" :key="option.value">
+                        <button
+                          type="button"
+                          class="rounded-[0.625rem] px-[0.9375rem] text-[0.9375rem]/[1.25rem] font-medium transition"
+                          style="padding-top: 0.3125rem; padding-bottom: 0.3125rem;"
+                          :class="playbackSpeed === option.value ? 'bg-emerald-400 text-slate-950' : 'text-slate-200 hover:bg-white/10'"
+                          @click="setPlaybackSpeed(option.value)"
+                          x-text="option.label"
+                        ></button>
+                      </template>
+                    </div>
+                    <button type="button" class="bigscreen-action" style="padding-top: 0.46875rem; padding-bottom: 0.46875rem;" @click="resetTime()"><span class="material-symbols-rounded text-[22.5px]">history</span><span x-text="t('map.toolbar.resetTime')"></span></button>
+                  </div>
+                </div>
+                <div class="mt-[0.46875rem] px-[0.3125rem]">
+                  <div x-ref="timelineTrack" class="bigscreen-timeline relative h-[1.875rem] cursor-pointer" @pointerdown="jumpTimeline($event)">
+                    <div class="absolute inset-x-0 top-1/2 h-[0.46875rem] -translate-y-1/2 rounded-[12498.75px] bg-slate-800/85"></div>
+                    <div class="absolute left-0 top-1/2 h-[0.46875rem] -translate-y-1/2 rounded-[12498.75px] bg-emerald-400 shadow-[0_0_0_1.25px_rgba(74,222,128,0.2)]" :style="timelineFillStyle()"></div>
+                    <button
+                      type="button"
+                      class="absolute top-1/2 z-10 h-[1.5625rem] w-[1.5625rem] -translate-x-1/2 -translate-y-1/2 rounded-[12498.75px] border-[2.5px] border-white bg-emerald-400 shadow-[0_0_0_5px_rgba(15,23,42,0.55)]"
+                      :style="timelineThumbStyle()"
+                      @pointerdown.stop="startTimelineDrag($event)"
+                      :aria-label="t('map.timeline.adjustTime')"
+                    ></button>
+                  </div>
+                </div>
+                <div class="mt-[0.3125rem] px-[0.3125rem]">
+                  <div class="relative h-[1.25rem]">
+                    <template x-for="tick in simulationTicks()" :key="tick.key">
+                      <div class="absolute top-0 text-center" :class="tick.offsetClass" :style="`left:${tick.left}%`">
+                        <div class="font-mono text-[12.5px] tabular-nums text-slate-200" x-text="tick.timeLabel"></div>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <aside class="bigscreen-panel min-h-0 border-l-[1.25px] border-white/10">
+              <div class="border-b-[1.25px] border-white/10 px-[1.25rem] py-[1.25rem]">
+                <div class="field-label text-white/70" x-text="t('map.bigScreen.focusDetails')"></div>
+                <template x-if="currentFocusAgent()">
+                  <div class="mt-[0.625rem] min-w-0">
+                    <div class="text-[1.40625rem]/[2.1875rem] font-semibold text-white" x-text="agentDisplayName(currentFocusAgent())"></div>
+                    <button type="button" class="identifier-trigger identifier-value mt-[0.3125rem] block max-w-full font-mono text-[13.75px] text-slate-400 hover:text-emerald-300" @mouseenter="showBusinessIdTooltip(currentFocusAgent().id, $event)" @mouseleave="hideBusinessIdTooltip(currentFocusAgent().id)" x-text="currentFocusAgent().id"></button>
+                  </div>
+                </template>
+                <template x-if="!currentFocusAgent()">
+                  <div class="mt-[0.625rem] text-[1.09375rem]/[1.5625rem] text-slate-400" x-text="t('map.bigScreen.noFocus')"></div>
+                </template>
+              </div>
+              <div class="panel-scroll space-y-[0.625rem] px-[1.25rem] py-[0.9375rem]">
+                <template x-if="!agents().length">
+                  <div class="flex h-full min-h-[27.5rem] items-center justify-center">
+                    <div class="flex max-w-[30rem] flex-col items-center gap-[0.9375rem] rounded-[1.25rem] border-[1.25px] border-white/10 bg-white/5 px-[1.875rem] py-[2.5rem] text-center">
+                      <span class="material-symbols-rounded text-[3.75rem]/[3.75rem] text-slate-300" x-text="replayEmptyStateIcon()"></span>
+                      <div class="text-[1.40625rem]/[2.1875rem] font-semibold text-white" x-text="taskPanelEmptyTitle()"></div>
+                      <div class="text-[1.09375rem]/[1.5625rem] leading-[1.875rem] text-slate-300" x-text="taskPanelEmptyDescription()"></div>
+                    </div>
+                  </div>
+                </template>
+                <template x-if="agents().length">
+                  <div class="space-y-[0.625rem]">
+                    <div class="grid gap-[0.625rem] min-[800px]:grid-cols-2 min-[1600px]:grid-cols-1">
+                      <div class="bigscreen-stat-card">
+                        <div class="field-label text-white/45" x-text="t('map.currentTask')"></div>
+                        <div class="mt-[0.46875rem] text-[1.25rem]/[1.875rem] font-semibold text-white" x-text="currentFocusCurrentTask()"></div>
+                      </div>
+                      <div class="bigscreen-stat-card">
+                        <div class="field-label text-white/45" x-text="t('map.nextTask')"></div>
+                        <template x-if="jumpableNextTicketId(currentFocusAgent())">
+                          <button
+                            type="button"
+                            class="mt-[0.46875rem] block max-w-full truncate whitespace-nowrap text-left text-[1.25rem]/[1.875rem] font-semibold text-white underline decoration-emerald-400/50 decoration-dotted underline-offset-4 transition hover:text-emerald-300 focus-visible:outline-none focus-visible:ring-[2.5px] focus-visible:ring-emerald-400/70 focus-visible:ring-offset-[2.5px] focus-visible:ring-offset-slate-900"
+                            @click="openScenarioTicket(jumpableNextTicketId(currentFocusAgent()))"
+                            @mouseenter="showBusinessIdTooltip(jumpableNextTicketId(currentFocusAgent()), $event)"
+                            @mouseleave="hideBusinessIdTooltip(jumpableNextTicketId(currentFocusAgent()))"
+                            x-text="currentFocusNextTask()"
+                          ></button>
+                        </template>
+                        <template x-if="!jumpableNextTicketId(currentFocusAgent())">
+                          <div class="mt-[0.46875rem] text-[1.25rem]/[1.875rem] font-semibold text-white" x-text="currentFocusNextTask()"></div>
+                        </template>
+                      </div>
+                      <div class="bigscreen-stat-card">
+                        <div class="field-label text-white/45" x-text="t('map.bigScreen.estimatedArrival')"></div>
+                        <div class="mt-[0.46875rem] font-mono text-[1.09375rem]/[1.5625rem] text-slate-100" x-text="currentFocusEtaText()"></div>
+                      </div>
+                      <div class="bigscreen-stat-card">
+                        <div class="field-label text-white/45" x-text="t('map.bigScreen.taskProgress')"></div>
+                        <div class="mt-[0.46875rem] text-[1.25rem]/[1.875rem] font-semibold text-white" x-text="`${currentFocusCompletedTasks()} / ${currentFocusTotalTasks()}`"></div>
+                        <div class="mt-[0.3125rem] text-[0.9375rem]/[1.25rem] text-slate-400" x-text="t('map.bigScreen.remainingTasks', { count: currentFocusRemainingTasks() })"></div>
+                      </div>
+                      <div class="bigscreen-stat-card">
+                        <div class="field-label text-white/45" x-text="t('map.bigScreen.routeStatus')"></div>
+                        <div class="mt-[0.46875rem] text-[1.25rem]/[1.875rem] font-semibold text-white" x-text="currentFocusRouteLabel()"></div>
+                      </div>
+                      <div class="bigscreen-stat-card">
+                        <div class="field-label text-white/45" x-text="t('map.bigScreen.viewStatus')"></div>
+                        <div class="mt-[0.46875rem] text-[1.25rem]/[1.875rem] font-semibold text-white" x-text="currentFocusFollowLabel()"></div>
+                      </div>
+                    </div>
+
+                    <div class="flex flex-wrap gap-[0.625rem]">
+                      <button type="button" class="bigscreen-action" :disabled="!currentFocusAgent()" @click="toggleCurrentFocusRoute()"><span class="material-symbols-rounded text-[22.5px]">route</span><span x-text="t('map.bigScreen.toggleCurrentRoute')"></span></button>
+                      <button type="button" class="bigscreen-action" :disabled="!currentFocusAgent()" @click="toggleCurrentFocusVisibility()"><span class="material-symbols-rounded text-[22.5px]">visibility_off</span><span x-text="t('map.bigScreen.toggleCurrentObject')"></span></button>
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </template>
+    </div>
+  </div>
+</div>

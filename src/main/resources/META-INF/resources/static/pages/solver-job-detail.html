@@ -1,0 +1,520 @@
+<div x-data="solverJobDetailPage" class="responsive-page-root">
+  <div
+    x-show="hoveredBusinessId"
+    x-cloak
+    class="fixed z-50 rounded-[0.46875rem] border-[1.25px] border-slate-300 bg-white px-[0.9375rem] py-[0.625rem] shadow-[0_25px_31.25px_-6.25px_rgba(0,0,0,0.1),0_10px_12.5px_-7.5px_rgba(0,0,0,0.1)]"
+    :style="`left:${businessIdTooltip.left}px;top:${businessIdTooltip.top}px;max-width:calc(100vw - 30px);`"
+    @mouseenter="clearBusinessIdHideTimer()"
+    @mouseleave="hideBusinessIdTooltip(hoveredBusinessId)"
+  >
+    <button type="button" class="block text-left" @click="copyBusinessId()">
+      <div class="whitespace-nowrap font-mono text-[0.9375rem]/[1.25rem] text-slate-700" x-text="hoveredBusinessId"></div>
+    </button>
+  </div>
+  <div class="solver-detail-toolbar toolbar">
+    <div class="flex flex-wrap items-center gap-[0.625rem]">
+      <slot name="engine-result-toolbar-start"></slot>
+      <button type="button" class="action-secondary" @click="openMap()" :disabled="!job"><span class="material-symbols-rounded text-[22.5px] leading-none">route</span><span x-text="t('result.toolbar.openMap')"></span></button>
+    </div>
+    <div class="flex flex-wrap items-center gap-[0.625rem]">
+      <button type="button" class="action-danger" data-engine-local-control @click="stopJob()" :disabled="!job || !isJobSolving()" x-text="t('result.toolbar.stopSolving')"></button>
+      <button type="button" class="action-danger" data-engine-local-control @click="deleteJob()" :disabled="!canDeleteJob()" x-text="t('result.toolbar.deleteJob')"></button>
+      <slot name="engine-result-actions"></slot>
+    </div>
+  </div>
+
+  <dialog
+    x-ref="constraintDialog"
+    class="overflow-hidden rounded-[0.9375rem] border-[1.25px] border-slate-300 bg-white p-0 text-slate-900 shadow-[0_31.25px_62.5px_-15px_rgba(0,0,0,0.25)] backdrop:bg-white/85"
+    style="width: min(92vw, 70rem); max-height: min(84vh, 52.5rem); margin: auto; inset: 0;"
+    @close="constraintDialogOpen = false"
+    @click.self="closeConstraintDialog()"
+  >
+    <div class="flex items-start justify-between gap-[1.25rem] border-b-[1.25px] border-slate-200 px-[1.5625rem] py-[1.25rem]">
+      <div class="min-w-0">
+        <div class="text-[1.25rem]/[1.875rem] font-semibold text-slate-950" x-text="t('result.constraint.title')"></div>
+        <div class="mt-[0.3125rem] text-[0.9375rem]/[1.25rem] text-slate-500" x-text="t('result.constraint.description')"></div>
+      </div>
+      <button type="button" class="shrink-0 text-slate-500 hover:text-slate-800" @click="closeConstraintDialog()" :aria-label="t('result.constraint.close')">
+        <span class="material-symbols-rounded text-[25px]">close</span>
+      </button>
+    </div>
+    <div class="max-h-[calc(min(84vh,52.5rem)-5.9375rem)] overflow-auto">
+      <template x-if="constraintDialogOpen && constraintEntries().length">
+        <table class="data-table constraint-dialog-table">
+          <thead>
+            <tr>
+              <th x-text="t('result.constraint.key')"></th>
+              <th x-text="t('result.constraint.descriptionColumn')"></th>
+              <th>Hard</th>
+              <th>Medium</th>
+              <th>Soft</th>
+            </tr>
+          </thead>
+          <tbody>
+            <template x-for="item in constraintEntries()" :key="item.key">
+              <tr>
+                <td>
+                  <div class="break-all font-mono text-[13.75px] leading-[1.5625rem] text-slate-600" x-text="item.key"></div>
+                </td>
+                <td>
+                  <div class="text-[1.09375rem]/[1.5625rem] text-slate-800" x-text="item.label"></div>
+                </td>
+                <td>
+                  <div class="font-mono text-[0.9375rem]/[1.25rem] tabular-nums text-slate-900" x-text="item.hard"></div>
+                </td>
+                <td>
+                  <div class="font-mono text-[0.9375rem]/[1.25rem] tabular-nums text-slate-900" x-text="item.medium"></div>
+                </td>
+                <td>
+                  <div class="font-mono text-[0.9375rem]/[1.25rem] tabular-nums text-slate-900" x-text="item.soft"></div>
+                </td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+      </template>
+      <template x-if="constraintDialogOpen && !constraintEntries().length">
+        <div class="px-[1.5625rem] py-[3.75rem] text-center text-[1.09375rem]/[1.5625rem] text-slate-500" x-text="t('result.constraint.empty')"></div>
+      </template>
+    </div>
+  </dialog>
+
+  <div
+    x-ref="ganttTicketDialog"
+    popover="manual"
+    role="dialog"
+    :aria-label="t('result.ticket.info')"
+    class="overflow-auto rounded-[0.46875rem] border-[1.25px] border-slate-300 bg-white p-0 text-slate-900 shadow-[0_31.25px_62.5px_-15px_rgba(0,0,0,0.25)] shadow-slate-400/35"
+    style="position: fixed; width: min(30rem, calc(100vw - 30px)); margin: 0;"
+    :style="ganttPopoverStyle"
+    @click.self="closeTicketPopover()"
+  >
+    <template x-if="activeGanttPopover">
+      <div class="p-[0.9375rem]">
+        <div class="flex items-start justify-between gap-[0.9375rem]">
+          <div class="min-w-0">
+            <div class="truncate text-[1.09375rem]/[1.5625rem] font-semibold text-slate-950" x-text="activeGanttPopover.label"></div>
+            <div class="mt-[0.3125rem] truncate font-mono text-[13.75px] text-slate-500" x-text="activeGanttPopover.engineerName"></div>
+          </div>
+          <button type="button" class="shrink-0 text-slate-500 hover:text-slate-800" @click="closeTicketPopover()" :aria-label="t('result.ticket.close')">
+            <span class="material-symbols-rounded text-[20px]">close</span>
+          </button>
+        </div>
+        <div class="mt-[0.9375rem] space-y-[0.625rem] text-[0.9375rem]/[1.25rem]">
+          <template x-for="row in activeGanttPopover.detailRows" :key="row.key">
+            <div class="flex items-start justify-between gap-[0.9375rem]">
+              <span class="inline-flex shrink-0 items-center gap-[0.46875rem] whitespace-nowrap text-slate-500">
+                <template x-if="row.dotStyle">
+                  <span class="h-[0.625rem] w-[0.625rem] shrink-0 rounded-[12498.75px]" :style="row.dotStyle"></span>
+                </template>
+                <span x-text="row.label"></span>
+              </span>
+              <span class="shrink-0 whitespace-nowrap text-right font-mono tabular-nums text-slate-800" x-text="row.value"></span>
+            </div>
+          </template>
+          <div x-show="activeGanttPopover.showLocationInfo" class="border-t-[1.25px] border-slate-200 pt-[0.625rem]">
+            <div class="text-slate-500" x-text="activeGanttPopover.addressLabel"></div>
+            <div class="mt-[0.3125rem] break-words text-slate-800" x-text="activeGanttPopover.addressText"></div>
+          </div>
+        </div>
+      </div>
+    </template>
+  </div>
+
+  <div class="result-page-body flex-1 min-h-0 min-[1600px]:overflow-hidden">
+    <div class="flex h-full min-h-0 flex-col gap-0">
+      <template x-if="notice">
+        <div class="shrink-0 rounded-[0.46875rem] border-[1.25px] border-emerald-500/30 bg-emerald-500/10 px-[1.25rem] py-[0.9375rem] text-[1.09375rem]/[1.5625rem] text-emerald-700">
+          <div class="flex items-center justify-between gap-[0.9375rem]">
+            <span x-text="notice"></span>
+            <button type="button" class="shrink-0 text-slate-700 hover:text-slate-900" @click="clearNotice()" :aria-label="t('result.notification.dismiss')">
+              <span class="material-symbols-rounded text-[22.5px]">close</span>
+            </button>
+          </div>
+        </div>
+      </template>
+      <template x-if="error">
+        <div class="shrink-0 rounded-[0.46875rem] border-[1.25px] border-rose-500/30 bg-rose-500/10 px-[1.25rem] py-[0.9375rem] text-[1.09375rem]/[1.5625rem] text-rose-700">
+          <div class="flex items-center justify-between gap-[0.9375rem]">
+            <span x-text="error"></span>
+            <button type="button" class="shrink-0 text-slate-700 hover:text-slate-900" @click="clearError()" :aria-label="t('result.notification.dismiss')">
+              <span class="material-symbols-rounded text-[22.5px]">close</span>
+            </button>
+          </div>
+        </div>
+      </template>
+
+      <template x-if="loading && !job">
+        <div class="flex-1 min-h-0" aria-busy="true">
+          <div class="empty-state" role="status" aria-live="polite">
+            <span class="material-symbols-rounded animate-spin text-[2.8125rem]/[3.125rem] text-emerald-600 motion-reduce:animate-none" aria-hidden="true">progress_activity</span>
+            <div class="text-[1.25rem]/[1.875rem] font-semibold text-slate-900" x-text="t('result.loading.title')"></div>
+            <div class="max-w-[45rem] text-[1.09375rem]/[1.5625rem] text-slate-600" x-text="t('result.loading.description')"></div>
+          </div>
+        </div>
+      </template>
+
+      <template x-if="!loading && !job">
+        <div class="flex-1 min-h-0">
+          <div class="empty-state">
+            <span class="material-symbols-rounded text-[2.8125rem]/[3.125rem] text-slate-500">work_history</span>
+            <div class="text-[1.25rem]/[1.875rem] font-semibold text-slate-900" x-text="t('result.empty.title')"></div>
+            <div class="max-w-[45rem] text-[1.09375rem]/[1.5625rem] text-slate-600" x-text="t('result.empty.description')"></div>
+          </div>
+        </div>
+      </template>
+
+      <template x-if="job">
+        <div class="result-page-scroll panel-scroll flex-1 min-h-0 overflow-x-hidden">
+          <div class="space-y-0">
+            <div class="grid gap-y-[0.9375rem] min-[1600px]:gap-x-0 min-[1600px]:gap-y-0 min-[1600px]:grid-cols-[minmax(0,2.65fr)_minmax(22.5rem,1fr)] min-[1920px]:grid-cols-[minmax(0,1.5fr)_minmax(27.5rem,1fr)] min-[1600px]:items-stretch">
+              <div class="min-w-0">
+              <div class="result-summary-panel h-full">
+                <div class="result-summary-panel-header result-section-toolbar toolbar shrink-0 gap-[0.625rem]">
+                  <div class="flex min-w-0 items-center gap-[0.625rem]">
+                    <div class="result-section-title" x-text="t('result.summary.basicInfo')"></div>
+                    <span class="result-summary-status" :class="summaryStatusBadgeClass(job?.status)">
+                      <span class="result-summary-status-dot" :class="summaryStatusDotClass(job?.status)"></span>
+                      <span x-text="jobStatusLabel()"></span>
+                    </span>
+                  </div>
+                </div>
+                <section class="result-summary-task-meta" :aria-label="t('result.summary.task')">
+                  <template x-for="row in taskSummaryRows()" :key="row.key">
+                    <div class="result-summary-task-meta-item">
+                      <span class="result-summary-task-meta-label" x-text="row.label"></span>
+                      <template x-if="row.kind === 'jobId'">
+                        <button
+                          type="button"
+                          class="result-summary-task-meta-value result-summary-value-id text-left font-mono hover:text-emerald-700 focus:outline-none focus-visible:ring-[2.5px] focus-visible:ring-emerald-500/20"
+                          :aria-label="t('result.summary.jobIdAria', { value: row.value })"
+                          @mouseenter="showBusinessIdTooltip(row.value, $event)"
+                          @mouseleave="hideBusinessIdTooltip(row.value)"
+                          @click="copyCurrentJobId()"
+                          x-text="row.value"
+                        ></button>
+                      </template>
+                      <template x-if="row.kind !== 'jobId'">
+                        <span class="result-summary-task-meta-value" :class="row.valueClass || ''" x-text="row.value"></span>
+                      </template>
+                    </div>
+                  </template>
+                </section>
+                <div class="result-summary-content">
+                <template x-for="section in summarySections()" :key="section.key">
+                  <section class="result-summary-section">
+                    <div class="result-summary-heading">
+                      <span class="material-symbols-rounded result-summary-icon" :class="section.iconClass" x-text="section.icon"></span>
+                      <span class="result-summary-heading-title" x-text="section.title"></span>
+                    </div>
+                    <div class="result-summary-grid" :class="section.gridClass || ''">
+                      <template x-for="row in section.rows" :key="row.key">
+                        <div class="result-summary-row" :class="[row.wide ? 'min-[800px]:col-span-2' : '', row.layoutClass || '']">
+                          <span class="result-summary-label" x-text="row.label"></span>
+                          <template x-if="row.kind === 'constraintCount'">
+                            <button type="button" class="result-summary-link-value" @click="openConstraintDialog()" x-text="row.value"></button>
+                          </template>
+                          <template x-if="row.kind === 'jobId'">
+                            <button
+                              type="button"
+                              class="result-summary-value result-summary-value-id text-left font-mono hover:text-emerald-700 focus:outline-none focus-visible:ring-[2.5px] focus-visible:ring-emerald-500/20"
+                              :aria-label="t('result.summary.jobIdAria', { value: row.value })"
+                              @mouseenter="showBusinessIdTooltip(row.value, $event)"
+                              @mouseleave="hideBusinessIdTooltip(row.value)"
+                              @click="copyBusinessId(row.value)"
+                              x-text="row.value"
+                            ></button>
+                          </template>
+                          <template x-if="row.kind === 'score'">
+                            <span class="result-summary-score" :class="row.valueClass || ''">
+                              <template x-for="segment in row.segments" :key="segment.key">
+                                <span class="result-summary-score-segment" :class="segment.colorClass">
+                                  <span class="result-summary-score-label" x-text="segment.label"></span>
+                                  <span class="result-summary-score-value" x-text="segment.value"></span>
+                                </span>
+                              </template>
+                            </span>
+                          </template>
+                          <template x-if="row.kind !== 'constraintCount' && row.kind !== 'jobId' && row.kind !== 'score'">
+                            <span class="result-summary-value" :class="row.valueClass || ''" x-text="row.value"></span>
+                          </template>
+                        </div>
+                      </template>
+                      <template x-if="section.key === 'solve'">
+                        <div class="contents">
+                          <template x-for="row in technicalSummaryRows()" :key="row.key">
+                            <div class="result-summary-row" :class="row.layoutClass || ''">
+                              <span class="result-summary-label" x-text="row.label"></span>
+                              <span class="result-summary-value" x-text="row.value"></span>
+                            </div>
+                          </template>
+                        </div>
+                      </template>
+                    </div>
+                  </section>
+                </template>
+                </div>
+                <div x-show="hasHardViolation()" class="flex items-center gap-[0.625rem] border-t-[1.25px] border-rose-200 bg-rose-50 px-[1.25rem] py-[0.625rem] text-[0.9375rem]/[1.25rem] font-medium text-rose-800" role="alert">
+                  <span class="material-symbols-rounded text-[21.25px]" aria-hidden="true">error</span>
+                  <span x-text="t('result.summary.hardViolation')"></span>
+                </div>
+              </div>
+            </div>
+
+              <section class="result-score-panel panel-shell flex min-h-0 min-w-0 flex-col border-t-0 border-l-0 min-[1600px]:self-stretch">
+                <div class="result-section-toolbar toolbar shrink-0 gap-[0.625rem]">
+                  <div class="relative flex w-full min-w-0 flex-wrap items-center gap-x-[0.625rem] gap-y-[0.3125rem]">
+                    <div class="result-section-title" x-text="t('result.score.title')"></div>
+                    <button
+                      type="button"
+                      class="result-score-help-trigger"
+                      :aria-label="t('result.score.help')"
+                      aria-describedby="result-score-help-tooltip"
+                    ><span class="material-symbols-rounded text-[21.25px] leading-none" aria-hidden="true">help</span></button>
+                    <span
+                      id="result-score-help-tooltip"
+                      role="tooltip"
+                      class="result-score-help-tooltip"
+                      x-text="t('result.score.helpText')"
+                    ></span>
+                    <div class="text-[0.9375rem]/[1.25rem] font-medium leading-[1.5625rem]" :class="scoreCurrentHardClass()" x-text="scoreCurrentHardLabel()"></div>
+                  </div>
+                </div>
+                <div class="relative h-[12.5rem]" x-ref="scoreChartShell">
+                    <div class="h-full" x-ref="scoreChart"></div>
+                    <div
+                      x-cloak
+                      x-show="scoreHover.visible"
+                      x-ref="scoreHoverGuide"
+                      hidden
+                      class="pointer-events-none absolute z-20 border-l-[1.25px] border-dashed border-slate-500/80"
+                      :style="`left:${scoreHover.guideLeft}px;top:${scoreHover.guideTop}px;height:${scoreHover.guideHeight}px`"
+                    ></div>
+                    <div
+                      x-cloak
+                      x-show="scoreHover.visible"
+                      x-ref="scoreHoverTooltip"
+                      hidden
+                      class="pointer-events-none absolute z-30 w-[19.375rem] rounded-[0.46875rem] border-[1.25px] border-slate-600/70 bg-slate-900/90 px-[0.9375rem] py-[0.625rem] text-[0.9375rem]/[1.25rem] leading-[1.5625rem] text-white shadow-[0_12.5px_18.75px_-3.75px_rgba(0,0,0,0.1),0_5px_7.5px_-5px_rgba(0,0,0,0.1)]"
+                      :style="`left:${scoreHover.tooltipLeft}px;top:${scoreHover.tooltipTop}px`"
+                    >
+                      <div class="font-semibold"><span x-text="t('result.score.currentTime')"></span> <span x-text="scoreHover.elapsedLabel"></span></div>
+                      <template x-if="scoreHover.hasSample">
+                        <div>
+                          <div class="text-slate-300"><span x-text="t('result.score.latestSample')"></span> <span x-text="scoreHover.sampleElapsedLabel"></span> · <span x-text="scoreHover.sampleLabel"></span></div>
+                          <div>Hard：<span x-text="scoreHover.hard"></span></div>
+                          <div>Medium：<span x-text="scoreHover.medium"></span></div>
+                          <div>Soft：<span x-text="scoreHover.soft"></span></div>
+                          <div class="text-slate-300"><span x-text="t('result.score.fullScore')"></span> <span x-text="scoreHover.scoreText"></span></div>
+                        </div>
+                      </template>
+                      <div x-show="!scoreHover.hasSample" class="text-slate-300" x-text="t('result.score.noSample')"></div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
+
+            <div class="grid min-h-[40rem] gap-y-[0.9375rem] min-[1600px]:gap-0 min-[1600px]:grid-cols-[minmax(0,1fr)_450px] min-[1600px]:items-stretch">
+              <section class="panel-shell min-h-[40rem] border-t-0 border-l-0">
+                <div class="result-section-toolbar toolbar gap-[0.625rem]">
+                  <div class="flex min-w-0 flex-wrap items-baseline gap-x-[0.9375rem] gap-y-[0.3125rem]">
+                    <div class="result-section-title" x-text="t('result.gantt.title')"></div>
+                    <div class="text-[0.9375rem]/[1.25rem] leading-[1.5625rem] text-slate-500" x-text="t('result.gantt.description')"></div>
+                  </div>
+                  <div class="flex flex-wrap items-center justify-end gap-[0.625rem]">
+                    <div class="flex flex-wrap items-center gap-[0.625rem] pr-[0.3125rem] text-[13.75px] text-slate-500">
+                      <template x-for="item in ganttLegend()" :key="item.type">
+                        <span class="inline-flex items-center gap-[0.3125rem] rounded-[12498.75px] border-[1.25px] border-slate-200 bg-white/75 px-[0.46875rem] py-[0.15625rem] text-[13.75px] leading-[1.25rem]">
+                          <span class="h-[0.625rem] w-[0.625rem] rounded-[12498.75px]" :style="item.dotStyle"></span>
+                          <span x-text="item.label"></span>
+                        </span>
+                      </template>
+                    </div>
+                  </div>
+                </div>
+
+                <template x-if="ganttReady">
+                  <div class="contents">
+                    <div x-show="isJobSolving()" class="px-[1.25rem] py-[3.125rem]">
+                      <div class="empty-state min-h-[22.5rem] border-slate-200 bg-slate-50/80">
+                        <span class="material-symbols-rounded text-[2.8125rem]/[3.125rem] text-slate-500">hourglass_top</span>
+                        <div class="text-[1.25rem]/[1.875rem] font-semibold text-slate-900" x-text="t('result.gantt.solvingTitle')"></div>
+                        <div class="max-w-[45rem] text-[1.09375rem]/[1.5625rem] text-slate-600" x-text="t('result.gantt.solvingDescription')"></div>
+                      </div>
+                    </div>
+
+                    <div x-show="!isJobSolving()" class="shrink-0 px-[1.25rem] pt-[0.3125rem] pb-0">
+                      <template x-if="ganttView.ticks.length">
+                        <div class="flex items-start gap-[0.625rem]">
+                          <div class="flex w-[11.875rem] shrink-0 items-center gap-[0.625rem] pt-[0.15625rem]">
+                            <div class="status-pill ui-tooltip min-w-0 max-w-full flex-1 text-[12.5px]" :data-tooltip="ganttView.fullLabel" data-tooltip-overflow=".truncate" :aria-label="ganttView.fullLabel">
+                              <span class="truncate font-mono tabular-nums" x-text="ganttView.compactLabel"></span>
+                            </div>
+                            <button type="button" class="compact-icon-action ui-tooltip" @click="toggleGanttViewportMode()" :disabled="!ganttView.canToggleMode" :data-tooltip="ganttView.modeHint" :aria-label="ganttView.modeHint"><span class="material-symbols-rounded text-[17.5px] leading-none">swap_horiz</span></button>
+                          </div>
+                          <div class="relative h-[2.5rem] flex-1">
+                            <div class="absolute inset-x-0 top-[1.5625rem] h-[1.25px] bg-slate-300/80"></div>
+                            <template x-for="tick in ganttView.ticks" :key="tick.key">
+                              <div class="absolute top-[0.3125rem]" :class="tick.offsetClass" :style="`left:${tick.left}%`">
+                                <div class="font-mono text-[13.75px] leading-none tabular-nums text-slate-500" x-text="tick.label"></div>
+                              </div>
+                            </template>
+                          </div>
+                        </div>
+                      </template>
+                    </div>
+
+                    <div x-show="!isJobSolving()" class="divide-y-[1.25px] divide-slate-200">
+                      <template x-for="row in ganttView.rows" :key="row.agent.id">
+                        <div class="px-[1.25rem] py-[0.15625rem] transition" :class="selectedAgentId === row.agent.id ? 'bg-emerald-500/10' : ''">
+                          <div class="flex items-center gap-[0.625rem]">
+                            <button type="button" class="gantt-agent-label identifier-trigger w-[11.875rem] shrink-0 px-[0.9375rem] py-[0.15625rem] text-left" :class="selectedAgentId === row.agent.id ? 'text-emerald-700' : 'text-slate-800'" @click="selectAgent(row.agent.id)">
+                              <div class="identifier-value font-medium" x-text="row.agent.name || row.agent.id"></div>
+                              <div class="monospace-meta mt-[0.15625rem]" x-text="row.operatingRangeLabel"></div>
+                            </button>
+                            <div class="relative flex-1 p-0" style="min-height: 3.125rem;" @click="closeTicketPopover()">
+                              <div class="absolute top-1/2 h-[3.75px] -translate-y-1/2 rounded-[12498.75px] bg-slate-400/40" :style="row.trackStyle"></div>
+                              <template x-for="bar in row.bars" :key="bar.key">
+                                <button type="button" class="absolute top-0 h-[3.125rem] overflow-visible rounded-[0.46875rem] border-[1.25px] text-left text-[0.9375rem]/[1.25rem] transition ring-[1.25px]" :data-gantt-bar-key="bar.key" :class="isTicketPopoverOpen(bar.key) ? 'ring-slate-400/60' : 'ring-slate-200/70'" :style="bar.barStyle" @click.stop="clickTimelineBar(row.agent.id, bar, $event)" @mouseenter="hoverTicket(bar.ticketId)" @mouseleave="hoverTicket('')" :aria-label="bar.label">
+                                  <div class="absolute inset-0 overflow-hidden rounded-[inherit]">
+                                    <template x-for="segment in bar.segments" :key="segment.key">
+                                      <div class="ui-tooltip absolute inset-y-0" :style="segment.style" :data-tooltip="segment.title"></div>
+                                    </template>
+                                  </div>
+                                </button>
+                              </template>
+                              <template x-for="label in row.labels" :key="label.key">
+                                <span class="pointer-events-none absolute top-0 z-20 flex h-[3.125rem] items-center justify-center truncate px-[0.3125rem] text-[0.9375rem]/[1.25rem] font-semibold" :style="label.style">
+                                  <span class="rounded-[0.3125rem] bg-white/75 px-[0.3125rem] leading-[1.5625rem] shadow-[0_1.25px_3.75px_0_rgba(0,0,0,0.1),0_1.25px_2.5px_-1.25px_rgba(0,0,0,0.1)]" x-text="label.displayLabel"></span>
+                                </span>
+                              </template>
+                            </div>
+                          </div>
+                        </div>
+                      </template>
+                    </div>
+                  </div>
+                </template>
+                <template x-if="!ganttReady && !isJobSolving()">
+                  <div class="flex min-h-[22.5rem] items-center justify-center px-[1.25rem] py-[3.125rem] text-[1.09375rem]/[1.5625rem] text-slate-500">
+                    <span x-text="t('result.gantt.preparing')"></span>
+                  </div>
+                </template>
+              </section>
+
+              <aside x-show="!isJobSolving()" class="min-h-[30rem] border-[1.25px] border-t-0 border-l-0 border-slate-200 min-[1600px]:sticky min-[1600px]:top-0 min-[1600px]:h-[calc(100dvh-6.875rem)] min-[1600px]:self-start">
+            <div class="flex h-full min-h-0 items-stretch">
+              <div class="flex min-w-0 flex-1 flex-col">
+                <div class="h-full min-h-0">
+                  <section x-show="taskSidebarTab === 'route'" class="flex h-full min-h-0 flex-col overflow-hidden bg-white/80">
+                    <div class="relative flex-1 min-h-0 overflow-hidden" :aria-busy="String(previewMapLoading)">
+                      <div class="map-canvas-surface absolute inset-x-0 top-0 bottom-[-1.25px] min-h-0" x-ref="previewMap"></div>
+                      <div
+                        x-show="previewMapLoading"
+                        class="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center gap-[0.625rem] bg-white text-center"
+                        role="status"
+                        aria-live="polite"
+                        aria-atomic="true"
+                      >
+                        <span class="material-symbols-rounded animate-spin text-[37.5px] leading-none text-emerald-600 motion-reduce:animate-none" aria-hidden="true">progress_activity</span>
+                        <span class="text-[1.09375rem]/[1.5625rem] font-medium text-slate-600" x-text="t('result.map.loading')"></span>
+                      </div>
+                      <template x-if="selectedAgentRouteNotice()">
+                        <div class="pointer-events-none absolute inset-x-[0.9375rem] top-[0.9375rem] z-20 flex min-w-0 items-center gap-[0.46875rem] rounded-[0.46875rem] border-[1.25px] border-amber-500/30 bg-amber-50/95 px-[0.625rem] py-[0.46875rem] text-[0.9375rem]/[1.25rem] text-amber-900 shadow-[0_1.25px_3.75px_0_rgba(0,0,0,0.1),0_1.25px_2.5px_-1.25px_rgba(0,0,0,0.1)]">
+                          <span class="material-symbols-rounded text-[18.75px] leading-none">info</span>
+                          <span class="truncate font-medium" x-text="t(selectedAgentRouteNotice().key)"></span>
+                        </div>
+                      </template>
+                    </div>
+                  </section>
+
+                  <section x-show="taskSidebarTab === 'engineer'" class="panel-scroll h-full bg-white/80">
+                    <template x-if="selectedAgent()">
+                      <div class="divide-y-[1.25px] divide-slate-200">
+                        <div class="px-[1.25rem] py-[0.9375rem]">
+                          <div class="identifier-value text-[1.09375rem]/[1.5625rem] font-semibold text-slate-900" x-text="selectedAgent().name || selectedAgent().id"></div>
+                          <button type="button" class="identifier-trigger identifier-value mt-[0.3125rem] block max-w-full font-mono text-[13.75px] leading-[1.5625rem] text-slate-500 hover:text-emerald-700" @mouseenter="showBusinessIdTooltip(selectedAgent().id, $event)" @mouseleave="hideBusinessIdTooltip(selectedAgent().id)" x-text="selectedAgent().id"></button>
+                        </div>
+                        <div class="grid gap-[0.625rem] px-[1.25rem] py-[0.625rem] text-[1.09375rem]/[1.5625rem]">
+                          <div>
+                            <div class="text-slate-500" x-text="t('result.agent.shiftWindow')"></div>
+                            <div class="mt-[0.3125rem] break-words font-mono text-[13.75px] leading-[1.5625rem] tabular-nums text-slate-800" x-text="agentShiftWindowLabel(selectedAgent())"></div>
+                          </div>
+                          <div>
+                            <div class="text-slate-500" x-text="t('result.agent.departureToReturn')"></div>
+                            <div class="mt-[0.3125rem] break-words font-mono text-[13.75px] leading-[1.5625rem] tabular-nums text-slate-800" x-text="agentOperatingRangeDetail(selectedAgent())"></div>
+                          </div>
+                          <div>
+                            <div class="text-slate-500" x-text="t('result.agent.ticketCount')"></div>
+                            <div class="mt-[0.3125rem] break-words font-mono text-[13.75px] leading-[1.5625rem] tabular-nums text-slate-800" x-text="t('result.agent.ticketCountValue', { count: selectedAgentTickets().length })"></div>
+                          </div>
+                        </div>
+                        <div class="px-[1.25rem] py-[0.9375rem]">
+                          <div class="text-[1.09375rem]/[1.5625rem] font-semibold text-slate-900" x-text="t('result.agent.vehicleAndCost')"></div>
+                          <div class="mt-[0.625rem] divide-y-[1.25px] divide-slate-100">
+                            <template x-for="row in agentVehicleCostRows(selectedAgent())" :key="row.key">
+                              <div class="flex items-center justify-between gap-[0.9375rem] py-[0.46875rem] text-[1.09375rem]/[1.5625rem]">
+                                <span class="shrink-0 text-slate-500" x-text="row.label"></span>
+                                <template x-if="row.kind === 'pill'">
+                                  <span class="status-pill" x-text="row.value"></span>
+                                </template>
+                                <template x-if="row.kind !== 'pill'">
+                                  <span class="ui-tooltip min-w-0 truncate font-mono text-[0.9375rem]/[1.25rem] tabular-nums text-slate-900" :data-tooltip="row.value" data-tooltip-overflow="self" x-text="row.value"></span>
+                                </template>
+                              </div>
+                            </template>
+                          </div>
+                        </div>
+                      </div>
+                    </template>
+                    <template x-if="!selectedAgent()">
+                      <div class="px-[1.25rem] py-[1.875rem] text-[1.09375rem]/[1.5625rem] text-slate-500" x-text="t('result.agent.noTechnicians')"></div>
+                    </template>
+                  </section>
+
+                  <section x-show="taskSidebarTab === 'tickets'" class="flex h-full min-h-0 flex-col overflow-hidden bg-white/80">
+                    <div class="panel-scroll divide-y-[1.25px] divide-slate-200">
+                      <template x-if="selectedAgentTickets().length">
+                        <div class="divide-y-[1.25px] divide-slate-200">
+                          <template x-for="ticket in selectedAgentTickets()" :key="ticket.id">
+                            <div class="px-[1.25rem] py-[0.9375rem]" @mouseenter="hoverTicket(ticket.id)" @mouseleave="hoverTicket('')">
+                              <div class="min-w-0 space-y-[0.3125rem]">
+                                <button type="button" class="identifier-trigger identifier-value max-w-full text-left text-[1.09375rem]/[1.5625rem] font-semibold leading-[1.5625rem] text-slate-900 underline decoration-emerald-500/40 decoration-dotted underline-offset-4 transition hover:text-emerald-700" @click="openScenarioTicket(ticket.id)" @mouseenter="showBusinessIdTooltip(ticket.id, $event)" @mouseleave="hideBusinessIdTooltip(ticket.id)" x-text="ticket.id"></button>
+                                <div class="break-words font-mono text-[13.75px] leading-[1.5625rem] tabular-nums text-slate-500" x-text="ticketServiceWindowLabel(ticket)"></div>
+                                <div class="line-clamp-2 text-[0.9375rem]/[1.25rem] leading-[1.5625rem] text-slate-500" x-text="ticketLocationText(ticket)"></div>
+                              </div>
+                            </div>
+                          </template>
+                        </div>
+                      </template>
+                      <template x-if="!selectedAgentTickets().length">
+                        <div class="px-[1.25rem] py-[1.875rem] text-[1.09375rem]/[1.5625rem] text-slate-500" x-text="t('result.sidebar.noTickets')"></div>
+                      </template>
+                    </div>
+                  </section>
+                </div>
+              </div>
+
+              <nav class="ml-[-1.25px] flex w-[2.8125rem] shrink-0 flex-col items-stretch pt-[1.25px]" :aria-label="t('result.sidebar.label')">
+                <template x-for="item in sideTabItems()" :key="item.key">
+                  <button
+                    type="button"
+                    class="group mt-[-1.25px] flex min-h-[4.375rem] items-center justify-center border-[1.25px] px-0 py-[0.625rem] text-[13.75px] font-medium transition"
+                    :class="isSideTabActive(item.key) ? 'border-emerald-500/40 bg-emerald-50 text-emerald-700 font-semibold' : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50/80 hover:text-slate-800'"
+                    @click="setTaskSidebarTab(item.key)"
+                  >
+                    <span style="writing-mode: vertical-rl; text-orientation: upright; letter-spacing: 0.12em;" x-text="item.label"></span>
+                  </button>
+                </template>
+              </nav>
+            </div>
+              </aside>
+            </div>
+          </div>
+        </div>
+      </template>
+    </div>
+  </div>
+</div>

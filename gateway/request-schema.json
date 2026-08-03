@@ -1,0 +1,693 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://servforce.local/schemas/vrp0/request-schema.json",
+  "title": "VRP0 solve request",
+  "type": "object",
+  "required": [
+    "name",
+    "planning_date",
+    "start_time",
+    "end_time",
+    "plan"
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "title": "场景 ID"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "title": "场景名称"
+    },
+    "desc": {
+      "type": "string",
+      "title": "场景描述"
+    },
+    "planning_date": {
+      "description": "Local date formatted as yyyy-MM-dd",
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "规划日期"
+    },
+    "start_time": {
+      "description": "Local date time formatted as yyyy-MM-dd HH:mm:ss",
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$"
+        },
+        {
+          "type": "string",
+          "maxLength": 0
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "规划开始时间"
+    },
+    "end_time": {
+      "description": "Local date time formatted as yyyy-MM-dd HH:mm:ss",
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$"
+        },
+        {
+          "type": "string",
+          "maxLength": 0
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "规划结束时间"
+    },
+    "plan": {
+      "$ref": "#/$defs/routePlan"
+    },
+    "create_time": {
+      "description": "Local date time formatted as yyyy-MM-dd HH:mm:ss",
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$"
+        },
+        {
+          "type": "string",
+          "maxLength": 0
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "场景创建时间"
+    },
+    "update_time": {
+      "description": "Local date time formatted as yyyy-MM-dd HH:mm:ss",
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$"
+        },
+        {
+          "type": "string",
+          "maxLength": 0
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "场景更新时间"
+    },
+    "poi_build": {
+      "type": "boolean",
+      "title": "POI 是否已构建"
+    },
+    "matrix_build": {
+      "type": "boolean",
+      "title": "矩阵是否已构建"
+    },
+    "options": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "build_transit_matrix": {
+          "type": "boolean",
+          "default": false,
+          "title": "是否构建矩阵"
+        },
+        "matrix_mode": {
+          "type": "string",
+          "enum": [
+            "AMAP",
+            "MANHATTAN"
+          ],
+          "default": "AMAP",
+          "title": "矩阵构建类型"
+        },
+        "draw_route": {
+          "type": "boolean",
+          "default": false,
+          "title": "是否构建路线"
+        },
+        "resource_spec": {
+          "type": "string",
+          "title": "求解资源规格"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "loc": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "lat": {
+          "type": "number"
+        },
+        "lon": {
+          "type": "number"
+        }
+      }
+    },
+    "poi": {
+      "type": "object",
+      "required": [
+        "id"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "title": "POI ID"
+        },
+        "name": {
+          "type": "string",
+          "title": "POI 名称"
+        },
+        "location": {
+          "type": "string",
+          "title": "经纬度字符串"
+        },
+        "loc": {
+          "$ref": "#/$defs/loc"
+        },
+        "entr_location": {
+          "type": "string",
+          "title": "入口经纬度字符串"
+        },
+        "entr_loc": {
+          "$ref": "#/$defs/loc"
+        },
+        "address": {
+          "type": "string",
+          "title": "地址"
+        },
+        "cityname": {
+          "type": "string",
+          "title": "城市"
+        },
+        "adcode": {
+          "type": "string",
+          "title": "区域编码"
+        },
+        "adname": {
+          "type": "string",
+          "title": "区域名称"
+        }
+      }
+    },
+    "poiRef": {
+      "oneOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "$ref": "#/$defs/poi"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "skuItem": {
+      "type": "object",
+      "required": [
+        "sku"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "sku": {
+          "type": "string",
+          "minLength": 1
+        },
+        "value": {
+          "type": "number",
+          "minimum": 0,
+          "default": 1
+        }
+      }
+    },
+    "sku": {
+      "type": "object",
+      "required": [
+        "id"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "title": "SKU ID"
+        },
+        "name": {
+          "type": "string",
+          "title": "SKU 名称"
+        },
+        "weight": {
+          "type": "number",
+          "minimum": 0,
+          "title": "重量"
+        },
+        "vol": {
+          "type": "number",
+          "minimum": 0,
+          "title": "体积"
+        }
+      }
+    },
+    "depo": {
+      "type": "object",
+      "required": [
+        "id"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "title": "仓库 ID"
+        },
+        "name": {
+          "type": "string",
+          "title": "仓库名称"
+        },
+        "loc": {
+          "$ref": "#/$defs/poiRef"
+        }
+      }
+    },
+    "agent": {
+      "type": "object",
+      "required": [
+        "id"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "title": "车辆/工程师 ID"
+        },
+        "depo_id": {
+          "type": "string",
+          "title": "所属仓库 ID"
+        },
+        "name": {
+          "type": "string",
+          "title": "名称"
+        },
+        "start_loc": {
+          "$ref": "#/$defs/poiRef"
+        },
+        "skills": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "服务技能"
+        },
+        "qualification_levels": {
+          "type": "object",
+          "title": "工程师资质等级"
+        },
+        "vehicle_type": {
+          "type": "string",
+          "enum": [
+            "TRUCK",
+            "CAR",
+            "E_BIKE"
+          ],
+          "title": "出行方式"
+        },
+        "fuel_type": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "GAS_92",
+            "ELEC",
+            null
+          ],
+          "title": "燃料类型"
+        },
+        "weight": {
+          "type": "number",
+          "minimum": 0,
+          "title": "核定载重"
+        },
+        "vol": {
+          "type": "number",
+          "minimum": 0,
+          "title": "核定体积"
+        },
+        "max_ticket_num": {
+          "type": "integer",
+          "minimum": 0,
+          "title": "当日最大接单量"
+        },
+        "shift_start_time": {
+          "description": "Local date time formatted as yyyy-MM-dd HH:mm:ss",
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$"
+            },
+            {
+              "type": "string",
+              "maxLength": 0
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "班次开始时间"
+        },
+        "shift_off_time": {
+          "description": "Local date time formatted as yyyy-MM-dd HH:mm:ss",
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$"
+            },
+            {
+              "type": "string",
+              "maxLength": 0
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "班次结束时间"
+        },
+        "tickets": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "title": "已分配工单 ID 列表"
+        }
+      }
+    },
+    "ticket": {
+      "type": "object",
+      "required": [
+        "id"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "title": "工单 ID"
+        },
+        "depo_id": {
+          "type": "string",
+          "title": "所属仓库 ID"
+        },
+        "pinned": {
+          "type": "boolean",
+          "title": "是否固定"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "Delv",
+            "Delv_BH",
+            "Inst"
+          ],
+          "default": "Delv",
+          "title": "工单类型"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "New",
+            "Assigned",
+            "Accepted",
+            "Transit",
+            "Working",
+            "Agent_Done",
+            "Done"
+          ],
+          "default": "New",
+          "title": "工单状态"
+        },
+        "loc": {
+          "$ref": "#/$defs/poiRef"
+        },
+        "items": {
+          "type": "array",
+          "title": "SKU 明细",
+          "items": {
+            "$ref": "#/$defs/skuItem"
+          }
+        },
+        "weight": {
+          "type": "number",
+          "minimum": 0,
+          "title": "重量"
+        },
+        "vol": {
+          "type": "number",
+          "minimum": 0,
+          "title": "体积"
+        },
+        "skills_required": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "所需技能"
+        },
+        "qualification_levels_required": {
+          "type": "object",
+          "title": "所需资质等级"
+        },
+        "dep_tickets": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "title": "上级工单 ID 列表"
+        },
+        "ref_tickets": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "title": "下级工单 ID 列表"
+        },
+        "relation_tickets": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "title": "关联工单 ID 列表"
+        },
+        "create_time": {
+          "description": "Local date time formatted as yyyy-MM-dd HH:mm:ss",
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$"
+            },
+            {
+              "type": "string",
+              "maxLength": 0
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "工单创建时间"
+        },
+        "min_start_time": {
+          "description": "Local date time formatted as yyyy-MM-dd HH:mm:ss",
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$"
+            },
+            {
+              "type": "string",
+              "maxLength": 0
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "最早上门时间"
+        },
+        "max_end_time": {
+          "description": "Local date time formatted as yyyy-MM-dd HH:mm:ss",
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$"
+            },
+            {
+              "type": "string",
+              "maxLength": 0
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "最晚上门时间"
+        },
+        "arrival_time": {
+          "description": "Local date time formatted as yyyy-MM-dd HH:mm:ss",
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$"
+            },
+            {
+              "type": "string",
+              "maxLength": 0
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "到达时间"
+        },
+        "duration": {
+          "type": "string",
+          "pattern": "^P(T(?=\\d)(\\d+H)?(\\d+M)?(\\d+S)?)$",
+          "title": "服务时长",
+          "description": "ISO-8601 duration, e.g. PT30M"
+        },
+        "agent": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "title": "指定车辆/工程师 ID"
+        },
+        "original_agent": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "title": "原指派车辆/工程师 ID"
+        },
+        "previous_ticket": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "title": "上一个工单 ID"
+        },
+        "next_ticket": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "title": "下一个工单 ID"
+        }
+      }
+    },
+    "routePlan": {
+      "type": "object",
+      "required": [
+        "depos",
+        "agents",
+        "tickets"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "skus": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/sku"
+          },
+          "title": "SKU 列表"
+        },
+        "pois": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/poi"
+          },
+          "title": "地址 POI 列表"
+        },
+        "depos": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/depo"
+          },
+          "title": "仓库列表"
+        },
+        "agents": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/agent"
+          },
+          "title": "车辆/工程师列表"
+        },
+        "tickets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ticket"
+          },
+          "title": "工单列表"
+        },
+        "matrix": {
+          "type": "object",
+          "title": "迁移矩阵",
+          "additionalProperties": true
+        },
+        "constraint_configuration": {
+          "type": "object",
+          "title": "约束配置",
+          "additionalProperties": true,
+          "description": "Gateway overwrites this with the effective constraint config before calling /scenario."
+        },
+        "cost_parameter": {
+          "type": "object",
+          "title": "成本参数",
+          "additionalProperties": true
+        },
+        "metrics": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "title": "规划指标",
+          "additionalProperties": true
+        },
+        "score": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "title": "规划评分"
+        }
+      }
+    }
+  }
+}

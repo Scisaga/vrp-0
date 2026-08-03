@@ -1,0 +1,218 @@
+<div x-data="mcpPage" x-init="init()" class="responsive-page-root relative flex h-full min-h-0 flex-col">
+  <div class="flex-1 min-h-0 min-[1600px]:overflow-hidden">
+    <template x-if="notice">
+      <div class="pointer-events-none absolute left-1/2 top-[1.25rem] z-20 w-full max-w-[45rem] -translate-x-1/2 px-[1.25rem]">
+        <div class="pointer-events-auto rounded-[0.46875rem] border-[1.25px] border-emerald-500/30 bg-emerald-50/95 px-[1.25rem] py-[0.78125rem] text-[1.09375rem]/[1.5625rem] text-emerald-700 shadow-[0_12.5px_18.75px_-3.75px_rgba(0,0,0,0.1),0_5px_7.5px_-5px_rgba(0,0,0,0.1)] backdrop-blur">
+          <div class="flex items-center justify-between gap-[0.9375rem]">
+            <span x-text="notice"></span>
+            <button type="button" class="shrink-0 text-slate-700 hover:text-slate-900" @click="clearNotice()" :aria-label="t('mcp.dismissNotification')">
+              <span class="material-symbols-rounded text-[22.5px]">close</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </template>
+    <div class="flex min-h-full flex-col gap-0 min-[1600px]:h-full">
+      <template x-if="error">
+        <div class="shrink-0 rounded-[0.46875rem] border-[1.25px] border-rose-500/30 bg-rose-500/10 px-[1.25rem] py-[0.78125rem] text-[1.09375rem]/[1.5625rem] text-rose-700">
+          <div class="flex items-center justify-between gap-[0.9375rem]">
+            <span x-text="error"></span>
+            <button type="button" class="shrink-0 text-slate-700 hover:text-slate-900" @click="clearError()" :aria-label="t('mcp.dismissNotification')">
+              <span class="material-symbols-rounded text-[22.5px]">close</span>
+            </button>
+          </div>
+        </div>
+      </template>
+
+      <div class="responsive-workspace grid flex-1 min-h-0 min-[1600px]:grid-cols-[minmax(0,1.3fr)_450px]">
+        <section class="responsive-workspace-main panel-shell min-h-0">
+          <div class="panel-scroll">
+            <div class="divide-y-[1.25px] divide-slate-200">
+              <section>
+                <div class="overflow-hidden bg-white">
+                  <div class="flex flex-wrap items-start justify-between gap-[0.9375rem] border-b-[1.25px] border-slate-200 px-[1.25rem] py-[0.78125rem]">
+                    <div>
+                      <div class="text-[1.25rem]/[1.875rem] font-semibold text-slate-950" x-text="t('mcp.summary.title')"></div>
+                      <div class="mt-[0.3125rem] text-[1.09375rem]/[1.5625rem] text-slate-600" x-text="t('mcp.summary.description')"></div>
+                    </div>
+                    <span class="inline-flex items-center rounded-[12498.75px] border-[1.25px] px-[0.625rem] py-[0.15625rem] text-[0.9375rem]/[1.25rem] font-semibold leading-[1.25rem]" :class="summaryStatusClass()" x-text="summaryStatusLabel()"></span>
+                  </div>
+
+                  <div class="divide-y-[1.25px] divide-slate-200">
+                    <div class="grid gap-0 min-[960px]:grid-cols-[225px_minmax(0,1fr)] min-[960px]:divide-x-[1.25px] min-[960px]:divide-slate-200">
+                      <div class="px-[1.25rem] py-[0.78125rem]">
+                        <div class="field-label" x-text="t('mcp.transport.label')"></div>
+                        <div class="mt-[0.3125rem] text-[1.09375rem]/[1.5625rem] font-semibold text-slate-950" x-text="transportSummary()"></div>
+                      </div>
+                      <div class="px-[1.25rem] py-[0.78125rem] text-[1.09375rem]/[1.5625rem] text-slate-600">
+                        <span x-text="t('mcp.transport.description')"></span>
+                      </div>
+                    </div>
+
+                    <div class="grid gap-0 min-[960px]:grid-cols-[225px_minmax(0,1fr)] min-[960px]:divide-x-[1.25px] min-[960px]:divide-slate-200">
+                      <div class="px-[1.25rem] py-[0.78125rem]">
+                        <div class="field-label" x-text="t('mcp.authentication.label')"></div>
+                        <div class="mt-[0.3125rem] text-[1.09375rem]/[1.5625rem] font-semibold text-slate-950" x-text="authSummary()"></div>
+                      </div>
+                      <div class="px-[1.25rem] py-[0.78125rem] text-[1.09375rem]/[1.5625rem] text-slate-600">
+                        <div x-text="t('mcp.authentication.description')"></div>
+                        <div class="mt-[0.625rem] border-t-[1.25px] border-slate-200 pt-[0.9375rem]">
+                          <div class="field-label" x-text="t('mcp.authentication.tokenNotes')"></div>
+                          <code class="mt-[0.3125rem] block font-mono text-[1.09375rem]/[1.5625rem] font-semibold text-slate-900">****</code>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="px-[1.25rem] py-[0.78125rem]">
+                      <div class="field-label" x-text="t('mcp.url.label')"></div>
+                      <div class="mt-[0.3125rem] break-all font-mono text-[1.09375rem]/[1.5625rem] font-medium text-slate-950" x-text="mcpUrl()"></div>
+                      <div class="mt-[0.625rem] flex flex-wrap gap-[0.46875rem]">
+                        <button type="button" class="action-primary" @click="copyMcpUrl()">
+                          <span class="material-symbols-rounded text-[22.5px]">content_copy</span>
+                          <span x-text="t('mcp.url.copy')"></span>
+                        </button>
+                        <button type="button" class="action-secondary" @click="openMcpDoc()">
+                          <span class="material-symbols-rounded text-[22.5px]">open_in_new</span>
+                          <span x-text="t('mcp.url.openDocumentation')"></span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="px-[1.25rem] py-[0.78125rem]">
+                <div class="field-label" x-text="t('mcp.tools.title')"></div>
+                <div class="mt-[0.625rem] grid divide-y-[1.25px] divide-slate-200 border-y-[1.25px] border-slate-200 min-[1280px]:grid-cols-3 min-[1280px]:divide-x-[1.25px] min-[1280px]:divide-y-0">
+                  <div class="py-[0.9375rem] min-[1280px]:pr-[0.9375rem]">
+                    <div class="text-[1.09375rem]/[1.5625rem] font-semibold text-slate-900" x-text="t('mcp.tools.scenarioCapacity')"></div>
+                    <div class="mt-[0.625rem] space-y-[0.3125rem] font-mono text-[0.9375rem]/[1.25rem] text-slate-600">
+                      <div>get_current_scenario</div>
+                      <div>upsert_current_scenario</div>
+                      <div>delete_current_scenario</div>
+                      <div>get_available_agents</div>
+                    </div>
+                  </div>
+                  <div class="py-[0.9375rem] min-[1280px]:px-[0.9375rem]">
+                    <div class="text-[1.09375rem]/[1.5625rem] font-semibold text-slate-900" x-text="t('mcp.tools.geocodingMatrix')"></div>
+                    <div class="mt-[0.625rem] space-y-[0.3125rem] font-mono text-[0.9375rem]/[1.25rem] text-slate-600">
+                      <div>search_pois</div>
+                      <div>get_matrix</div>
+                      <div>set_matrix</div>
+                      <div>get_amap_conf</div>
+                    </div>
+                  </div>
+                  <div class="py-[0.9375rem] min-[1280px]:pl-[0.9375rem]">
+                    <div class="text-[1.09375rem]/[1.5625rem] font-semibold text-slate-900" x-text="t('mcp.tools.solverJobs')"></div>
+                    <div class="mt-[0.625rem] space-y-[0.3125rem] font-mono text-[0.9375rem]/[1.25rem] text-slate-600">
+                      <div>start_solver_job</div>
+                      <div>get_current_solver_job</div>
+                      <div>terminate_current_solver_job</div>
+                      <div>apply_current_solver_job</div>
+                      <div>delete_current_solver_job</div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="px-[1.25rem] py-[0.78125rem]">
+                <div class="field-label" x-text="t('mcp.workflow.title')"></div>
+                <ol class="mt-[0.625rem] space-y-[0.46875rem] text-[1.09375rem]/[1.5625rem] text-slate-700">
+                  <li><span x-text="t('mcp.workflow.step1.number')"></span> <span class="monospace-meta">upsert_current_scenario</span> <span x-text="t('mcp.workflow.step1.action')"></span></li>
+                  <li><span x-text="t('mcp.workflow.step2.prefix')"></span> <span class="monospace-meta">build=true</span></li>
+                  <li><span x-text="t('mcp.workflow.step3.number')"></span> <span class="monospace-meta">get_available_agents</span> <span x-text="t('mcp.workflow.step3.action')"></span></li>
+                  <li><span x-text="t('mcp.workflow.step4.number')"></span> <span class="monospace-meta">start_solver_job</span> <span x-text="t('mcp.workflow.step4.action')"></span></li>
+                  <li><span x-text="t('mcp.workflow.step5.number')"></span> <span class="monospace-meta">get_current_solver_job</span> <span x-text="t('mcp.workflow.step5.action')"></span></li>
+                  <li><span x-text="t('mcp.workflow.step6.number')"></span> <span class="monospace-meta">apply_current_solver_job</span> <span x-text="t('mcp.workflow.step6.action')"></span></li>
+                </ol>
+              </section>
+
+              <section class="overflow-x-hidden px-[1.25rem] py-[0.78125rem]">
+                <div class="field-label" x-text="t('mcp.client.title')"></div>
+                <div class="mt-[0.625rem] overflow-hidden border-y-[1.25px] border-slate-200">
+                  <div class="flex flex-wrap gap-[0.625rem] border-b-[1.25px] border-slate-200 py-[0.625rem]">
+                    <button
+                      type="button"
+                      class="inline-flex items-center gap-[0.46875rem] rounded-[12498.75px] border-[1.25px] px-[0.625rem] py-[0.3125rem] text-[16.25px] font-medium leading-[1.25rem] transition"
+                      :class="isClientTab('harness') ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'"
+                      @click="selectClientTab('harness')"
+                    >
+                      <span class="inline-flex h-[22.5px] w-[22.5px] shrink-0 items-center justify-center" aria-hidden="true">
+                        <img src="assets/img/brands/harness.png" alt="" class="h-full w-full object-contain"/>
+                      </span>
+                      Harness
+                    </button>
+                    <button
+                      type="button"
+                      class="inline-flex items-center gap-[0.46875rem] rounded-[12498.75px] border-[1.25px] px-[0.625rem] py-[0.3125rem] text-[16.25px] font-medium leading-[1.25rem] transition"
+                      :class="isClientTab('vscode') ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'"
+                      @click="selectClientTab('vscode')"
+                    >
+                      <span class="inline-flex h-[22.5px] w-[22.5px] shrink-0 items-center justify-center" aria-hidden="true">
+                        <img src="assets/img/brands/vscode.svg" alt="" class="h-full w-full object-contain"/>
+                      </span>
+                      VS Code
+                    </button>
+                    <button
+                      type="button"
+                      class="inline-flex items-center gap-[0.46875rem] rounded-[12498.75px] border-[1.25px] px-[0.625rem] py-[0.3125rem] text-[16.25px] font-medium leading-[1.25rem] transition"
+                      :class="isClientTab('codex') ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'"
+                      @click="selectClientTab('codex')"
+                    >
+                      <span class="inline-flex h-[22.5px] w-[22.5px] shrink-0 items-center justify-center" aria-hidden="true">
+                        <img x-show="!isClientTab('codex')" src="assets/img/brands/codex-mark-dark.svg" alt="" class="h-full w-full object-contain"/>
+                        <img x-show="isClientTab('codex')" src="assets/img/brands/codex-mark-light.svg" alt="" class="h-full w-full object-contain"/>
+                      </span>
+                      Codex
+                    </button>
+                  </div>
+
+                  <div class="py-[0.625rem]">
+                    <div class="text-[1.09375rem]/[1.5625rem] font-semibold text-slate-900" x-text="clientTabTitle()"></div>
+                    <div class="mt-[0.625rem] text-[1.09375rem]/[1.5625rem] text-slate-600" x-text="clientTabDescription()"></div>
+                    <pre class="mt-[0.625rem] w-full min-w-0 max-w-full overflow-auto bg-slate-50 p-[0.625rem] text-[0.9375rem]/[1.25rem] text-slate-700" x-text="mcpClientConfig()"></pre>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </section>
+
+        <aside class="responsive-workspace-aside panel-shell min-h-0 border-t-0 min-[1600px]:border-l-0">
+          <div class="panel-scroll">
+          <section class="border-b-[1.25px] border-slate-200 px-[1.25rem] py-[1.25rem]">
+            <div class="flex items-center justify-between gap-[0.9375rem] text-[1.09375rem]/[1.5625rem] text-slate-700">
+              <span class="field-label" x-text="t('mcp.status.title')"></span>
+              <span class="font-semibold" :class="statusTone()" x-text="statusText()"></span>
+            </div>
+          </section>
+
+          <section class="border-b-[1.25px] border-slate-200">
+            <button type="button" class="flex w-full items-center justify-between gap-[0.9375rem] px-[1.25rem] py-[0.78125rem] text-left" @click="toggleSection('origins')" :aria-expanded="isExpanded('origins')">
+              <div class="field-label" x-text="t('mcp.origin.allowlist')"></div>
+              <span class="material-symbols-rounded text-[22.5px] text-slate-500 transition-transform" :class="isExpanded('origins') ? 'rotate-180' : ''">expand_more</span>
+            </button>
+            <div x-show="isExpanded('origins')" class="border-t-[1.25px] border-slate-200">
+              <div class="max-h-[15rem] overflow-auto p-[0.9375rem] font-mono text-[0.9375rem]/[1.25rem] text-slate-700">
+              <pre x-text="allowedOriginsText()"></pre>
+              </div>
+            </div>
+          </section>
+
+          <section>
+            <button type="button" class="flex w-full items-center justify-between gap-[0.9375rem] px-[1.25rem] py-[0.78125rem] text-left" @click="toggleSection('usage')" :aria-expanded="isExpanded('usage')">
+              <div class="field-label" x-text="t('mcp.usage.title')"></div>
+              <span class="material-symbols-rounded text-[22.5px] text-slate-500 transition-transform" :class="isExpanded('usage') ? 'rotate-180' : ''">expand_more</span>
+            </button>
+            <div x-show="isExpanded('usage')" class="divide-y-[1.25px] divide-slate-200 border-t-[1.25px] border-slate-200 text-[1.09375rem]/[1.5625rem] text-slate-600">
+              <div class="px-[1.25rem] py-[0.78125rem]" x-text="t('mcp.usage.summary')"></div>
+              <div class="px-[1.25rem] py-[0.78125rem]" x-text="t('mcp.usage.noToken')"></div>
+              <div class="px-[1.25rem] py-[0.78125rem]"><span x-text="t('mcp.usage.statusUnavailable.before')"></span> <span class="monospace-meta">/mcp/meta</span> <span x-text="t('mcp.usage.statusUnavailable.after')"></span></div>
+            </div>
+          </section>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+</div>

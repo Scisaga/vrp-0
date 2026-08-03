@@ -1,0 +1,3018 @@
+{
+  "scenario_name": "北京复杂多仓得分进度演示",
+  "scenario": {
+    "id": "1a19b4b8-d0b1-59bb-a0da-fe7562086b5d",
+    "name": "北京复杂多仓得分进度演示",
+    "desc": "五个仓、十五名异构工程师、六十张含 SKU、资质、关联与时间窗的工单；仓库与客户点采用北京市公开地点，SKU 采用家电售后常见运输规格，成本使用演示参数，以可行但交叉的初始路线展示真实搜索持续改进。",
+    "planning_date": "2026-07-14",
+    "start_time": "2026-07-14 00:00:00",
+    "end_time": "2026-07-14 23:59:59",
+    "plan": {
+      "skus": [
+        {
+          "id": "sku-refrigerator",
+          "name": "500升多门冰箱（包装件）",
+          "weight": 100.0,
+          "vol": 1.05
+        },
+        {
+          "id": "sku-washer",
+          "name": "10公斤滚筒洗衣机（包装件）",
+          "weight": 75.0,
+          "vol": 0.43
+        },
+        {
+          "id": "sku-air-conditioner",
+          "name": "1.5匹壁挂式冷暖空调套机（包装件）",
+          "weight": 46.0,
+          "vol": 0.32
+        },
+        {
+          "id": "sku-cabinet",
+          "name": "60厘米成品厨房吊柜（包装件）",
+          "weight": 28.0,
+          "vol": 0.2
+        },
+        {
+          "id": "sku-water-heater",
+          "name": "16升燃气热水器（包装件）",
+          "weight": 15.0,
+          "vol": 0.08
+        },
+        {
+          "id": "sku-tv",
+          "name": "65英寸液晶电视（包装件）",
+          "weight": 25.0,
+          "vol": 0.2
+        },
+        {
+          "id": "sku-smart-lock",
+          "name": "智能门锁整套（包装件）",
+          "weight": 5.0,
+          "vol": 0.025
+        },
+        {
+          "id": "sku-repair-kit",
+          "name": "家电上门维修工具包",
+          "weight": 12.0,
+          "vol": 0.05
+        },
+        {
+          "id": "sku-accessory-box",
+          "name": "家电安装标准辅料箱",
+          "weight": 6.0,
+          "vol": 0.04
+        },
+        {
+          "id": "sku-circuit-board",
+          "name": "家电控制电路板（防静电包装）",
+          "weight": 0.8,
+          "vol": 0.005
+        }
+      ],
+      "pois": [
+        {
+          "id": "poi-haidian-depo",
+          "name": "新杰物流",
+          "location": "116.222596,39.952896",
+          "cityname": "北京市",
+          "address": "北京市海淀区杏石口路88号北京翔远通仓库8号库"
+        },
+        {
+          "id": "poi-haidian-01",
+          "name": "华熙LIVE·五棵松",
+          "location": "116.279621,39.910214",
+          "cityname": "北京市",
+          "address": "北京市海淀区复兴路69号"
+        },
+        {
+          "id": "poi-haidian-02",
+          "name": "世纪金源购物中心",
+          "location": "116.288301,39.958603",
+          "cityname": "北京市",
+          "address": "北京市海淀区远大路1号"
+        },
+        {
+          "id": "poi-haidian-03",
+          "name": "中关村ARTPARK大融城",
+          "location": "116.313675,39.980809",
+          "cityname": "北京市",
+          "address": "北京市海淀区中关村大街15-9号"
+        },
+        {
+          "id": "poi-haidian-04",
+          "name": "北京大学",
+          "location": "116.310918,39.992873",
+          "cityname": "北京市",
+          "address": "北京市海淀区颐和园路5号"
+        },
+        {
+          "id": "poi-haidian-05",
+          "name": "清华大学",
+          "location": "116.326936,40.003213",
+          "cityname": "北京市",
+          "address": "北京市海淀区双清路30号"
+        },
+        {
+          "id": "poi-haidian-06",
+          "name": "北京航空航天大学学院路校区",
+          "location": "116.347225,39.982212",
+          "cityname": "北京市",
+          "address": "北京市海淀区学院路37号"
+        },
+        {
+          "id": "poi-haidian-07",
+          "name": "北京大学第三医院",
+          "location": "116.360010,39.982728",
+          "cityname": "北京市",
+          "address": "北京市海淀区花园北路49号"
+        },
+        {
+          "id": "poi-haidian-08",
+          "name": "中国中医科学院西苑医院",
+          "location": "116.293634,39.995160",
+          "cityname": "北京市",
+          "address": "北京市海淀区西苑操场1号"
+        },
+        {
+          "id": "poi-haidian-09",
+          "name": "海淀区政务服务中心",
+          "location": "116.293395,40.041963",
+          "cityname": "北京市",
+          "address": "北京市海淀区东北旺南路29号"
+        },
+        {
+          "id": "poi-chaoyang-depo",
+          "name": "华成物流园",
+          "location": "116.358697,40.025823",
+          "cityname": "北京市",
+          "address": "北京市朝阳区清河东路1号"
+        },
+        {
+          "id": "poi-chaoyang-01",
+          "name": "北京朝阳合生汇",
+          "location": "116.480110,39.894007",
+          "cityname": "北京市",
+          "address": "北京市朝阳区西大望路甲22号"
+        },
+        {
+          "id": "poi-chaoyang-02",
+          "name": "朝阳大悦城",
+          "location": "116.519009,39.924544",
+          "cityname": "北京市",
+          "address": "北京市朝阳区朝阳北路101号"
+        },
+        {
+          "id": "poi-chaoyang-03",
+          "name": "三里屯太古里",
+          "location": "116.453990,39.934871",
+          "cityname": "北京市",
+          "address": "北京市朝阳区三里屯路11、19号院"
+        },
+        {
+          "id": "poi-chaoyang-04",
+          "name": "中国传媒大学",
+          "location": "116.557391,39.912312",
+          "cityname": "北京市",
+          "address": "北京市朝阳区定福庄东街1号"
+        },
+        {
+          "id": "poi-chaoyang-05",
+          "name": "对外经济贸易大学",
+          "location": "116.427753,39.980360",
+          "cityname": "北京市",
+          "address": "北京市朝阳区惠新东街10号"
+        },
+        {
+          "id": "poi-chaoyang-06",
+          "name": "北京工业大学",
+          "location": "116.481764,39.875280",
+          "cityname": "北京市",
+          "address": "北京市朝阳区平乐园100号"
+        },
+        {
+          "id": "poi-chaoyang-07",
+          "name": "首都儿童医学中心",
+          "location": "116.439081,39.914787",
+          "cityname": "北京市",
+          "address": "北京市朝阳区雅宝路2号"
+        },
+        {
+          "id": "poi-chaoyang-08",
+          "name": "北京妇产医院东院",
+          "location": "116.471338,39.931304",
+          "cityname": "北京市",
+          "address": "北京市朝阳区姚家园路251号"
+        },
+        {
+          "id": "poi-chaoyang-09",
+          "name": "朝阳区政务服务中心",
+          "location": "116.464818,39.961227",
+          "cityname": "北京市",
+          "address": "北京市朝阳区霄云里1号楼"
+        },
+        {
+          "id": "poi-fengtai-depo",
+          "name": "国药器械物流中心",
+          "location": "116.253730,39.855699",
+          "cityname": "北京市",
+          "address": "北京市丰台区五里店259号中外运园区4号站台库"
+        },
+        {
+          "id": "poi-fengtai-01",
+          "name": "万达广场北京丰科店",
+          "location": "116.298932,39.824233",
+          "cityname": "北京市",
+          "address": "北京市丰台区丰科路1号"
+        },
+        {
+          "id": "poi-fengtai-02",
+          "name": "龙湖北京丽泽天街",
+          "location": "116.334236,39.866709",
+          "cityname": "北京市",
+          "address": "北京市丰台区丽泽路300号"
+        },
+        {
+          "id": "poi-fengtai-03",
+          "name": "赛尔花乡奥莱村",
+          "location": "116.324004,39.827593",
+          "cityname": "北京市",
+          "address": "北京市丰台区南四环西路76号"
+        },
+        {
+          "id": "poi-fengtai-04",
+          "name": "银座和谐广场",
+          "location": "116.297342,39.882318",
+          "cityname": "北京市",
+          "address": "北京市丰台区万丰路68号院"
+        },
+        {
+          "id": "poi-fengtai-05",
+          "name": "万达广场北京槐房店",
+          "location": "116.367868,39.814085",
+          "cityname": "北京市",
+          "address": "北京市丰台区槐房南路6号"
+        },
+        {
+          "id": "poi-fengtai-06",
+          "name": "首都医科大学",
+          "location": "116.352850,39.863411",
+          "cityname": "北京市",
+          "address": "北京市丰台区右安门外西头条10号"
+        },
+        {
+          "id": "poi-fengtai-07",
+          "name": "北京天坛医院",
+          "location": "116.315119,39.834653",
+          "cityname": "北京市",
+          "address": "北京市丰台区南四环西路119号"
+        },
+        {
+          "id": "poi-fengtai-08",
+          "name": "北京中医药大学东方医院",
+          "location": "116.432265,39.864075",
+          "cityname": "北京市",
+          "address": "北京市丰台区方庄芳星园一区6号"
+        },
+        {
+          "id": "poi-fengtai-09",
+          "name": "丰台区政务服务中心",
+          "location": "116.398895,39.853363",
+          "cityname": "北京市",
+          "address": "北京市丰台区南苑路7号"
+        },
+        {
+          "id": "poi-tongzhou-depo",
+          "name": "北京示例物流有限公司",
+          "location": "116.556023,39.813823",
+          "cityname": "北京市",
+          "address": "北京市通州区嘉创二路57号"
+        },
+        {
+          "id": "poi-tongzhou-01",
+          "name": "万达广场通州店",
+          "location": "116.640441,39.905320",
+          "cityname": "北京市",
+          "address": "北京市通州区新华西街58号"
+        },
+        {
+          "id": "poi-tongzhou-02",
+          "name": "湾里·王府井WellTown",
+          "location": "116.692774,39.859204",
+          "cityname": "北京市",
+          "address": "北京市通州区颐瑞东路66号1号楼"
+        },
+        {
+          "id": "poi-tongzhou-03",
+          "name": "首开通州万象汇",
+          "location": "116.734377,39.904541",
+          "cityname": "北京市",
+          "address": "北京市通州区运河东大街51号"
+        },
+        {
+          "id": "poi-tongzhou-04",
+          "name": "中国人民大学通州校区",
+          "location": "116.746443,39.906436",
+          "cityname": "北京市",
+          "address": "北京市通州区运河东大街37号"
+        },
+        {
+          "id": "poi-tongzhou-05",
+          "name": "北京工业大学通州校区",
+          "location": "116.668783,39.929594",
+          "cityname": "北京市",
+          "address": "北京市通州区潞苑南大街1145号"
+        },
+        {
+          "id": "poi-tongzhou-06",
+          "name": "北京友谊医院通州院区",
+          "location": "116.682780,39.934915",
+          "cityname": "北京市",
+          "address": "北京市通州区潞苑东路101号院"
+        },
+        {
+          "id": "poi-tongzhou-07",
+          "name": "北京潞河医院",
+          "location": "116.659893,39.901300",
+          "cityname": "北京市",
+          "address": "北京市通州区新华南路82号"
+        },
+        {
+          "id": "poi-tongzhou-08",
+          "name": "东直门医院通州院区",
+          "location": "116.644712,39.884025",
+          "cityname": "北京市",
+          "address": "北京市通州区翠屏西路116号"
+        },
+        {
+          "id": "poi-tongzhou-09",
+          "name": "北京城市副中心政务服务中心",
+          "location": "116.675523,39.903191",
+          "cityname": "北京市",
+          "address": "北京市通州区新华东街48号二区"
+        },
+        {
+          "id": "poi-daxing-depo",
+          "name": "普洛斯大兴物流园",
+          "location": "116.344400,39.695244",
+          "cityname": "北京市",
+          "address": "北京市大兴区黄村镇大庄村丰顺路62号"
+        },
+        {
+          "id": "poi-daxing-01",
+          "name": "北京荟聚购物中心",
+          "location": "116.326497,39.788104",
+          "cityname": "北京市",
+          "address": "北京市大兴区西红门镇欣宁街15号院"
+        },
+        {
+          "id": "poi-daxing-02",
+          "name": "龙湖北京大兴天街",
+          "location": "116.320901,39.687444",
+          "cityname": "北京市",
+          "address": "北京市大兴区永兴路7号院1号楼"
+        },
+        {
+          "id": "poi-daxing-03",
+          "name": "凯德MALL·大兴",
+          "location": "116.318949,39.672324",
+          "cityname": "北京市",
+          "address": "北京市大兴区华佗路2号院"
+        },
+        {
+          "id": "poi-daxing-04",
+          "name": "万科广场",
+          "location": "116.459424,39.805672",
+          "cityname": "北京市",
+          "address": "北京市大兴区忠凉路1号"
+        },
+        {
+          "id": "poi-daxing-05",
+          "name": "北京建筑大学大兴校区",
+          "location": "116.286394,39.748291",
+          "cityname": "北京市",
+          "address": "北京市大兴区永源路15号"
+        },
+        {
+          "id": "poi-daxing-06",
+          "name": "中国人民公安大学团河校区",
+          "location": "116.366330,39.765815",
+          "cityname": "北京市",
+          "address": "北京市大兴区金星路9号"
+        },
+        {
+          "id": "poi-daxing-07",
+          "name": "北京大学第一医院大兴院区",
+          "location": "116.333224,39.768378",
+          "cityname": "北京市",
+          "address": "北京市大兴区乐园路5号"
+        },
+        {
+          "id": "poi-daxing-08",
+          "name": "大兴区人民医院",
+          "location": "116.334334,39.730909",
+          "cityname": "北京市",
+          "address": "北京市大兴区黄村西大街18号"
+        },
+        {
+          "id": "poi-daxing-09",
+          "name": "大兴区政务服务中心",
+          "location": "116.331572,39.737044",
+          "cityname": "北京市",
+          "address": "北京市大兴区兴华大街三段15号"
+        }
+      ],
+      "depos": [
+        {
+          "id": "depo-haidian",
+          "name": "海淀服务中心",
+          "loc": "poi-haidian-depo"
+        },
+        {
+          "id": "depo-chaoyang",
+          "name": "朝阳服务中心",
+          "loc": "poi-chaoyang-depo"
+        },
+        {
+          "id": "depo-fengtai",
+          "name": "丰台服务中心",
+          "loc": "poi-fengtai-depo"
+        },
+        {
+          "id": "depo-tongzhou",
+          "name": "通州服务中心",
+          "loc": "poi-tongzhou-depo"
+        },
+        {
+          "id": "depo-daxing",
+          "name": "大兴服务中心",
+          "loc": "poi-daxing-depo"
+        }
+      ],
+      "agents": [
+        {
+          "id": "agent-haidian-truck",
+          "depo_id": "depo-haidian",
+          "name": "海淀重货安装货车",
+          "start_loc": "poi-haidian-depo",
+          "skills": [
+            "delivery",
+            "installation",
+            "heavy_lift"
+          ],
+          "qualification_levels": {
+            "installation": 3.0,
+            "heavy_lift": 3.0,
+            "safety": 2.0
+          },
+          "vehicle_type": "TRUCK",
+          "fuel_type": "GAS_92",
+          "fuel_consumption": 14.5,
+          "rented": false,
+          "fix_cost_daily": 480.0,
+          "weight": 1000.0,
+          "vol": 12.0,
+          "max_ticket_num": 6,
+          "shift_start_time": "2026-07-14 08:00:00",
+          "shift_off_time": "2026-07-14 19:00:00",
+          "tickets": [
+            "ticket-01-haidian",
+            "ticket-10-haidian",
+            "ticket-09-haidian",
+            "ticket-05-haidian"
+          ]
+        },
+        {
+          "id": "agent-haidian-van",
+          "depo_id": "depo-haidian",
+          "name": "海淀综合服务车",
+          "start_loc": "poi-haidian-depo",
+          "skills": [
+            "delivery",
+            "installation",
+            "repair"
+          ],
+          "qualification_levels": {
+            "installation": 2.0,
+            "repair": 2.0,
+            "safety": 2.0
+          },
+          "vehicle_type": "CAR",
+          "fuel_type": "GAS_92",
+          "fuel_consumption": 10.0,
+          "rented": false,
+          "fix_cost_daily": 320.0,
+          "weight": 500.0,
+          "vol": 6.0,
+          "max_ticket_num": 6,
+          "shift_start_time": "2026-07-14 08:00:00",
+          "shift_off_time": "2026-07-14 19:00:00",
+          "tickets": [
+            "ticket-04-haidian",
+            "ticket-02-haidian",
+            "ticket-07-haidian",
+            "ticket-03-haidian"
+          ]
+        },
+        {
+          "id": "agent-haidian-ebike",
+          "depo_id": "depo-haidian",
+          "name": "海淀轻型维修电动车",
+          "start_loc": "poi-haidian-depo",
+          "skills": [
+            "delivery",
+            "repair",
+            "electrical"
+          ],
+          "qualification_levels": {
+            "repair": 2.0,
+            "electrical": 2.0,
+            "safety": 1.0
+          },
+          "vehicle_type": "E_BIKE",
+          "fuel_type": "ELEC",
+          "fuel_consumption": 1.8,
+          "rented": true,
+          "fix_cost_daily": 80.0,
+          "weight": 100.0,
+          "vol": 0.8,
+          "max_ticket_num": 6,
+          "shift_start_time": "2026-07-14 08:00:00",
+          "shift_off_time": "2026-07-14 19:00:00",
+          "tickets": [
+            "ticket-11-haidian",
+            "ticket-06-haidian",
+            "ticket-12-haidian",
+            "ticket-08-haidian"
+          ]
+        },
+        {
+          "id": "agent-chaoyang-truck",
+          "depo_id": "depo-chaoyang",
+          "name": "朝阳重货安装货车",
+          "start_loc": "poi-chaoyang-depo",
+          "skills": [
+            "delivery",
+            "installation",
+            "heavy_lift"
+          ],
+          "qualification_levels": {
+            "installation": 3.0,
+            "heavy_lift": 3.0,
+            "safety": 2.0
+          },
+          "vehicle_type": "TRUCK",
+          "fuel_type": "GAS_92",
+          "fuel_consumption": 14.5,
+          "rented": false,
+          "fix_cost_daily": 480.0,
+          "weight": 1000.0,
+          "vol": 12.0,
+          "max_ticket_num": 6,
+          "shift_start_time": "2026-07-14 08:00:00",
+          "shift_off_time": "2026-07-14 19:00:00",
+          "tickets": [
+            "ticket-01-chaoyang",
+            "ticket-10-chaoyang",
+            "ticket-09-chaoyang",
+            "ticket-05-chaoyang"
+          ]
+        },
+        {
+          "id": "agent-chaoyang-van",
+          "depo_id": "depo-chaoyang",
+          "name": "朝阳综合服务车",
+          "start_loc": "poi-chaoyang-depo",
+          "skills": [
+            "delivery",
+            "installation",
+            "repair"
+          ],
+          "qualification_levels": {
+            "installation": 2.0,
+            "repair": 2.0,
+            "safety": 2.0
+          },
+          "vehicle_type": "CAR",
+          "fuel_type": "GAS_92",
+          "fuel_consumption": 10.0,
+          "rented": false,
+          "fix_cost_daily": 320.0,
+          "weight": 500.0,
+          "vol": 6.0,
+          "max_ticket_num": 6,
+          "shift_start_time": "2026-07-14 08:00:00",
+          "shift_off_time": "2026-07-14 19:00:00",
+          "tickets": [
+            "ticket-04-chaoyang",
+            "ticket-02-chaoyang",
+            "ticket-07-chaoyang",
+            "ticket-03-chaoyang"
+          ]
+        },
+        {
+          "id": "agent-chaoyang-ebike",
+          "depo_id": "depo-chaoyang",
+          "name": "朝阳轻型维修电动车",
+          "start_loc": "poi-chaoyang-depo",
+          "skills": [
+            "delivery",
+            "repair",
+            "electrical"
+          ],
+          "qualification_levels": {
+            "repair": 2.0,
+            "electrical": 2.0,
+            "safety": 1.0
+          },
+          "vehicle_type": "E_BIKE",
+          "fuel_type": "ELEC",
+          "fuel_consumption": 1.8,
+          "rented": true,
+          "fix_cost_daily": 80.0,
+          "weight": 100.0,
+          "vol": 0.8,
+          "max_ticket_num": 6,
+          "shift_start_time": "2026-07-14 08:00:00",
+          "shift_off_time": "2026-07-14 19:00:00",
+          "tickets": [
+            "ticket-11-chaoyang",
+            "ticket-06-chaoyang",
+            "ticket-12-chaoyang",
+            "ticket-08-chaoyang"
+          ]
+        },
+        {
+          "id": "agent-fengtai-truck",
+          "depo_id": "depo-fengtai",
+          "name": "丰台重货安装货车",
+          "start_loc": "poi-fengtai-depo",
+          "skills": [
+            "delivery",
+            "installation",
+            "heavy_lift"
+          ],
+          "qualification_levels": {
+            "installation": 3.0,
+            "heavy_lift": 3.0,
+            "safety": 2.0
+          },
+          "vehicle_type": "TRUCK",
+          "fuel_type": "GAS_92",
+          "fuel_consumption": 14.5,
+          "rented": false,
+          "fix_cost_daily": 480.0,
+          "weight": 1000.0,
+          "vol": 12.0,
+          "max_ticket_num": 6,
+          "shift_start_time": "2026-07-14 08:00:00",
+          "shift_off_time": "2026-07-14 19:00:00",
+          "tickets": [
+            "ticket-01-fengtai",
+            "ticket-10-fengtai",
+            "ticket-09-fengtai",
+            "ticket-05-fengtai"
+          ]
+        },
+        {
+          "id": "agent-fengtai-van",
+          "depo_id": "depo-fengtai",
+          "name": "丰台综合服务车",
+          "start_loc": "poi-fengtai-depo",
+          "skills": [
+            "delivery",
+            "installation",
+            "repair"
+          ],
+          "qualification_levels": {
+            "installation": 2.0,
+            "repair": 2.0,
+            "safety": 2.0
+          },
+          "vehicle_type": "CAR",
+          "fuel_type": "GAS_92",
+          "fuel_consumption": 10.0,
+          "rented": false,
+          "fix_cost_daily": 320.0,
+          "weight": 500.0,
+          "vol": 6.0,
+          "max_ticket_num": 6,
+          "shift_start_time": "2026-07-14 08:00:00",
+          "shift_off_time": "2026-07-14 19:00:00",
+          "tickets": [
+            "ticket-04-fengtai",
+            "ticket-02-fengtai",
+            "ticket-07-fengtai",
+            "ticket-03-fengtai"
+          ]
+        },
+        {
+          "id": "agent-fengtai-ebike",
+          "depo_id": "depo-fengtai",
+          "name": "丰台轻型维修电动车",
+          "start_loc": "poi-fengtai-depo",
+          "skills": [
+            "delivery",
+            "repair",
+            "electrical"
+          ],
+          "qualification_levels": {
+            "repair": 2.0,
+            "electrical": 2.0,
+            "safety": 1.0
+          },
+          "vehicle_type": "E_BIKE",
+          "fuel_type": "ELEC",
+          "fuel_consumption": 1.8,
+          "rented": true,
+          "fix_cost_daily": 80.0,
+          "weight": 100.0,
+          "vol": 0.8,
+          "max_ticket_num": 6,
+          "shift_start_time": "2026-07-14 08:00:00",
+          "shift_off_time": "2026-07-14 19:00:00",
+          "tickets": [
+            "ticket-11-fengtai",
+            "ticket-06-fengtai",
+            "ticket-12-fengtai",
+            "ticket-08-fengtai"
+          ]
+        },
+        {
+          "id": "agent-tongzhou-truck",
+          "depo_id": "depo-tongzhou",
+          "name": "通州重货安装货车",
+          "start_loc": "poi-tongzhou-depo",
+          "skills": [
+            "delivery",
+            "installation",
+            "heavy_lift"
+          ],
+          "qualification_levels": {
+            "installation": 3.0,
+            "heavy_lift": 3.0,
+            "safety": 2.0
+          },
+          "vehicle_type": "TRUCK",
+          "fuel_type": "GAS_92",
+          "fuel_consumption": 14.5,
+          "rented": false,
+          "fix_cost_daily": 480.0,
+          "weight": 1000.0,
+          "vol": 12.0,
+          "max_ticket_num": 6,
+          "shift_start_time": "2026-07-14 08:00:00",
+          "shift_off_time": "2026-07-14 19:00:00",
+          "tickets": [
+            "ticket-01-tongzhou",
+            "ticket-10-tongzhou",
+            "ticket-09-tongzhou",
+            "ticket-05-tongzhou"
+          ]
+        },
+        {
+          "id": "agent-tongzhou-van",
+          "depo_id": "depo-tongzhou",
+          "name": "通州综合服务车",
+          "start_loc": "poi-tongzhou-depo",
+          "skills": [
+            "delivery",
+            "installation",
+            "repair"
+          ],
+          "qualification_levels": {
+            "installation": 2.0,
+            "repair": 2.0,
+            "safety": 2.0
+          },
+          "vehicle_type": "CAR",
+          "fuel_type": "GAS_92",
+          "fuel_consumption": 10.0,
+          "rented": false,
+          "fix_cost_daily": 320.0,
+          "weight": 500.0,
+          "vol": 6.0,
+          "max_ticket_num": 6,
+          "shift_start_time": "2026-07-14 08:00:00",
+          "shift_off_time": "2026-07-14 19:00:00",
+          "tickets": [
+            "ticket-04-tongzhou",
+            "ticket-02-tongzhou",
+            "ticket-07-tongzhou",
+            "ticket-03-tongzhou"
+          ]
+        },
+        {
+          "id": "agent-tongzhou-ebike",
+          "depo_id": "depo-tongzhou",
+          "name": "通州轻型维修电动车",
+          "start_loc": "poi-tongzhou-depo",
+          "skills": [
+            "delivery",
+            "repair",
+            "electrical"
+          ],
+          "qualification_levels": {
+            "repair": 2.0,
+            "electrical": 2.0,
+            "safety": 1.0
+          },
+          "vehicle_type": "E_BIKE",
+          "fuel_type": "ELEC",
+          "fuel_consumption": 1.8,
+          "rented": true,
+          "fix_cost_daily": 80.0,
+          "weight": 100.0,
+          "vol": 0.8,
+          "max_ticket_num": 6,
+          "shift_start_time": "2026-07-14 08:00:00",
+          "shift_off_time": "2026-07-14 19:00:00",
+          "tickets": [
+            "ticket-11-tongzhou",
+            "ticket-06-tongzhou",
+            "ticket-12-tongzhou",
+            "ticket-08-tongzhou"
+          ]
+        },
+        {
+          "id": "agent-daxing-truck",
+          "depo_id": "depo-daxing",
+          "name": "大兴重货安装货车",
+          "start_loc": "poi-daxing-depo",
+          "skills": [
+            "delivery",
+            "installation",
+            "heavy_lift"
+          ],
+          "qualification_levels": {
+            "installation": 3.0,
+            "heavy_lift": 3.0,
+            "safety": 2.0
+          },
+          "vehicle_type": "TRUCK",
+          "fuel_type": "GAS_92",
+          "fuel_consumption": 14.5,
+          "rented": false,
+          "fix_cost_daily": 480.0,
+          "weight": 1000.0,
+          "vol": 12.0,
+          "max_ticket_num": 6,
+          "shift_start_time": "2026-07-14 08:00:00",
+          "shift_off_time": "2026-07-14 19:00:00",
+          "tickets": [
+            "ticket-01-daxing",
+            "ticket-10-daxing",
+            "ticket-09-daxing",
+            "ticket-05-daxing"
+          ]
+        },
+        {
+          "id": "agent-daxing-van",
+          "depo_id": "depo-daxing",
+          "name": "大兴综合服务车",
+          "start_loc": "poi-daxing-depo",
+          "skills": [
+            "delivery",
+            "installation",
+            "repair"
+          ],
+          "qualification_levels": {
+            "installation": 2.0,
+            "repair": 2.0,
+            "safety": 2.0
+          },
+          "vehicle_type": "CAR",
+          "fuel_type": "GAS_92",
+          "fuel_consumption": 10.0,
+          "rented": false,
+          "fix_cost_daily": 320.0,
+          "weight": 500.0,
+          "vol": 6.0,
+          "max_ticket_num": 6,
+          "shift_start_time": "2026-07-14 08:00:00",
+          "shift_off_time": "2026-07-14 19:00:00",
+          "tickets": [
+            "ticket-04-daxing",
+            "ticket-02-daxing",
+            "ticket-07-daxing",
+            "ticket-03-daxing"
+          ]
+        },
+        {
+          "id": "agent-daxing-ebike",
+          "depo_id": "depo-daxing",
+          "name": "大兴轻型维修电动车",
+          "start_loc": "poi-daxing-depo",
+          "skills": [
+            "delivery",
+            "repair",
+            "electrical"
+          ],
+          "qualification_levels": {
+            "repair": 2.0,
+            "electrical": 2.0,
+            "safety": 1.0
+          },
+          "vehicle_type": "E_BIKE",
+          "fuel_type": "ELEC",
+          "fuel_consumption": 1.8,
+          "rented": true,
+          "fix_cost_daily": 80.0,
+          "weight": 100.0,
+          "vol": 0.8,
+          "max_ticket_num": 6,
+          "shift_start_time": "2026-07-14 08:00:00",
+          "shift_off_time": "2026-07-14 19:00:00",
+          "tickets": [
+            "ticket-11-daxing",
+            "ticket-06-daxing",
+            "ticket-12-daxing",
+            "ticket-08-daxing"
+          ]
+        }
+      ],
+      "tickets": [
+        {
+          "id": "ticket-01-haidian",
+          "pinned": false,
+          "depo_id": "depo-haidian",
+          "type": "Delv",
+          "status": "New",
+          "skills_required": [
+            "delivery",
+            "heavy_lift"
+          ],
+          "qualification_levels_required": {
+            "heavy_lift": 2.0,
+            "safety": 1.0
+          },
+          "items": [
+            {
+              "sku": "sku-refrigerator",
+              "value": 2
+            },
+            {
+              "sku": "sku-accessory-box",
+              "value": 2
+            }
+          ],
+          "weight": 212.0,
+          "vol": 2.18,
+          "loc": "poi-haidian-01",
+          "agent": "agent-haidian-truck",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 08:30:00",
+          "max_end_time": "2026-07-14 18:30:00",
+          "duration": "PT30M",
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-02-haidian",
+          "pinned": false,
+          "depo_id": "depo-haidian",
+          "type": "Delv",
+          "status": "New",
+          "skills_required": [
+            "delivery",
+            "installation"
+          ],
+          "qualification_levels_required": {
+            "installation": 2.0
+          },
+          "items": [
+            {
+              "sku": "sku-cabinet",
+              "value": 2
+            },
+            {
+              "sku": "sku-accessory-box",
+              "value": 2
+            }
+          ],
+          "weight": 68.0,
+          "vol": 0.48,
+          "loc": "poi-haidian-02",
+          "agent": "agent-haidian-van",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 09:00:00",
+          "max_end_time": "2026-07-14 12:00:00",
+          "duration": "PT30M",
+          "dep_tickets": [],
+          "ref_tickets": [
+            "ticket-03-haidian"
+          ],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-03-haidian",
+          "pinned": false,
+          "depo_id": "depo-haidian",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "installation"
+          ],
+          "qualification_levels_required": {
+            "installation": 2.0,
+            "safety": 1.0
+          },
+          "items": [
+            {
+              "sku": "sku-accessory-box",
+              "value": 3
+            }
+          ],
+          "weight": 18.0,
+          "vol": 0.12,
+          "loc": "poi-haidian-02",
+          "agent": "agent-haidian-van",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 11:00:00",
+          "max_end_time": "2026-07-14 17:00:00",
+          "duration": "PT75M",
+          "dep_tickets": [
+            "ticket-02-haidian"
+          ],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-04-haidian",
+          "pinned": false,
+          "depo_id": "depo-haidian",
+          "type": "Delv",
+          "status": "New",
+          "skills_required": [
+            "delivery"
+          ],
+          "qualification_levels_required": {},
+          "items": [
+            {
+              "sku": "sku-washer",
+              "value": 1
+            },
+            {
+              "sku": "sku-accessory-box",
+              "value": 1
+            }
+          ],
+          "weight": 81.0,
+          "vol": 0.47,
+          "loc": "poi-haidian-03",
+          "agent": "agent-haidian-van",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 08:30:00",
+          "max_end_time": "2026-07-14 18:30:00",
+          "duration": "PT30M",
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-05-haidian",
+          "pinned": false,
+          "depo_id": "depo-haidian",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "installation",
+            "heavy_lift"
+          ],
+          "qualification_levels_required": {
+            "installation": 3.0,
+            "heavy_lift": 2.0
+          },
+          "items": [
+            {
+              "sku": "sku-air-conditioner",
+              "value": 2
+            },
+            {
+              "sku": "sku-accessory-box",
+              "value": 2
+            }
+          ],
+          "weight": 104.0,
+          "vol": 0.72,
+          "loc": "poi-haidian-04",
+          "agent": "agent-haidian-truck",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 08:30:00",
+          "max_end_time": "2026-07-14 18:30:00",
+          "duration": "PT75M",
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-06-haidian",
+          "pinned": false,
+          "depo_id": "depo-haidian",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "repair",
+            "electrical"
+          ],
+          "qualification_levels_required": {
+            "electrical": 2.0
+          },
+          "items": [
+            {
+              "sku": "sku-circuit-board",
+              "value": 1
+            },
+            {
+              "sku": "sku-repair-kit",
+              "value": 1
+            }
+          ],
+          "weight": 12.8,
+          "vol": 0.055,
+          "loc": "poi-haidian-05",
+          "agent": "agent-haidian-ebike",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 08:30:00",
+          "max_end_time": "2026-07-14 18:30:00",
+          "duration": "PT45M",
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-07-haidian",
+          "pinned": false,
+          "depo_id": "depo-haidian",
+          "type": "Delv",
+          "status": "New",
+          "skills_required": [
+            "delivery"
+          ],
+          "qualification_levels_required": {},
+          "items": [
+            {
+              "sku": "sku-tv",
+              "value": 2
+            }
+          ],
+          "weight": 50.0,
+          "vol": 0.4,
+          "loc": "poi-haidian-06",
+          "agent": "agent-haidian-van",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 08:30:00",
+          "max_end_time": "2026-07-14 18:30:00",
+          "duration": "PT30M",
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-08-haidian",
+          "pinned": false,
+          "depo_id": "depo-haidian",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "repair"
+          ],
+          "qualification_levels_required": {
+            "repair": 1.0
+          },
+          "items": [
+            {
+              "sku": "sku-repair-kit",
+              "value": 1
+            },
+            {
+              "sku": "sku-accessory-box",
+              "value": 1
+            }
+          ],
+          "weight": 18.0,
+          "vol": 0.09,
+          "loc": "poi-haidian-07",
+          "agent": "agent-haidian-ebike",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 08:30:00",
+          "max_end_time": "2026-07-14 18:30:00",
+          "duration": "PT45M",
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-09-haidian",
+          "pinned": false,
+          "depo_id": "depo-haidian",
+          "type": "Delv",
+          "status": "New",
+          "skills_required": [
+            "delivery",
+            "heavy_lift"
+          ],
+          "qualification_levels_required": {
+            "heavy_lift": 2.0
+          },
+          "items": [
+            {
+              "sku": "sku-washer",
+              "value": 1
+            },
+            {
+              "sku": "sku-water-heater",
+              "value": 2
+            }
+          ],
+          "weight": 105.0,
+          "vol": 0.59,
+          "loc": "poi-haidian-08",
+          "agent": "agent-haidian-truck",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 08:30:00",
+          "max_end_time": "2026-07-14 18:30:00",
+          "duration": "PT40M",
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-10-haidian",
+          "pinned": false,
+          "depo_id": "depo-haidian",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "installation",
+            "heavy_lift"
+          ],
+          "qualification_levels_required": {
+            "installation": 3.0,
+            "heavy_lift": 2.0
+          },
+          "items": [
+            {
+              "sku": "sku-water-heater",
+              "value": 1
+            },
+            {
+              "sku": "sku-accessory-box",
+              "value": 2
+            }
+          ],
+          "weight": 27.0,
+          "vol": 0.16,
+          "loc": "poi-haidian-09",
+          "agent": "agent-haidian-truck",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 08:30:00",
+          "max_end_time": "2026-07-14 18:30:00",
+          "duration": "PT90M",
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-11-haidian",
+          "pinned": false,
+          "depo_id": "depo-haidian",
+          "type": "Delv",
+          "status": "New",
+          "skills_required": [
+            "delivery"
+          ],
+          "qualification_levels_required": {},
+          "items": [
+            {
+              "sku": "sku-smart-lock",
+              "value": 6
+            },
+            {
+              "sku": "sku-accessory-box",
+              "value": 1
+            }
+          ],
+          "weight": 36.0,
+          "vol": 0.19,
+          "loc": "poi-haidian-09",
+          "agent": "agent-haidian-ebike",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 08:30:00",
+          "max_end_time": "2026-07-14 18:30:00",
+          "duration": "PT30M",
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-12-haidian",
+          "pinned": false,
+          "depo_id": "depo-haidian",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "repair"
+          ],
+          "qualification_levels_required": {
+            "repair": 2.0
+          },
+          "items": [
+            {
+              "sku": "sku-repair-kit",
+              "value": 2
+            },
+            {
+              "sku": "sku-circuit-board",
+              "value": 1
+            }
+          ],
+          "weight": 24.8,
+          "vol": 0.105,
+          "loc": "poi-haidian-01",
+          "agent": "agent-haidian-ebike",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 08:30:00",
+          "max_end_time": "2026-07-14 18:30:00",
+          "duration": "PT45M",
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-01-chaoyang",
+          "pinned": false,
+          "depo_id": "depo-chaoyang",
+          "type": "Delv",
+          "status": "New",
+          "skills_required": [
+            "delivery",
+            "heavy_lift"
+          ],
+          "qualification_levels_required": {
+            "heavy_lift": 2.0,
+            "safety": 1.0
+          },
+          "items": [
+            {
+              "sku": "sku-refrigerator",
+              "value": 2
+            },
+            {
+              "sku": "sku-accessory-box",
+              "value": 2
+            }
+          ],
+          "weight": 212.0,
+          "vol": 2.18,
+          "loc": "poi-chaoyang-01",
+          "agent": "agent-chaoyang-truck",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 08:30:00",
+          "max_end_time": "2026-07-14 18:30:00",
+          "duration": "PT30M",
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-02-chaoyang",
+          "pinned": false,
+          "depo_id": "depo-chaoyang",
+          "type": "Delv",
+          "status": "New",
+          "skills_required": [
+            "delivery",
+            "installation"
+          ],
+          "qualification_levels_required": {
+            "installation": 2.0
+          },
+          "items": [
+            {
+              "sku": "sku-cabinet",
+              "value": 2
+            },
+            {
+              "sku": "sku-accessory-box",
+              "value": 2
+            }
+          ],
+          "weight": 68.0,
+          "vol": 0.48,
+          "loc": "poi-chaoyang-02",
+          "agent": "agent-chaoyang-van",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 09:00:00",
+          "max_end_time": "2026-07-14 12:00:00",
+          "duration": "PT30M",
+          "dep_tickets": [],
+          "ref_tickets": [
+            "ticket-03-chaoyang"
+          ],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-03-chaoyang",
+          "pinned": false,
+          "depo_id": "depo-chaoyang",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "installation"
+          ],
+          "qualification_levels_required": {
+            "installation": 2.0,
+            "safety": 1.0
+          },
+          "items": [
+            {
+              "sku": "sku-accessory-box",
+              "value": 3
+            }
+          ],
+          "weight": 18.0,
+          "vol": 0.12,
+          "loc": "poi-chaoyang-02",
+          "agent": "agent-chaoyang-van",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 11:00:00",
+          "max_end_time": "2026-07-14 17:00:00",
+          "duration": "PT75M",
+          "dep_tickets": [
+            "ticket-02-chaoyang"
+          ],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-04-chaoyang",
+          "pinned": false,
+          "depo_id": "depo-chaoyang",
+          "type": "Delv",
+          "status": "New",
+          "skills_required": [
+            "delivery"
+          ],
+          "qualification_levels_required": {},
+          "items": [
+            {
+              "sku": "sku-washer",
+              "value": 1
+            },
+            {
+              "sku": "sku-accessory-box",
+              "value": 1
+            }
+          ],
+          "weight": 81.0,
+          "vol": 0.47,
+          "loc": "poi-chaoyang-03",
+          "agent": "agent-chaoyang-van",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 08:30:00",
+          "max_end_time": "2026-07-14 18:30:00",
+          "duration": "PT30M",
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-05-chaoyang",
+          "pinned": false,
+          "depo_id": "depo-chaoyang",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "installation",
+            "heavy_lift"
+          ],
+          "qualification_levels_required": {
+            "installation": 3.0,
+            "heavy_lift": 2.0
+          },
+          "items": [
+            {
+              "sku": "sku-air-conditioner",
+              "value": 2
+            },
+            {
+              "sku": "sku-accessory-box",
+              "value": 2
+            }
+          ],
+          "weight": 104.0,
+          "vol": 0.72,
+          "loc": "poi-chaoyang-04",
+          "agent": "agent-chaoyang-truck",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 08:30:00",
+          "max_end_time": "2026-07-14 18:30:00",
+          "duration": "PT75M",
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-06-chaoyang",
+          "pinned": false,
+          "depo_id": "depo-chaoyang",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "repair",
+            "electrical"
+          ],
+          "qualification_levels_required": {
+            "electrical": 2.0
+          },
+          "items": [
+            {
+              "sku": "sku-circuit-board",
+              "value": 1
+            },
+            {
+              "sku": "sku-repair-kit",
+              "value": 1
+            }
+          ],
+          "weight": 12.8,
+          "vol": 0.055,
+          "loc": "poi-chaoyang-05",
+          "agent": "agent-chaoyang-ebike",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 08:30:00",
+          "max_end_time": "2026-07-14 18:30:00",
+          "duration": "PT45M",
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-07-chaoyang",
+          "pinned": false,
+          "depo_id": "depo-chaoyang",
+          "type": "Delv",
+          "status": "New",
+          "skills_required": [
+            "delivery"
+          ],
+          "qualification_levels_required": {},
+          "items": [
+            {
+              "sku": "sku-tv",
+              "value": 2
+            }
+          ],
+          "weight": 50.0,
+          "vol": 0.4,
+          "loc": "poi-chaoyang-06",
+          "agent": "agent-chaoyang-van",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 08:30:00",
+          "max_end_time": "2026-07-14 18:30:00",
+          "duration": "PT30M",
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-08-chaoyang",
+          "pinned": false,
+          "depo_id": "depo-chaoyang",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "repair"
+          ],
+          "qualification_levels_required": {
+            "repair": 1.0
+          },
+          "items": [
+            {
+              "sku": "sku-repair-kit",
+              "value": 1
+            },
+            {
+              "sku": "sku-accessory-box",
+              "value": 1
+            }
+          ],
+          "weight": 18.0,
+          "vol": 0.09,
+          "loc": "poi-chaoyang-07",
+          "agent": "agent-chaoyang-ebike",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 08:30:00",
+          "max_end_time": "2026-07-14 18:30:00",
+          "duration": "PT45M",
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-09-chaoyang",
+          "pinned": false,
+          "depo_id": "depo-chaoyang",
+          "type": "Delv",
+          "status": "New",
+          "skills_required": [
+            "delivery",
+            "heavy_lift"
+          ],
+          "qualification_levels_required": {
+            "heavy_lift": 2.0
+          },
+          "items": [
+            {
+              "sku": "sku-washer",
+              "value": 1
+            },
+            {
+              "sku": "sku-water-heater",
+              "value": 2
+            }
+          ],
+          "weight": 105.0,
+          "vol": 0.59,
+          "loc": "poi-chaoyang-08",
+          "agent": "agent-chaoyang-truck",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 08:30:00",
+          "max_end_time": "2026-07-14 18:30:00",
+          "duration": "PT40M",
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-10-chaoyang",
+          "pinned": false,
+          "depo_id": "depo-chaoyang",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "installation",
+            "heavy_lift"
+          ],
+          "qualification_levels_required": {
+            "installation": 3.0,
+            "heavy_lift": 2.0
+          },
+          "items": [
+            {
+              "sku": "sku-water-heater",
+              "value": 1
+            },
+            {
+              "sku": "sku-accessory-box",
+              "value": 2
+            }
+          ],
+          "weight": 27.0,
+          "vol": 0.16,
+          "loc": "poi-chaoyang-09",
+          "agent": "agent-chaoyang-truck",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 08:30:00",
+          "max_end_time": "2026-07-14 18:30:00",
+          "duration": "PT90M",
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-11-chaoyang",
+          "pinned": false,
+          "depo_id": "depo-chaoyang",
+          "type": "Delv",
+          "status": "New",
+          "skills_required": [
+            "delivery"
+          ],
+          "qualification_levels_required": {},
+          "items": [
+            {
+              "sku": "sku-smart-lock",
+              "value": 6
+            },
+            {
+              "sku": "sku-accessory-box",
+              "value": 1
+            }
+          ],
+          "weight": 36.0,
+          "vol": 0.19,
+          "loc": "poi-chaoyang-09",
+          "agent": "agent-chaoyang-ebike",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 08:30:00",
+          "max_end_time": "2026-07-14 18:30:00",
+          "duration": "PT30M",
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-12-chaoyang",
+          "pinned": false,
+          "depo_id": "depo-chaoyang",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "repair"
+          ],
+          "qualification_levels_required": {
+            "repair": 2.0
+          },
+          "items": [
+            {
+              "sku": "sku-repair-kit",
+              "value": 2
+            },
+            {
+              "sku": "sku-circuit-board",
+              "value": 1
+            }
+          ],
+          "weight": 24.8,
+          "vol": 0.105,
+          "loc": "poi-chaoyang-01",
+          "agent": "agent-chaoyang-ebike",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 08:30:00",
+          "max_end_time": "2026-07-14 18:30:00",
+          "duration": "PT45M",
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-01-fengtai",
+          "pinned": false,
+          "depo_id": "depo-fengtai",
+          "type": "Delv",
+          "status": "New",
+          "skills_required": [
+            "delivery",
+            "heavy_lift"
+          ],
+          "qualification_levels_required": {
+            "heavy_lift": 2.0,
+            "safety": 1.0
+          },
+          "items": [
+            {
+              "sku": "sku-refrigerator",
+              "value": 2
+            },
+            {
+              "sku": "sku-accessory-box",
+              "value": 2
+            }
+          ],
+          "weight": 212.0,
+          "vol": 2.18,
+          "loc": "poi-fengtai-01",
+          "agent": "agent-fengtai-truck",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 08:30:00",
+          "max_end_time": "2026-07-14 18:30:00",
+          "duration": "PT30M",
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-02-fengtai",
+          "pinned": false,
+          "depo_id": "depo-fengtai",
+          "type": "Delv",
+          "status": "New",
+          "skills_required": [
+            "delivery",
+            "installation"
+          ],
+          "qualification_levels_required": {
+            "installation": 2.0
+          },
+          "items": [
+            {
+              "sku": "sku-cabinet",
+              "value": 2
+            },
+            {
+              "sku": "sku-accessory-box",
+              "value": 2
+            }
+          ],
+          "weight": 68.0,
+          "vol": 0.48,
+          "loc": "poi-fengtai-02",
+          "agent": "agent-fengtai-van",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 09:00:00",
+          "max_end_time": "2026-07-14 12:00:00",
+          "duration": "PT30M",
+          "dep_tickets": [],
+          "ref_tickets": [
+            "ticket-03-fengtai"
+          ],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-03-fengtai",
+          "pinned": false,
+          "depo_id": "depo-fengtai",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "installation"
+          ],
+          "qualification_levels_required": {
+            "installation": 2.0,
+            "safety": 1.0
+          },
+          "items": [
+            {
+              "sku": "sku-accessory-box",
+              "value": 3
+            }
+          ],
+          "weight": 18.0,
+          "vol": 0.12,
+          "loc": "poi-fengtai-02",
+          "agent": "agent-fengtai-van",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 11:00:00",
+          "max_end_time": "2026-07-14 17:00:00",
+          "duration": "PT75M",
+          "dep_tickets": [
+            "ticket-02-fengtai"
+          ],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-04-fengtai",
+          "pinned": false,
+          "depo_id": "depo-fengtai",
+          "type": "Delv",
+          "status": "New",
+          "skills_required": [
+            "delivery"
+          ],
+          "qualification_levels_required": {},
+          "items": [
+            {
+              "sku": "sku-washer",
+              "value": 1
+            },
+            {
+              "sku": "sku-accessory-box",
+              "value": 1
+            }
+          ],
+          "weight": 81.0,
+          "vol": 0.47,
+          "loc": "poi-fengtai-03",
+          "agent": "agent-fengtai-van",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 08:30:00",
+          "max_end_time": "2026-07-14 18:30:00",
+          "duration": "PT30M",
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-05-fengtai",
+          "pinned": false,
+          "depo_id": "depo-fengtai",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "installation",
+            "heavy_lift"
+          ],
+          "qualification_levels_required": {
+            "installation": 3.0,
+            "heavy_lift": 2.0
+          },
+          "items": [
+            {
+              "sku": "sku-air-conditioner",
+              "value": 2
+            },
+            {
+              "sku": "sku-accessory-box",
+              "value": 2
+            }
+          ],
+          "weight": 104.0,
+          "vol": 0.72,
+          "loc": "poi-fengtai-04",
+          "agent": "agent-fengtai-truck",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 08:30:00",
+          "max_end_time": "2026-07-14 18:30:00",
+          "duration": "PT75M",
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-06-fengtai",
+          "pinned": false,
+          "depo_id": "depo-fengtai",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "repair",
+            "electrical"
+          ],
+          "qualification_levels_required": {
+            "electrical": 2.0
+          },
+          "items": [
+            {
+              "sku": "sku-circuit-board",
+              "value": 1
+            },
+            {
+              "sku": "sku-repair-kit",
+              "value": 1
+            }
+          ],
+          "weight": 12.8,
+          "vol": 0.055,
+          "loc": "poi-fengtai-05",
+          "agent": "agent-fengtai-ebike",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 08:30:00",
+          "max_end_time": "2026-07-14 18:30:00",
+          "duration": "PT45M",
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-07-fengtai",
+          "pinned": false,
+          "depo_id": "depo-fengtai",
+          "type": "Delv",
+          "status": "New",
+          "skills_required": [
+            "delivery"
+          ],
+          "qualification_levels_required": {},
+          "items": [
+            {
+              "sku": "sku-tv",
+              "value": 2
+            }
+          ],
+          "weight": 50.0,
+          "vol": 0.4,
+          "loc": "poi-fengtai-06",
+          "agent": "agent-fengtai-van",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 08:30:00",
+          "max_end_time": "2026-07-14 18:30:00",
+          "duration": "PT30M",
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-08-fengtai",
+          "pinned": false,
+          "depo_id": "depo-fengtai",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "repair"
+          ],
+          "qualification_levels_required": {
+            "repair": 1.0
+          },
+          "items": [
+            {
+              "sku": "sku-repair-kit",
+              "value": 1
+            },
+            {
+              "sku": "sku-accessory-box",
+              "value": 1
+            }
+          ],
+          "weight": 18.0,
+          "vol": 0.09,
+          "loc": "poi-fengtai-07",
+          "agent": "agent-fengtai-ebike",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 08:30:00",
+          "max_end_time": "2026-07-14 18:30:00",
+          "duration": "PT45M",
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-09-fengtai",
+          "pinned": false,
+          "depo_id": "depo-fengtai",
+          "type": "Delv",
+          "status": "New",
+          "skills_required": [
+            "delivery",
+            "heavy_lift"
+          ],
+          "qualification_levels_required": {
+            "heavy_lift": 2.0
+          },
+          "items": [
+            {
+              "sku": "sku-washer",
+              "value": 1
+            },
+            {
+              "sku": "sku-water-heater",
+              "value": 2
+            }
+          ],
+          "weight": 105.0,
+          "vol": 0.59,
+          "loc": "poi-fengtai-08",
+          "agent": "agent-fengtai-truck",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 08:30:00",
+          "max_end_time": "2026-07-14 18:30:00",
+          "duration": "PT40M",
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-10-fengtai",
+          "pinned": false,
+          "depo_id": "depo-fengtai",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "installation",
+            "heavy_lift"
+          ],
+          "qualification_levels_required": {
+            "installation": 3.0,
+            "heavy_lift": 2.0
+          },
+          "items": [
+            {
+              "sku": "sku-water-heater",
+              "value": 1
+            },
+            {
+              "sku": "sku-accessory-box",
+              "value": 2
+            }
+          ],
+          "weight": 27.0,
+          "vol": 0.16,
+          "loc": "poi-fengtai-09",
+          "agent": "agent-fengtai-truck",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 08:30:00",
+          "max_end_time": "2026-07-14 18:30:00",
+          "duration": "PT90M",
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-11-fengtai",
+          "pinned": false,
+          "depo_id": "depo-fengtai",
+          "type": "Delv",
+          "status": "New",
+          "skills_required": [
+            "delivery"
+          ],
+          "qualification_levels_required": {},
+          "items": [
+            {
+              "sku": "sku-smart-lock",
+              "value": 6
+            },
+            {
+              "sku": "sku-accessory-box",
+              "value": 1
+            }
+          ],
+          "weight": 36.0,
+          "vol": 0.19,
+          "loc": "poi-fengtai-09",
+          "agent": "agent-fengtai-ebike",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 08:30:00",
+          "max_end_time": "2026-07-14 18:30:00",
+          "duration": "PT30M",
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-12-fengtai",
+          "pinned": false,
+          "depo_id": "depo-fengtai",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "repair"
+          ],
+          "qualification_levels_required": {
+            "repair": 2.0
+          },
+          "items": [
+            {
+              "sku": "sku-repair-kit",
+              "value": 2
+            },
+            {
+              "sku": "sku-circuit-board",
+              "value": 1
+            }
+          ],
+          "weight": 24.8,
+          "vol": 0.105,
+          "loc": "poi-fengtai-01",
+          "agent": "agent-fengtai-ebike",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 08:30:00",
+          "max_end_time": "2026-07-14 18:30:00",
+          "duration": "PT45M",
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-01-tongzhou",
+          "pinned": false,
+          "depo_id": "depo-tongzhou",
+          "type": "Delv",
+          "status": "New",
+          "skills_required": [
+            "delivery",
+            "heavy_lift"
+          ],
+          "qualification_levels_required": {
+            "heavy_lift": 2.0,
+            "safety": 1.0
+          },
+          "items": [
+            {
+              "sku": "sku-refrigerator",
+              "value": 2
+            },
+            {
+              "sku": "sku-accessory-box",
+              "value": 2
+            }
+          ],
+          "weight": 212.0,
+          "vol": 2.18,
+          "loc": "poi-tongzhou-01",
+          "agent": "agent-tongzhou-truck",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 08:30:00",
+          "max_end_time": "2026-07-14 18:30:00",
+          "duration": "PT30M",
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-02-tongzhou",
+          "pinned": false,
+          "depo_id": "depo-tongzhou",
+          "type": "Delv",
+          "status": "New",
+          "skills_required": [
+            "delivery",
+            "installation"
+          ],
+          "qualification_levels_required": {
+            "installation": 2.0
+          },
+          "items": [
+            {
+              "sku": "sku-cabinet",
+              "value": 2
+            },
+            {
+              "sku": "sku-accessory-box",
+              "value": 2
+            }
+          ],
+          "weight": 68.0,
+          "vol": 0.48,
+          "loc": "poi-tongzhou-02",
+          "agent": "agent-tongzhou-van",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 09:00:00",
+          "max_end_time": "2026-07-14 12:00:00",
+          "duration": "PT30M",
+          "dep_tickets": [],
+          "ref_tickets": [
+            "ticket-03-tongzhou"
+          ],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-03-tongzhou",
+          "pinned": false,
+          "depo_id": "depo-tongzhou",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "installation"
+          ],
+          "qualification_levels_required": {
+            "installation": 2.0,
+            "safety": 1.0
+          },
+          "items": [
+            {
+              "sku": "sku-accessory-box",
+              "value": 3
+            }
+          ],
+          "weight": 18.0,
+          "vol": 0.12,
+          "loc": "poi-tongzhou-02",
+          "agent": "agent-tongzhou-van",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 11:00:00",
+          "max_end_time": "2026-07-14 17:00:00",
+          "duration": "PT75M",
+          "dep_tickets": [
+            "ticket-02-tongzhou"
+          ],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-04-tongzhou",
+          "pinned": false,
+          "depo_id": "depo-tongzhou",
+          "type": "Delv",
+          "status": "New",
+          "skills_required": [
+            "delivery"
+          ],
+          "qualification_levels_required": {},
+          "items": [
+            {
+              "sku": "sku-washer",
+              "value": 1
+            },
+            {
+              "sku": "sku-accessory-box",
+              "value": 1
+            }
+          ],
+          "weight": 81.0,
+          "vol": 0.47,
+          "loc": "poi-tongzhou-03",
+          "agent": "agent-tongzhou-van",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 08:30:00",
+          "max_end_time": "2026-07-14 18:30:00",
+          "duration": "PT30M",
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-05-tongzhou",
+          "pinned": false,
+          "depo_id": "depo-tongzhou",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "installation",
+            "heavy_lift"
+          ],
+          "qualification_levels_required": {
+            "installation": 3.0,
+            "heavy_lift": 2.0
+          },
+          "items": [
+            {
+              "sku": "sku-air-conditioner",
+              "value": 2
+            },
+            {
+              "sku": "sku-accessory-box",
+              "value": 2
+            }
+          ],
+          "weight": 104.0,
+          "vol": 0.72,
+          "loc": "poi-tongzhou-04",
+          "agent": "agent-tongzhou-truck",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 08:30:00",
+          "max_end_time": "2026-07-14 18:30:00",
+          "duration": "PT75M",
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-06-tongzhou",
+          "pinned": false,
+          "depo_id": "depo-tongzhou",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "repair",
+            "electrical"
+          ],
+          "qualification_levels_required": {
+            "electrical": 2.0
+          },
+          "items": [
+            {
+              "sku": "sku-circuit-board",
+              "value": 1
+            },
+            {
+              "sku": "sku-repair-kit",
+              "value": 1
+            }
+          ],
+          "weight": 12.8,
+          "vol": 0.055,
+          "loc": "poi-tongzhou-05",
+          "agent": "agent-tongzhou-ebike",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 08:30:00",
+          "max_end_time": "2026-07-14 18:30:00",
+          "duration": "PT45M",
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-07-tongzhou",
+          "pinned": false,
+          "depo_id": "depo-tongzhou",
+          "type": "Delv",
+          "status": "New",
+          "skills_required": [
+            "delivery"
+          ],
+          "qualification_levels_required": {},
+          "items": [
+            {
+              "sku": "sku-tv",
+              "value": 2
+            }
+          ],
+          "weight": 50.0,
+          "vol": 0.4,
+          "loc": "poi-tongzhou-06",
+          "agent": "agent-tongzhou-van",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 08:30:00",
+          "max_end_time": "2026-07-14 18:30:00",
+          "duration": "PT30M",
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-08-tongzhou",
+          "pinned": false,
+          "depo_id": "depo-tongzhou",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "repair"
+          ],
+          "qualification_levels_required": {
+            "repair": 1.0
+          },
+          "items": [
+            {
+              "sku": "sku-repair-kit",
+              "value": 1
+            },
+            {
+              "sku": "sku-accessory-box",
+              "value": 1
+            }
+          ],
+          "weight": 18.0,
+          "vol": 0.09,
+          "loc": "poi-tongzhou-07",
+          "agent": "agent-tongzhou-ebike",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 08:30:00",
+          "max_end_time": "2026-07-14 18:30:00",
+          "duration": "PT45M",
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-09-tongzhou",
+          "pinned": false,
+          "depo_id": "depo-tongzhou",
+          "type": "Delv",
+          "status": "New",
+          "skills_required": [
+            "delivery",
+            "heavy_lift"
+          ],
+          "qualification_levels_required": {
+            "heavy_lift": 2.0
+          },
+          "items": [
+            {
+              "sku": "sku-washer",
+              "value": 1
+            },
+            {
+              "sku": "sku-water-heater",
+              "value": 2
+            }
+          ],
+          "weight": 105.0,
+          "vol": 0.59,
+          "loc": "poi-tongzhou-08",
+          "agent": "agent-tongzhou-truck",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 08:30:00",
+          "max_end_time": "2026-07-14 18:30:00",
+          "duration": "PT40M",
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-10-tongzhou",
+          "pinned": false,
+          "depo_id": "depo-tongzhou",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "installation",
+            "heavy_lift"
+          ],
+          "qualification_levels_required": {
+            "installation": 3.0,
+            "heavy_lift": 2.0
+          },
+          "items": [
+            {
+              "sku": "sku-water-heater",
+              "value": 1
+            },
+            {
+              "sku": "sku-accessory-box",
+              "value": 2
+            }
+          ],
+          "weight": 27.0,
+          "vol": 0.16,
+          "loc": "poi-tongzhou-09",
+          "agent": "agent-tongzhou-truck",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 08:30:00",
+          "max_end_time": "2026-07-14 18:30:00",
+          "duration": "PT90M",
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-11-tongzhou",
+          "pinned": false,
+          "depo_id": "depo-tongzhou",
+          "type": "Delv",
+          "status": "New",
+          "skills_required": [
+            "delivery"
+          ],
+          "qualification_levels_required": {},
+          "items": [
+            {
+              "sku": "sku-smart-lock",
+              "value": 6
+            },
+            {
+              "sku": "sku-accessory-box",
+              "value": 1
+            }
+          ],
+          "weight": 36.0,
+          "vol": 0.19,
+          "loc": "poi-tongzhou-09",
+          "agent": "agent-tongzhou-ebike",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 08:30:00",
+          "max_end_time": "2026-07-14 18:30:00",
+          "duration": "PT30M",
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-12-tongzhou",
+          "pinned": false,
+          "depo_id": "depo-tongzhou",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "repair"
+          ],
+          "qualification_levels_required": {
+            "repair": 2.0
+          },
+          "items": [
+            {
+              "sku": "sku-repair-kit",
+              "value": 2
+            },
+            {
+              "sku": "sku-circuit-board",
+              "value": 1
+            }
+          ],
+          "weight": 24.8,
+          "vol": 0.105,
+          "loc": "poi-tongzhou-01",
+          "agent": "agent-tongzhou-ebike",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 08:30:00",
+          "max_end_time": "2026-07-14 18:30:00",
+          "duration": "PT45M",
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-01-daxing",
+          "pinned": false,
+          "depo_id": "depo-daxing",
+          "type": "Delv",
+          "status": "New",
+          "skills_required": [
+            "delivery",
+            "heavy_lift"
+          ],
+          "qualification_levels_required": {
+            "heavy_lift": 2.0,
+            "safety": 1.0
+          },
+          "items": [
+            {
+              "sku": "sku-refrigerator",
+              "value": 2
+            },
+            {
+              "sku": "sku-accessory-box",
+              "value": 2
+            }
+          ],
+          "weight": 212.0,
+          "vol": 2.18,
+          "loc": "poi-daxing-01",
+          "agent": "agent-daxing-truck",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 08:30:00",
+          "max_end_time": "2026-07-14 18:30:00",
+          "duration": "PT30M",
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-02-daxing",
+          "pinned": false,
+          "depo_id": "depo-daxing",
+          "type": "Delv",
+          "status": "New",
+          "skills_required": [
+            "delivery",
+            "installation"
+          ],
+          "qualification_levels_required": {
+            "installation": 2.0
+          },
+          "items": [
+            {
+              "sku": "sku-cabinet",
+              "value": 2
+            },
+            {
+              "sku": "sku-accessory-box",
+              "value": 2
+            }
+          ],
+          "weight": 68.0,
+          "vol": 0.48,
+          "loc": "poi-daxing-02",
+          "agent": "agent-daxing-van",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 09:00:00",
+          "max_end_time": "2026-07-14 12:00:00",
+          "duration": "PT30M",
+          "dep_tickets": [],
+          "ref_tickets": [
+            "ticket-03-daxing"
+          ],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-03-daxing",
+          "pinned": false,
+          "depo_id": "depo-daxing",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "installation"
+          ],
+          "qualification_levels_required": {
+            "installation": 2.0,
+            "safety": 1.0
+          },
+          "items": [
+            {
+              "sku": "sku-accessory-box",
+              "value": 3
+            }
+          ],
+          "weight": 18.0,
+          "vol": 0.12,
+          "loc": "poi-daxing-02",
+          "agent": "agent-daxing-van",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 11:00:00",
+          "max_end_time": "2026-07-14 17:00:00",
+          "duration": "PT75M",
+          "dep_tickets": [
+            "ticket-02-daxing"
+          ],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-04-daxing",
+          "pinned": false,
+          "depo_id": "depo-daxing",
+          "type": "Delv",
+          "status": "New",
+          "skills_required": [
+            "delivery"
+          ],
+          "qualification_levels_required": {},
+          "items": [
+            {
+              "sku": "sku-washer",
+              "value": 1
+            },
+            {
+              "sku": "sku-accessory-box",
+              "value": 1
+            }
+          ],
+          "weight": 81.0,
+          "vol": 0.47,
+          "loc": "poi-daxing-03",
+          "agent": "agent-daxing-van",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 08:30:00",
+          "max_end_time": "2026-07-14 18:30:00",
+          "duration": "PT30M",
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-05-daxing",
+          "pinned": false,
+          "depo_id": "depo-daxing",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "installation",
+            "heavy_lift"
+          ],
+          "qualification_levels_required": {
+            "installation": 3.0,
+            "heavy_lift": 2.0
+          },
+          "items": [
+            {
+              "sku": "sku-air-conditioner",
+              "value": 2
+            },
+            {
+              "sku": "sku-accessory-box",
+              "value": 2
+            }
+          ],
+          "weight": 104.0,
+          "vol": 0.72,
+          "loc": "poi-daxing-04",
+          "agent": "agent-daxing-truck",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 08:30:00",
+          "max_end_time": "2026-07-14 18:30:00",
+          "duration": "PT75M",
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-06-daxing",
+          "pinned": false,
+          "depo_id": "depo-daxing",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "repair",
+            "electrical"
+          ],
+          "qualification_levels_required": {
+            "electrical": 2.0
+          },
+          "items": [
+            {
+              "sku": "sku-circuit-board",
+              "value": 1
+            },
+            {
+              "sku": "sku-repair-kit",
+              "value": 1
+            }
+          ],
+          "weight": 12.8,
+          "vol": 0.055,
+          "loc": "poi-daxing-05",
+          "agent": "agent-daxing-ebike",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 08:30:00",
+          "max_end_time": "2026-07-14 18:30:00",
+          "duration": "PT45M",
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-07-daxing",
+          "pinned": false,
+          "depo_id": "depo-daxing",
+          "type": "Delv",
+          "status": "New",
+          "skills_required": [
+            "delivery"
+          ],
+          "qualification_levels_required": {},
+          "items": [
+            {
+              "sku": "sku-tv",
+              "value": 2
+            }
+          ],
+          "weight": 50.0,
+          "vol": 0.4,
+          "loc": "poi-daxing-06",
+          "agent": "agent-daxing-van",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 08:30:00",
+          "max_end_time": "2026-07-14 18:30:00",
+          "duration": "PT30M",
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-08-daxing",
+          "pinned": false,
+          "depo_id": "depo-daxing",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "repair"
+          ],
+          "qualification_levels_required": {
+            "repair": 1.0
+          },
+          "items": [
+            {
+              "sku": "sku-repair-kit",
+              "value": 1
+            },
+            {
+              "sku": "sku-accessory-box",
+              "value": 1
+            }
+          ],
+          "weight": 18.0,
+          "vol": 0.09,
+          "loc": "poi-daxing-07",
+          "agent": "agent-daxing-ebike",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 08:30:00",
+          "max_end_time": "2026-07-14 18:30:00",
+          "duration": "PT45M",
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-09-daxing",
+          "pinned": false,
+          "depo_id": "depo-daxing",
+          "type": "Delv",
+          "status": "New",
+          "skills_required": [
+            "delivery",
+            "heavy_lift"
+          ],
+          "qualification_levels_required": {
+            "heavy_lift": 2.0
+          },
+          "items": [
+            {
+              "sku": "sku-washer",
+              "value": 1
+            },
+            {
+              "sku": "sku-water-heater",
+              "value": 2
+            }
+          ],
+          "weight": 105.0,
+          "vol": 0.59,
+          "loc": "poi-daxing-08",
+          "agent": "agent-daxing-truck",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 08:30:00",
+          "max_end_time": "2026-07-14 18:30:00",
+          "duration": "PT40M",
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-10-daxing",
+          "pinned": false,
+          "depo_id": "depo-daxing",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "installation",
+            "heavy_lift"
+          ],
+          "qualification_levels_required": {
+            "installation": 3.0,
+            "heavy_lift": 2.0
+          },
+          "items": [
+            {
+              "sku": "sku-water-heater",
+              "value": 1
+            },
+            {
+              "sku": "sku-accessory-box",
+              "value": 2
+            }
+          ],
+          "weight": 27.0,
+          "vol": 0.16,
+          "loc": "poi-daxing-09",
+          "agent": "agent-daxing-truck",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 08:30:00",
+          "max_end_time": "2026-07-14 18:30:00",
+          "duration": "PT90M",
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-11-daxing",
+          "pinned": false,
+          "depo_id": "depo-daxing",
+          "type": "Delv",
+          "status": "New",
+          "skills_required": [
+            "delivery"
+          ],
+          "qualification_levels_required": {},
+          "items": [
+            {
+              "sku": "sku-smart-lock",
+              "value": 6
+            },
+            {
+              "sku": "sku-accessory-box",
+              "value": 1
+            }
+          ],
+          "weight": 36.0,
+          "vol": 0.19,
+          "loc": "poi-daxing-09",
+          "agent": "agent-daxing-ebike",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 08:30:00",
+          "max_end_time": "2026-07-14 18:30:00",
+          "duration": "PT30M",
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "relation_tickets": []
+        },
+        {
+          "id": "ticket-12-daxing",
+          "pinned": false,
+          "depo_id": "depo-daxing",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "repair"
+          ],
+          "qualification_levels_required": {
+            "repair": 2.0
+          },
+          "items": [
+            {
+              "sku": "sku-repair-kit",
+              "value": 2
+            },
+            {
+              "sku": "sku-circuit-board",
+              "value": 1
+            }
+          ],
+          "weight": 24.8,
+          "vol": 0.105,
+          "loc": "poi-daxing-01",
+          "agent": "agent-daxing-ebike",
+          "create_time": "2026-07-13 09:00:00",
+          "min_start_time": "2026-07-14 08:30:00",
+          "max_end_time": "2026-07-14 18:30:00",
+          "duration": "PT45M",
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "relation_tickets": []
+        }
+      ],
+      "constraint_configuration": {
+        "name": "beijingComplexScoreProgress",
+        "agent_capacity": "1hard/0medium/0soft",
+        "agent_max_ticket": "1hard/0medium/0soft",
+        "service_finished_after_max_end_time": "1hard/0medium/0soft",
+        "ref_ticket_after_dep_ticket": "1hard/0medium/0soft",
+        "ref_ticket_same_agent_with_dep_ticket": "1hard/0medium/0soft",
+        "balance_agent_loading": "0hard/10medium/0soft",
+        "balance_agent_loading_ratio": "0hard/0medium/0soft",
+        "balance_agent_working_time": "0hard/0medium/0soft",
+        "minimize_travel_time": "0hard/0medium/1soft",
+        "minimize_travel_distance": "0hard/0medium/1soft",
+        "minimize_agent_fixed_cost": "0hard/0medium/0soft",
+        "minimize_ticket_changing": "0hard/0medium/0soft",
+        "agent_skills_accord_with_ticket_skills": "1hard/0medium/0soft",
+        "ticket_arrival_time_same_date_with_plan_time": "1hard/0medium/0soft",
+        "ticket_start_service_time_match_expected": "0hard/0medium/0soft",
+        "agent_qualification_levels_match_ticket": "1hard/0medium/0soft",
+        "same_depo": "1hard/0medium/0soft",
+        "relation_tickets_same_agent": "1hard/0medium/0soft",
+        "agent_is_virtual": "0hard/1000medium/0soft"
+      },
+      "cost_parameter": {
+        "start_price": 260.0,
+        "node_fee": 35.0,
+        "max_overload_ratio": 1.0,
+        "overload_fee": 1000.0,
+        "cross_region_threshold": 15000.0,
+        "cross_region_fee": 120.0,
+        "guaranteed_income": 500.0,
+        "time_restricted_traffic_charge": 100.0,
+        "elec_price": 0.5103,
+        "gas_92_price": 7.18
+      }
+    }
+  },
+  "solve_options": {
+    "solve_time": "PT30S",
+    "matrix_mode": "MANHATTAN",
+    "build_transit_matrix": true,
+    "draw_route": true
+  }
+}

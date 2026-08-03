@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VRP-0</title>
+  <link rel="icon" href="assets/img/vrp-0-logo.png" type="image/png">
+  <link rel="stylesheet" href="assets/css/material-symbols.css">
+  <link rel="stylesheet" href="assets/css/style.compiled.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "@codemirror/autocomplete": "/static/assets/vendor/codemirror/@codemirror/autocomplete/dist/index.js",
+        "@codemirror/commands": "/static/assets/vendor/codemirror/@codemirror/commands/dist/index.js",
+        "@codemirror/language": "/static/assets/vendor/codemirror/@codemirror/language/dist/index.js",
+        "@codemirror/lint": "/static/assets/vendor/codemirror/@codemirror/lint/dist/index.js",
+        "@codemirror/search": "/static/assets/vendor/codemirror/@codemirror/search/dist/index.js",
+        "@codemirror/state": "/static/assets/vendor/codemirror/@codemirror/state/dist/index.js",
+        "@codemirror/view": "/static/assets/vendor/codemirror/@codemirror/view/dist/index.js",
+        "@lezer/common": "/static/assets/vendor/codemirror/@lezer/common/dist/index.js",
+        "@lezer/highlight": "/static/assets/vendor/codemirror/@lezer/highlight/dist/index.js",
+        "@lezer/json": "/static/assets/vendor/codemirror/@lezer/json/dist/index.js",
+        "@lezer/lr": "/static/assets/vendor/codemirror/@lezer/lr/dist/index.js",
+        "@marijn/find-cluster-break": "/static/assets/vendor/codemirror/@marijn/find-cluster-break/src/index.js",
+        "crelt": "/static/assets/vendor/codemirror/crelt/index.js",
+        "style-mod": "/static/assets/vendor/codemirror/style-mod/src/style-mod.js",
+        "w3c-keyname": "/static/assets/vendor/codemirror/w3c-keyname/index.js"
+      }
+    }
+  </script>
+  <script type="module" src="assets/js/init-alpine.js"></script>
+</head>
+<body class="app-shell h-screen overflow-hidden">
+  <div x-data="frameShell" x-init="boot()" class="h-screen overflow-hidden">
+    <div
+      x-show="notification.message"
+      x-cloak
+      x-transition.opacity.duration.200ms
+      class="pointer-events-none fixed inset-x-0 top-[6.25rem] z-50 flex justify-center px-[1.25rem]"
+    >
+      <div
+        class="pointer-events-auto flex max-w-[35rem] items-center gap-[0.9375rem] rounded-[0.46875rem] border-[1.25px] bg-white px-[1.25rem] py-[0.9375rem] text-[1.09375rem]/[1.5625rem] shadow-[0_25px_31.25px_-6.25px_rgba(0,0,0,0.1),0_10px_12.5px_-7.5px_rgba(0,0,0,0.1)]"
+        :class="notification.tone === 'danger' ? 'border-rose-500/30 text-rose-700' : 'border-emerald-500/30 text-emerald-700'"
+      >
+        <span class="material-symbols-rounded text-[22.5px]" x-text="notification.tone === 'danger' ? 'error' : 'check_circle'"></span>
+        <span x-text="notification.message"></span>
+        <button type="button" class="ml-[0.3125rem] text-slate-500 hover:text-slate-800" @click="clearNotification()" :aria-label="t('frame.dismissNotification')">
+          <span class="material-symbols-rounded text-[22.5px]">close</span>
+        </button>
+      </div>
+    </div>
+
+    <aside
+      class="hidden h-screen border-r-[1.25px] border-slate-200 bg-white transition-colors duration-150 min-[960px]:fixed min-[960px]:inset-y-0 min-[960px]:left-0 min-[960px]:z-30 min-[960px]:flex min-[960px]:flex-col"
+      :class="sidebarCollapsed ? 'min-[960px]:w-[4.375rem]' : 'min-[960px]:w-[12.5rem]'"
+    >
+      <button
+        type="button"
+        class="frame-brand-button frame-top-band ui-tooltip flex w-full shrink-0 items-center border-b-[1.25px] border-slate-200"
+        :class="sidebarCollapsed ? 'justify-center px-0' : 'gap-[0.625rem] px-[0.9375rem] text-left'"
+        @click="toggleSidebar()"
+        :aria-label="t(sidebarCollapsed ? 'frame.expandNavigation' : 'frame.collapseNavigation')"
+        :data-tooltip="t(sidebarCollapsed ? 'frame.expandNavigation' : 'frame.collapseNavigation')"
+        :aria-expanded="String(!sidebarCollapsed)"
+      >
+        <img
+          src="assets/img/vrp-0-logo.png"
+          alt="VRP-0"
+          aria-hidden="true"
+          class="object-contain"
+          :class="sidebarCollapsed ? 'h-[2.8125rem] w-[2.8125rem]' : 'h-[3.125rem] w-[3.125rem]'"
+        >
+        <div x-show="!sidebarCollapsed" x-transition.opacity class="truncate text-[1.09375rem]/[1.5625rem] font-medium text-slate-700">VRP-0</div>
+      </button>
+      <nav class="flex-1 overflow-auto raelyn-scrollbar" :class="sidebarCollapsed ? 'flex flex-col items-center space-y-[0.78125rem] px-[0.3125rem] pb-[0.78125rem] pt-[0.78125rem]' : 'space-y-[0.78125rem] px-[0.78125rem] pb-[0.78125rem] pt-[0.78125rem]'">
+        <template x-for="item in menuItems" :key="item.route">
+          <div :class="sidebarCollapsed ? 'flex justify-center' : ''">
+            <button
+              type="button"
+              class="ui-tooltip items-center text-left transition-colors"
+              :class="[sidebarCollapsed ? 'inline-flex h-[2.8125rem] w-[2.8125rem] justify-center rounded-[0.3125rem] p-0' : 'flex w-full gap-[0.625rem] rounded-[0.625rem] px-[0.78125rem] py-[0.46875rem]', isActive(item.route) ? 'frame-nav-item-active' : 'text-slate-700 hover:bg-slate-100']"
+              @click="go(item.route)"
+              :data-tooltip="sidebarCollapsed ? t(item.labelKey) : ''"
+              :aria-label="t(item.labelKey)"
+            >
+              <span class="material-symbols-rounded" :class="sidebarCollapsed ? 'text-[22.5px]' : 'text-[25px]'" x-text="item.icon"></span>
+              <span x-show="!sidebarCollapsed" class="truncate text-[1.09375rem]/[1.5625rem] font-medium" x-text="t(item.labelKey)"></span>
+            </button>
+          </div>
+        </template>
+      </nav>
+    </aside>
+
+    <div
+      class="flex h-screen min-w-0 flex-col overflow-hidden"
+      :class="sidebarCollapsed ? 'min-[960px]:ml-[4.375rem]' : 'min-[960px]:ml-[12.5rem]'"
+    >
+      <header class="sticky top-0 z-20 bg-white/85 backdrop-blur">
+          <div class="frame-top-band flex items-center justify-between gap-[0.9375rem] border-b-[1.25px] border-slate-200 px-[1.25rem] py-[0.625rem] min-[800px]:px-[1.875rem]">
+          <div class="flex items-center gap-[0.9375rem]">
+            <button class="action-secondary min-[960px]:hidden" type="button" @click="mobileMenuOpen = !mobileMenuOpen">
+              <span class="material-symbols-rounded text-[22.5px]">menu</span>
+            </button>
+            <div>
+              <div class="text-[1.25rem]/[1.875rem] font-medium text-slate-950" x-text="currentPageTitle"></div>
+            </div>
+          </div>
+          <div class="flex items-center gap-[0.625rem]">
+            <label class="whitespace-nowrap text-[0.9375rem]/[1.25rem] font-medium text-slate-600" for="engine-locale" x-text="t('frame.language')"></label>
+            <select
+              id="engine-locale"
+              class="rounded-[0.46875rem] border-[1.25px] border-slate-200 bg-white px-[0.3125rem] py-[0.3125rem] text-[0.9375rem]/[1.25rem] font-medium text-slate-700 outline-none transition focus:border-emerald-500 focus:ring-[2.5px] focus:ring-emerald-500/20"
+              :class="locale === 'zh-CN' ? 'w-[4.375rem]' : 'w-[5.625rem]'"
+              :value="locale"
+              @change="setLocale($event.target.value)"
+              :aria-label="t('frame.changeLanguage')"
+            >
+              <option value="zh-CN" x-text="t('frame.simplifiedChinese')"></option>
+              <option value="en-US">English</option>
+            </select>
+            <span class="status-pill hidden min-[800px]:inline-flex">
+              <span class="material-symbols-rounded text-[20px]">schedule</span>
+              <span class="monospace-meta" x-text="nowText"></span>
+            </span>
+          </div>
+        </div>
+      </header>
+
+      <div x-show="mobileMenuOpen" x-transition class="border-b-[1.25px] border-slate-200 bg-white/95 p-[0.9375rem] min-[960px]:hidden">
+        <div class="grid gap-[0.625rem]">
+          <template x-for="item in menuItems" :key="`mobile-${item.route}`">
+            <div>
+              <button
+                type="button"
+                class="flex w-full items-center gap-[0.625rem] rounded-[0.625rem] px-[0.78125rem] py-[0.46875rem] text-left"
+                :class="isActive(item.route) ? 'bg-emerald-500/10 text-emerald-800' : 'bg-white text-slate-700'"
+                @click="go(item.route); mobileMenuOpen = false;"
+              >
+                <span class="material-symbols-rounded text-[25px]" x-text="item.icon"></span>
+                <span class="text-[1.09375rem]/[1.5625rem] font-medium" x-text="t(item.labelKey)"></span>
+              </button>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <main class="flex-1 min-h-0 overflow-hidden">
+        <div id="page-outlet" x-ref="pageOutlet" class="h-full min-h-0 overflow-hidden">
+          <div class="page-shell p-[1.25rem]">
+            <div class="empty-state">
+              <span class="material-symbols-rounded text-[2.8125rem]/[3.125rem] text-slate-500">hourglass_top</span>
+              <div class="text-[1.25rem]/[1.875rem] font-semibold text-slate-900" x-text="t('frame.initializing')"></div>
+              <div class="max-w-[45rem] text-[1.09375rem]/[1.5625rem] text-slate-600" x-text="t('frame.initializingHint')"></div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

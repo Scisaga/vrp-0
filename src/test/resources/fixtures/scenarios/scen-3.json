@@ -1,0 +1,1832 @@
+{
+  "name" : "scen-3",
+  "desc" : "t12, d1, ad6(1), no install tickets",
+  "planning_date" : "2024-04-07",
+  "start_time" : "2024-04-08 00:00:00",
+  "end_time" : "2024-04-09 00:00:00",
+  "plan" : {
+    "skus" : [
+      {
+        "id" : "sku-1",
+        "name" : "SKU-1",
+        "weight" : 0.25,
+        "vol" : 0.05
+      },
+      {
+        "id" : "sku-2",
+        "name" : "SKU-2",
+        "weight" : 0.5,
+        "vol" : 0.15
+      },
+      {
+        "id" : "sku-3",
+        "name" : "SKU-3",
+        "weight" : 1.0,
+        "vol" : 0.25
+      },
+      {
+        "id" : "sku-4",
+        "name" : "SKU-4",
+        "weight" : 2.0,
+        "vol" : 0.4
+      }
+    ],
+    "pois" : [
+      {
+        "id" : "B0G2X7N5D2",
+        "name" : "北七家家具建材批发市场",
+        "location" : "116.412804,40.120071",
+        "loc" : {
+          "lat" : 116.412804,
+          "lon" : 40.120071
+        },
+        "address" : "立汤路与稷安南街交叉口东北220米",
+        "pcode" : "110000",
+        "type" : "购物服务;家居建材市场;家具建材综合市场",
+        "photos" : [
+          {
+            "title" : "默认",
+            "url" : "http://store.is.autonavi.com/showpic/87b2f72887fda1dd7886cdb2c065fcac"
+          }
+        ],
+        "gridcode" : "6016134310",
+        "typecode" : "060601",
+        "citycode" : "010",
+        "adname" : "昌平区",
+        "entr_location" : "116.411526,40.120282",
+        "entr_loc" : {
+          "lat" : 116.411526,
+          "lon" : 40.120282
+        },
+        "adcode" : "110114",
+        "pname" : "北京市",
+        "cityname" : "北京市"
+      },
+      {
+        "id" : "B000A81HEV",
+        "name" : "林肯公园C区",
+        "location" : "116.491451,39.804246",
+        "loc" : {
+          "lat" : 116.491451,
+          "lon" : 39.804246
+        },
+        "address" : "开发区林肯公园8号院(亦庄文化园地铁站A1西口步行280米)",
+        "pcode" : "110000",
+        "type" : "商务住宅;住宅区;住宅小区",
+        "photos" : [
+          {
+            "title" : "默认",
+            "url" : "http://store.is.autonavi.com/showpic/70c625c6ec3f0823e276fb24bf5c715f"
+          },
+          {
+            "title" : "外景图",
+            "url" : "http://store.is.autonavi.com/showpic/45bfafd1b35257af5d2b604a55a56753"
+          },
+          {
+            "title" : "默认",
+            "url" : "http://store.is.autonavi.com/showpic/9a322b151c2ab44a0c1345f4c3d2e862"
+          }
+        ],
+        "gridcode" : "5916536910",
+        "typecode" : "120302",
+        "citycode" : "010",
+        "adname" : "大兴区",
+        "entr_location" : "116.490559,39.802814",
+        "entr_loc" : {
+          "lat" : 116.490559,
+          "lon" : 39.802814
+        },
+        "adcode" : "110115",
+        "pname" : "北京市",
+        "cityname" : "北京市"
+      },
+      {
+        "id" : "B0G2LMK7CJ",
+        "name" : "玻璃台67号院",
+        "location" : "117.234771,40.331363",
+        "loc" : {
+          "lat" : 117.234771,
+          "lon" : 40.331363
+        },
+        "address" : "关玻路与胡关路交叉口西北200米",
+        "pcode" : "110000",
+        "type" : "商务住宅;住宅区;住宅小区",
+        "photos" : [ ],
+        "gridcode" : "6017319822",
+        "typecode" : "120302",
+        "citycode" : "010",
+        "adname" : "平谷区",
+        "entr_location" : "117.234714,40.331454",
+        "entr_loc" : {
+          "lat" : 117.234714,
+          "lon" : 40.331454
+        },
+        "adcode" : "110117",
+        "pname" : "北京市",
+        "cityname" : "北京市"
+      },
+      {
+        "id" : "B000A88E89",
+        "name" : "怡佳家园",
+        "location" : "116.644616,39.908066",
+        "loc" : {
+          "lat" : 116.644616,
+          "lon" : 39.908066
+        },
+        "address" : "通惠南路8号院",
+        "pcode" : "110000",
+        "type" : "商务住宅;住宅区;住宅小区",
+        "photos" : [
+          {
+            "title" : "实景图",
+            "url" : "http://store.is.autonavi.com/showpic/73475fab364223d3055c230946326e52"
+          },
+          {
+            "title" : "实景图",
+            "url" : "http://store.is.autonavi.com/showpic/425dda51aa978e945c72ab3aded2c1e2"
+          },
+          {
+            "title" : "外景图",
+            "url" : "http://store.is.autonavi.com/showpic/2e6df21dd608868f53ce4667bb7d19f4"
+          }
+        ],
+        "gridcode" : "5916658121",
+        "typecode" : "120302",
+        "citycode" : "010",
+        "adname" : "通州区",
+        "entr_location" : "116.643883,39.907760",
+        "entr_loc" : {
+          "lat" : 116.643883,
+          "lon" : 39.90776
+        },
+        "adcode" : "110112",
+        "pname" : "北京市",
+        "cityname" : "北京市"
+      },
+      {
+        "id" : "B000A8VTYN",
+        "name" : "中粮·祥云国际生活区北区",
+        "location" : "116.535959,40.093190",
+        "loc" : {
+          "lat" : 116.535959,
+          "lon" : 40.09319
+        },
+        "address" : "安祥大街11号",
+        "pcode" : "110000",
+        "type" : "商务住宅;住宅区;住宅小区",
+        "photos" : [
+          {
+            "title" : "实景图",
+            "url" : "http://store.is.autonavi.com/showpic/6f6ba287078f4857ea4d7544b7b7657e"
+          },
+          {
+            "title" : "实景图",
+            "url" : "http://store.is.autonavi.com/showpic/a3bae74c90c96de911ac4ee5a555323e"
+          },
+          {
+            "title" : "内景图",
+            "url" : "http://store.is.autonavi.com/showpic/5624e901dbd2b2c2a4a06f1c324ac78a"
+          }
+        ],
+        "gridcode" : "6016141202",
+        "typecode" : "120302",
+        "citycode" : "010",
+        "adname" : "顺义区",
+        "entr_location" : "116.533599,40.092651",
+        "entr_loc" : {
+          "lat" : 116.533599,
+          "lon" : 40.092651
+        },
+        "adcode" : "110113",
+        "pname" : "北京市",
+        "cityname" : "北京市"
+      },
+      {
+        "id" : "B000A84LU2",
+        "name" : "世纪金源国际公寓(远大南街)",
+        "location" : "116.279856,39.953957",
+        "loc" : {
+          "lat" : 116.279856,
+          "lon" : 39.953957
+        },
+        "address" : "板井路69号",
+        "pcode" : "110000",
+        "type" : "商务住宅;住宅区;住宅小区",
+        "photos" : [
+          {
+            "title" : "外景图",
+            "url" : "http://store.is.autonavi.com/showpic/e701a9c559fa9a0d1f18e371ff325f56"
+          },
+          {
+            "title" : "实景图",
+            "url" : "http://store.is.autonavi.com/showpic/6f6b30b78aaae4c59c2c86171756a1b4"
+          },
+          {
+            "title" : "外景图",
+            "url" : "http://store.is.autonavi.com/showpic/9525cf3560d11566bdf2a1ec10e7ef09"
+          }
+        ],
+        "gridcode" : "5916724211",
+        "typecode" : "120302",
+        "citycode" : "010",
+        "adname" : "海淀区",
+        "entr_location" : "116.2797,39.954012",
+        "entr_loc" : {
+          "lat" : 116.2797,
+          "lon" : 39.954012
+        },
+        "adcode" : "110108",
+        "pname" : "北京市",
+        "cityname" : "北京市"
+      },
+      {
+        "id" : "B000A844N5",
+        "name" : "于家园一区",
+        "location" : "116.642283,40.333219",
+        "loc" : {
+          "lat" : 116.642283,
+          "lon" : 40.333219
+        },
+        "address" : "开放路113号",
+        "pcode" : "110000",
+        "type" : "商务住宅;住宅区;住宅小区",
+        "photos" : [
+          {
+            "title" : "外景图",
+            "url" : "http://store.is.autonavi.com/showpic/bf722f88da0aa6d2e5b407cc053d5f32"
+          },
+          {
+            "title" : "外景图",
+            "url" : "http://store.is.autonavi.com/showpic/44371786ed1a96d43a5797529df44ca2"
+          },
+          {
+            "title" : "外景图",
+            "url" : "http://store.is.autonavi.com/showpic/da2e41eac82a65af384d72e356c3d102"
+          }
+        ],
+        "gridcode" : "6016359121",
+        "typecode" : "120302",
+        "citycode" : "010",
+        "adname" : "怀柔区",
+        "entr_location" : "116.643866,40.333346",
+        "entr_loc" : {
+          "lat" : 116.643866,
+          "lon" : 40.333346
+        },
+        "adcode" : "110116",
+        "pname" : "北京市",
+        "cityname" : "北京市"
+      },
+      {
+        "id" : "B000A81I2J",
+        "name" : "龙乡小区",
+        "location" : "116.337721,40.061608",
+        "loc" : {
+          "lat" : 116.337721,
+          "lon" : 40.061608
+        },
+        "address" : "建材城西路",
+        "pcode" : "110000",
+        "type" : "商务住宅;住宅区;住宅小区",
+        "photos" : [
+          {
+            "title" : "实景图",
+            "url" : "http://store.is.autonavi.com/showpic/40599ffdff167eb6eec37fcda3909edc"
+          },
+          {
+            "title" : "实景图",
+            "url" : "http://store.is.autonavi.com/showpic/4560c207138f1a27fa89a3ba8e2795de"
+          },
+          {
+            "title" : "实景图",
+            "url" : "http://store.is.autonavi.com/showpic/b4f7247fe76924953b76c1cbb08e6552"
+          }
+        ],
+        "gridcode" : "6016027710",
+        "typecode" : "120302",
+        "citycode" : "010",
+        "adname" : "昌平区",
+        "entr_location" : "116.338898,40.059075",
+        "entr_loc" : {
+          "lat" : 116.338898,
+          "lon" : 40.059075
+        },
+        "adcode" : "110114",
+        "pname" : "北京市",
+        "cityname" : "北京市"
+      },
+      {
+        "id" : "B000A85I3V",
+        "name" : "龙湖熙典华庭",
+        "location" : "116.334899,39.98863",
+        "loc" : {
+          "lat" : 116.334899,
+          "lon" : 39.98863
+        },
+        "address" : "中关村东路16号",
+        "pcode" : "110000",
+        "type" : "商务住宅;住宅区;住宅小区",
+        "photos" : [
+          {
+            "title" : "龙湖唐宁ONE样板间之客厅实景图.jpg",
+            "url" : "http://store.is.autonavi.com/showpic/219ab1f1bcc2be6188d7929977937c8b"
+          },
+          {
+            "title" : "龙湖•唐宁ONE楼座效果图.jpg",
+            "url" : "http://store.is.autonavi.com/showpic/912331f25908e32a26dd0dfcab879a5f"
+          },
+          {
+            "title" : "龙湖唐宁ONE样板间之窗台实景图.jpg",
+            "url" : "http://store.is.autonavi.com/showpic/5eec129332e4589792bb22cf2e7f1fcb"
+          }
+        ],
+        "gridcode" : "5916728612",
+        "typecode" : "120302",
+        "citycode" : "010",
+        "adname" : "海淀区",
+        "entr_loc" : {
+          "lat" : 116.334899,
+          "lon" : 39.98863
+        },
+        "adcode" : "110108",
+        "pname" : "北京市",
+        "cityname" : "北京市"
+      },
+      {
+        "id" : "B000AA6SYO",
+        "name" : "北山小区",
+        "location" : "117.128750,40.545534",
+        "loc" : {
+          "lat" : 117.12875,
+          "lon" : 40.545534
+        },
+        "address" : "工业园区路与中心街交叉口北280米",
+        "pcode" : "110000",
+        "type" : "商务住宅;住宅区;住宅小区",
+        "photos" : [
+          {
+            "title" : "默认",
+            "url" : "http://store.is.autonavi.com/showpic/aaa35dac7298e271cf18e3d48e4dde40"
+          }
+        ],
+        "gridcode" : "6017615011",
+        "typecode" : "120302",
+        "citycode" : "010",
+        "adname" : "密云区",
+        "entr_location" : "117.129351,40.545405",
+        "entr_loc" : {
+          "lat" : 117.129351,
+          "lon" : 40.545405
+        },
+        "adcode" : "110118",
+        "pname" : "北京市",
+        "cityname" : "北京市"
+      },
+      {
+        "id" : "B000A81I43",
+        "name" : "上第MOMA",
+        "location" : "116.317819,40.045475",
+        "loc" : {
+          "lat" : 116.317819,
+          "lon" : 40.045475
+        },
+        "address" : "安宁庄路1号院",
+        "pcode" : "110000",
+        "type" : "商务住宅;住宅区;住宅小区",
+        "photos" : [
+          {
+            "title" : "实景图",
+            "url" : "http://store.is.autonavi.com/showpic/7a877fa4c247d466d434c691585a9f96"
+          },
+          {
+            "title" : "默认",
+            "url" : "http://store.is.autonavi.com/showpic/5391786aa310b1337649a344"
+          },
+          {
+            "title" : "默认",
+            "url" : "http://store.is.autonavi.com/showpic/19239dab93f9bb58c076a5a491e4c24a"
+          }
+        ],
+        "gridcode" : "6016025511",
+        "typecode" : "120302",
+        "citycode" : "010",
+        "adname" : "海淀区",
+        "entr_location" : "116.317088,40.045844",
+        "entr_loc" : {
+          "lat" : 116.317088,
+          "lon" : 40.045844
+        },
+        "adcode" : "110108",
+        "pname" : "北京市",
+        "cityname" : "北京市"
+      },
+      {
+        "id" : "B000A844CE",
+        "name" : "九龙花园",
+        "location" : "116.469704,39.894317",
+        "loc" : {
+          "lat" : 116.469704,
+          "lon" : 39.894317
+        },
+        "address" : "九龙花园一号楼底商",
+        "pcode" : "110000",
+        "type" : "商务住宅;住宅区;住宅小区",
+        "photos" : [
+          {
+            "title" : "默认",
+            "url" : "http://store.is.autonavi.com/showpic/c2198df71557498128b71b59ca03719c"
+          },
+          {
+            "title" : "实景图5.jpg",
+            "url" : "http://store.is.autonavi.com/showpic/d5b2c3f8dceebeafaf232ac123204d62"
+          },
+          {
+            "title" : "实景图",
+            "url" : "http://store.is.autonavi.com/showpic/a924d6c9f10b3c183a7a151716441795"
+          }
+        ],
+        "gridcode" : "5916637701",
+        "typecode" : "120302",
+        "citycode" : "010",
+        "adname" : "朝阳区",
+        "entr_location" : "116.469235,39.893663",
+        "entr_loc" : {
+          "lat" : 116.469235,
+          "lon" : 39.893663
+        },
+        "adcode" : "110105",
+        "pname" : "北京市",
+        "cityname" : "北京市"
+      },
+      {
+        "id" : "B000A82WN6",
+        "name" : "南三环中路小区",
+        "location" : "116.415338,39.857504",
+        "loc" : {
+          "lat" : 116.415338,
+          "lon" : 39.857504
+        },
+        "address" : "南三环中路34号",
+        "pcode" : "110000",
+        "type" : "商务住宅;住宅区;住宅小区",
+        "photos" : [
+          {
+            "title" : "外景图",
+            "url" : "http://store.is.autonavi.com/showpic/82dd3fd908b738152d30904a3b98ba68"
+          },
+          {
+            "title" : "外景图",
+            "url" : "http://store.is.autonavi.com/showpic/c51ac58fc5feb0d41bc5a6b819a52099"
+          },
+          {
+            "title" : "外景图",
+            "url" : "http://store.is.autonavi.com/showpic/06b9ccf8f6f3619cd51373737addd723"
+          }
+        ],
+        "gridcode" : "5916632320",
+        "typecode" : "120302",
+        "citycode" : "010",
+        "adname" : "丰台区",
+        "entr_location" : "116.41529,39.857403",
+        "entr_loc" : {
+          "lat" : 116.41529,
+          "lon" : 39.857403
+        },
+        "adcode" : "110106",
+        "pname" : "北京市",
+        "cityname" : "北京市"
+      }
+    ],
+    "depos" : [
+      {
+        "id" : "depo-0",
+        "name" : "Depo-0",
+        "loc" : "B0G2X7N5D2"
+      },
+      {
+        "id" : "depo-1",
+        "name" : "Depo-1",
+        "loc" : "B000A82WN6"
+      }
+    ],
+    "agents" : [
+      {
+        "id" : "agent-5-240408",
+        "name" : "Agent-5-240408",
+        "depo_id" : "depo-1",
+        "start_loc" : "B0G2X7N5D2",
+        "skills" : [
+          "Delv",
+          "Inst"
+        ],
+        "fuel_type" : "ELEC",
+        "fuel_consumption" : 25.0,
+        "rented" : false,
+        "fix_cost_daily" : 0.0,
+        "weight" : 8.0,
+        "vol" : 14.0,
+        "date" : "2024-04-08",
+        "restrict" : false,
+        "shift_start_time" : "2024-04-08 06:00:00",
+        "shift_off_time" : "2024-04-08 21:00:00",
+        "tickets" : [ ],
+        "total_driving_distance_meters" : 0,
+        "transit_loading" : {
+          "weight" : 0.0,
+          "vol" : 0.0
+        },
+        "total_driving_time_seconds" : 0,
+        "transit_weight" : 0.0,
+        "tickets_done_time" : "2024-04-08 06:00:00",
+        "transit_vol" : 0.0
+      },
+      {
+        "id" : "agent-0-240408",
+        "name" : "Agent-0-240408",
+        "depo_id" : "depo-0",
+        "start_loc" : "B0G2X7N5D2",
+        "skills" : [
+          "Delv",
+          "Inst"
+        ],
+        "fuel_type" : "ELEC",
+        "fuel_consumption" : 25.0,
+        "rented" : false,
+        "fix_cost_daily" : 0.0,
+        "weight" : 2.5,
+        "vol" : 4.0,
+        "date" : "2024-04-08",
+        "restrict" : false,
+        "shift_start_time" : "2024-04-08 06:00:00",
+        "shift_off_time" : "2024-04-08 21:00:00",
+        "tickets" : [ ],
+        "total_driving_distance_meters" : 0,
+        "transit_loading" : {
+          "weight" : 0.0,
+          "vol" : 0.0
+        },
+        "total_driving_time_seconds" : 0,
+        "transit_weight" : 0.0,
+        "tickets_done_time" : "2024-04-08 06:00:00",
+        "transit_vol" : 0.0
+      },
+      {
+        "id" : "agent-3-240408",
+        "name" : "Agent-3-240408",
+        "depo_id" : "depo-1",
+        "start_loc" : "B0G2X7N5D2",
+        "skills" : [
+          "Delv",
+          "Inst"
+        ],
+        "fuel_type" : "ELEC",
+        "fuel_consumption" : 25.0,
+        "rented" : false,
+        "fix_cost_daily" : 0.0,
+        "weight" : 8.0,
+        "vol" : 14.0,
+        "date" : "2024-04-08",
+        "restrict" : false,
+        "shift_start_time" : "2024-04-08 06:00:00",
+        "shift_off_time" : "2024-04-08 21:00:00",
+        "tickets" : [ ],
+        "total_driving_distance_meters" : 0,
+        "transit_loading" : {
+          "weight" : 0.0,
+          "vol" : 0.0
+        },
+        "total_driving_time_seconds" : 0,
+        "transit_weight" : 0.0,
+        "tickets_done_time" : "2024-04-08 06:00:00",
+        "transit_vol" : 0.0
+      },
+      {
+        "id" : "agent-4-240408",
+        "name" : "Agent-4-240408",
+        "depo_id" : "depo-1",
+        "start_loc" : "B0G2X7N5D2",
+        "skills" : [
+          "Delv",
+          "Inst"
+        ],
+        "fuel_type" : "ELEC",
+        "fuel_consumption" : 25.0,
+        "rented" : false,
+        "fix_cost_daily" : 0.0,
+        "weight" : 8.0,
+        "vol" : 14.0,
+        "date" : "2024-04-08",
+        "restrict" : false,
+        "shift_start_time" : "2024-04-08 06:00:00",
+        "shift_off_time" : "2024-04-08 21:00:00",
+        "tickets" : [ ],
+        "total_driving_distance_meters" : 0,
+        "transit_loading" : {
+          "weight" : 0.0,
+          "vol" : 0.0
+        },
+        "total_driving_time_seconds" : 0,
+        "transit_weight" : 0.0,
+        "tickets_done_time" : "2024-04-08 06:00:00",
+        "transit_vol" : 0.0
+      },
+      {
+        "id" : "agent-2-240408",
+        "name" : "Agent-2-240408",
+        "depo_id" : "depo-0",
+        "start_loc" : "B0G2X7N5D2",
+        "skills" : [
+          "Delv",
+          "Inst"
+        ],
+        "fuel_type" : "ELEC",
+        "fuel_consumption" : 25.0,
+        "rented" : false,
+        "fix_cost_daily" : 0.0,
+        "weight" : 8.0,
+        "vol" : 14.0,
+        "date" : "2024-04-08",
+        "restrict" : false,
+        "shift_start_time" : "2024-04-08 06:00:00",
+        "shift_off_time" : "2024-04-08 21:00:00",
+        "tickets" : [ ],
+        "total_driving_distance_meters" : 0,
+        "transit_loading" : {
+          "weight" : 0.0,
+          "vol" : 0.0
+        },
+        "total_driving_time_seconds" : 0,
+        "transit_weight" : 0.0,
+        "tickets_done_time" : "2024-04-08 06:00:00",
+        "transit_vol" : 0.0
+      },
+      {
+        "id" : "agent-1-240408",
+        "name" : "Agent-1-240408",
+        "depo_id" : "depo-0",
+        "start_loc" : "B0G2X7N5D2",
+        "skills" : [
+          "Delv",
+          "Inst"
+        ],
+        "fuel_type" : "ELEC",
+        "fuel_consumption" : 25.0,
+        "rented" : false,
+        "fix_cost_daily" : 0.0,
+        "weight" : 8.0,
+        "vol" : 14.0,
+        "date" : "2024-04-08",
+        "restrict" : false,
+        "shift_start_time" : "2024-04-08 06:00:00",
+        "shift_off_time" : "2024-04-08 21:00:00",
+        "tickets" : [ ],
+        "total_driving_distance_meters" : 0,
+        "transit_loading" : {
+          "weight" : 0.0,
+          "vol" : 0.0
+        },
+        "total_driving_time_seconds" : 0,
+        "transit_weight" : 0.0,
+        "tickets_done_time" : "2024-04-08 06:00:00",
+        "transit_vol" : 0.0
+      }
+    ],
+    "tickets" : [
+      {
+        "id" : "ticket-240407-0-d",
+        "depo_id" : "depo-0",
+        "type" : "Delv",
+        "status" : "New",
+        "skills_required" : [
+          "Delv"
+        ],
+        "dep_tickets" : [ ],
+        "ref_tickets" : [ ],
+        "items" : [
+          {
+            "sku" : "sku-4",
+            "value" : 1
+          }
+        ],
+        "weight" : 2.0,
+        "vol" : 2.0,
+        "loc" : "B000A81HEV",
+        "create_time" : "2024-04-07 13:37:00",
+        "min_start_time" : "2024-04-08 00:00:00",
+        "max_end_time" : "2024-04-08 22:00:00",
+        "duration" : "PT5M",
+        "reassign_time" : "2024-11-19 16:37:00",
+        "cancel_time" : "2024-04-18 13:07:00",
+        "moved" : false
+      },
+      {
+        "id" : "ticket-240407-1-d",
+        "depo_id" : "depo-0",
+        "type" : "Delv",
+        "status" : "New",
+        "skills_required" : [
+          "Delv"
+        ],
+        "dep_tickets" : [ ],
+        "ref_tickets" : [ ],
+        "items" : [
+          {
+            "sku" : "sku-2",
+            "value" : 1
+          },
+          {
+            "sku" : "sku-3",
+            "value" : 1
+          }
+        ],
+        "weight" : 1.5,
+        "vol" : 1.5,
+        "loc" : "B0G2LMK7CJ",
+        "create_time" : "2024-04-07 14:48:00",
+        "min_start_time" : "2024-04-08 09:00:00",
+        "max_end_time" : "2024-04-08 21:00:00",
+        "duration" : "PT5M",
+        "reassign_time" : "2024-06-21 02:43:00",
+        "cancel_time" : "2024-09-12 14:35:00",
+        "moved" : false
+      },
+      {
+        "id" : "ticket-240407-2-d",
+        "depo_id" : "depo-0",
+        "type" : "Delv",
+        "status" : "New",
+        "skills_required" : [
+          "Delv"
+        ],
+        "dep_tickets" : [ ],
+        "ref_tickets" : [ ],
+        "items" : [
+          {
+            "sku" : "sku-2",
+            "value" : 2
+          },
+          {
+            "sku" : "sku-1",
+            "value" : 2
+          }
+        ],
+        "weight" : 1.5,
+        "vol" : 1.5,
+        "loc" : "B000A88E89",
+        "create_time" : "2024-04-07 15:44:00",
+        "min_start_time" : "2024-04-08 09:00:00",
+        "max_end_time" : "2024-04-08 21:00:00",
+        "duration" : "PT5M",
+        "reassign_time" : "2024-05-13 17:20:00",
+        "cancel_time" : "2024-06-09 19:43:00",
+        "moved" : false
+      },
+      {
+        "id" : "ticket-240407-3-d",
+        "depo_id" : "depo-0",
+        "type" : "Delv",
+        "status" : "New",
+        "skills_required" : [
+          "Delv"
+        ],
+        "dep_tickets" : [ ],
+        "ref_tickets" : [ ],
+        "items" : [
+          {
+            "sku" : "sku-2",
+            "value" : 1
+          },
+          {
+            "sku" : "sku-3",
+            "value" : 1
+          }
+        ],
+        "weight" : 1.5,
+        "vol" : 1.5,
+        "loc" : "B000A8VTYN",
+        "create_time" : "2024-04-07 15:14:00",
+        "min_start_time" : "2024-04-08 00:00:00",
+        "max_end_time" : "2024-04-08 22:00:00",
+        "duration" : "PT5M",
+        "reassign_time" : "2024-05-17 11:36:00",
+        "cancel_time" : "2024-05-21 23:52:00",
+        "moved" : false
+      },
+      {
+        "id" : "ticket-240407-4-d",
+        "depo_id" : "depo-0",
+        "type" : "Delv",
+        "status" : "New",
+        "skills_required" : [
+          "Delv"
+        ],
+        "dep_tickets" : [ ],
+        "ref_tickets" : [ ],
+        "items" : [
+          {
+            "sku" : "sku-3",
+            "value" : 2
+          },
+          {
+            "sku" : "sku-1",
+            "value" : 1
+          }
+        ],
+        "weight" : 2.25,
+        "vol" : 2.25,
+        "loc" : "B000A84LU2",
+        "create_time" : "2024-04-07 11:52:00",
+        "min_start_time" : "2024-04-08 09:00:00",
+        "max_end_time" : "2024-04-08 21:00:00",
+        "duration" : "PT5M",
+        "reassign_time" : "2024-09-03 13:43:00",
+        "cancel_time" : "2024-10-23 05:09:00",
+        "moved" : false
+      },
+      {
+        "id" : "ticket-240407-5-d",
+        "depo_id" : "depo-0",
+        "type" : "Delv",
+        "status" : "New",
+        "skills_required" : [
+          "Delv"
+        ],
+        "dep_tickets" : [ ],
+        "ref_tickets" : [ ],
+        "items" : [
+          {
+            "sku" : "sku-4",
+            "value" : 2
+          }
+        ],
+        "weight" : 4.0,
+        "vol" : 4.0,
+        "loc" : "B000A844N5",
+        "create_time" : "2024-04-07 16:21:00",
+        "min_start_time" : "2024-04-08 00:00:00",
+        "max_end_time" : "2024-04-08 22:00:00",
+        "duration" : "PT5M",
+        "reassign_time" : "2024-09-25 13:46:00",
+        "cancel_time" : "2024-04-15 07:49:00",
+        "moved" : false
+      },
+      {
+        "id" : "ticket-240407-6-d",
+        "depo_id" : "depo-1",
+        "type" : "Delv",
+        "status" : "New",
+        "skills_required" : [
+          "Delv"
+        ],
+        "dep_tickets" : [ ],
+        "ref_tickets" : [ ],
+        "items" : [
+          {
+            "sku" : "sku-4",
+            "value" : 1
+          },
+          {
+            "sku" : "sku-2",
+            "value" : 1
+          },
+          {
+            "sku" : "sku-3",
+            "value" : 2
+          }
+        ],
+        "weight" : 4.5,
+        "vol" : 4.5,
+        "loc" : "B000A81I2J",
+        "create_time" : "2024-04-07 12:50:00",
+        "min_start_time" : "2024-04-08 00:00:00",
+        "max_end_time" : "2024-04-08 22:00:00",
+        "duration" : "PT5M",
+        "reassign_time" : "2024-06-06 04:00:00",
+        "cancel_time" : "2024-09-26 08:26:00",
+        "moved" : false
+      },
+      {
+        "id" : "ticket-240407-7-d",
+        "depo_id" : "depo-1",
+        "type" : "Delv",
+        "status" : "New",
+        "skills_required" : [
+          "Delv"
+        ],
+        "dep_tickets" : [ ],
+        "ref_tickets" : [ ],
+        "items" : [
+          {
+            "sku" : "sku-4",
+            "value" : 1
+          },
+          {
+            "sku" : "sku-1",
+            "value" : 1
+          }
+        ],
+        "weight" : 2.25,
+        "vol" : 2.25,
+        "loc" : "B000A85I3V",
+        "create_time" : "2024-04-07 12:03:00",
+        "min_start_time" : "2024-04-08 09:00:00",
+        "max_end_time" : "2024-04-08 21:00:00",
+        "duration" : "PT5M",
+        "reassign_time" : "2024-04-16 07:59:00",
+        "cancel_time" : "2024-11-22 22:58:00",
+        "moved" : false
+      },
+      {
+        "id" : "ticket-240407-8-d",
+        "depo_id" : "depo-1",
+        "type" : "Delv",
+        "status" : "New",
+        "skills_required" : [
+          "Delv"
+        ],
+        "dep_tickets" : [ ],
+        "ref_tickets" : [ ],
+        "items" : [
+          {
+            "sku" : "sku-4",
+            "value" : 1
+          },
+          {
+            "sku" : "sku-2",
+            "value" : 1
+          },
+          {
+            "sku" : "sku-3",
+            "value" : 1
+          }
+        ],
+        "weight" : 3.5,
+        "vol" : 3.5,
+        "loc" : "B000AA6SYO",
+        "create_time" : "2024-04-07 13:34:00",
+        "min_start_time" : "2024-04-08 00:00:00",
+        "max_end_time" : "2024-04-08 22:00:00",
+        "duration" : "PT5M",
+        "reassign_time" : "2024-06-23 23:56:00",
+        "cancel_time" : "2024-09-11 12:41:00",
+        "moved" : false
+      },
+      {
+        "id" : "ticket-240407-9-d",
+        "depo_id" : "depo-1",
+        "type" : "Delv",
+        "status" : "New",
+        "skills_required" : [
+          "Delv"
+        ],
+        "dep_tickets" : [ ],
+        "ref_tickets" : [ ],
+        "items" : [
+          {
+            "sku" : "sku-4",
+            "value" : 1
+          }
+        ],
+        "weight" : 2.0,
+        "vol" : 2.0,
+        "loc" : "B000A81I43",
+        "create_time" : "2024-04-07 14:20:00",
+        "min_start_time" : "2024-04-08 09:00:00",
+        "max_end_time" : "2024-04-08 21:00:00",
+        "duration" : "PT5M",
+        "reassign_time" : "2024-09-08 02:24:00",
+        "cancel_time" : "2024-05-26 09:12:00",
+        "moved" : false
+      },
+      {
+        "id" : "ticket-240407-10-d",
+        "depo_id" : "depo-1",
+        "type" : "Delv",
+        "status" : "New",
+        "skills_required" : [
+          "Delv"
+        ],
+        "dep_tickets" : [ ],
+        "ref_tickets" : [ ],
+        "items" : [
+          {
+            "sku" : "sku-4",
+            "value" : 1
+          },
+          {
+            "sku" : "sku-1",
+            "value" : 1
+          }
+        ],
+        "weight" : 2.25,
+        "vol" : 2.25,
+        "loc" : "B000A844CE",
+        "create_time" : "2024-04-07 15:27:00",
+        "min_start_time" : "2024-04-08 09:00:00",
+        "max_end_time" : "2024-04-08 21:00:00",
+        "duration" : "PT5M",
+        "reassign_time" : "2024-07-14 13:46:00",
+        "cancel_time" : "2024-12-11 13:06:00",
+        "moved" : false
+      },
+      {
+        "id" : "ticket-240407-11-d",
+        "depo_id" : "depo-1",
+        "type" : "Delv",
+        "status" : "New",
+        "skills_required" : [
+          "Delv"
+        ],
+        "dep_tickets" : [ ],
+        "ref_tickets" : [ ],
+        "items" : [
+          {
+            "sku" : "sku-2",
+            "value" : 2
+          },
+          {
+            "sku" : "sku-3",
+            "value" : 2
+          }
+        ],
+        "weight" : 3.0,
+        "vol" : 3.0,
+        "loc" : "B000A82WN6",
+        "create_time" : "2024-04-07 11:51:00",
+        "min_start_time" : "2024-04-08 09:00:00",
+        "max_end_time" : "2024-04-08 21:00:00",
+        "duration" : "PT5M",
+        "reassign_time" : "2024-06-28 08:42:00",
+        "cancel_time" : "2024-07-16 05:58:00",
+        "moved" : false
+      }
+    ],
+    "matrix" : {
+      "data" : {
+        "B0G2X7N5D2" : {
+          "B0G2X7N5D2" : {
+            "distance" : 0,
+            "duration" : 0
+          },
+          "B000A81HEV" : {
+            "distance" : 51537,
+            "duration" : 3155
+          },
+          "B0G2LMK7CJ" : {
+            "distance" : 106297,
+            "duration" : 5804
+          },
+          "B000A88E89" : {
+            "distance" : 43751,
+            "duration" : 2832
+          },
+          "B000A8VTYN" : {
+            "distance" : 14909,
+            "duration" : 1547
+          },
+          "B000A84LU2" : {
+            "distance" : 40602,
+            "duration" : 2708
+          },
+          "B000A844N5" : {
+            "distance" : 42533,
+            "duration" : 2361
+          },
+          "B000A81I2J" : {
+            "distance" : 13694,
+            "duration" : 1562
+          },
+          "B000A85I3V" : {
+            "distance" : 31607,
+            "duration" : 2235
+          },
+          "B000AA6SYO" : {
+            "distance" : 90911,
+            "duration" : 4281
+          },
+          "B000A81I43" : {
+            "distance" : 16130,
+            "duration" : 1915
+          },
+          "B000A844CE" : {
+            "distance" : 35899,
+            "duration" : 2591
+          },
+          "B000A82WN6" : {
+            "distance" : 41717,
+            "duration" : 2769
+          }
+        },
+        "B000A81HEV" : {
+          "B0G2X7N5D2" : {
+            "distance" : 49063,
+            "duration" : 2860
+          },
+          "B000A81HEV" : {
+            "distance" : 612,
+            "duration" : 151
+          },
+          "B0G2LMK7CJ" : {
+            "distance" : 105468,
+            "duration" : 6434
+          },
+          "B000A88E89" : {
+            "distance" : 23318,
+            "duration" : 1443
+          },
+          "B000A8VTYN" : {
+            "distance" : 29942,
+            "duration" : 2637
+          },
+          "B000A84LU2" : {
+            "distance" : 46558,
+            "duration" : 3066
+          },
+          "B000A844N5" : {
+            "distance" : 78607,
+            "duration" : 4559
+          },
+          "B000A81I2J" : {
+            "distance" : 42504,
+            "duration" : 2323
+          },
+          "B000A85I3V" : {
+            "distance" : 25363,
+            "duration" : 1740
+          },
+          "B000AA6SYO" : {
+            "distance" : 117679,
+            "duration" : 5429
+          },
+          "B000A81I43" : {
+            "distance" : 30056,
+            "duration" : 2381
+          },
+          "B000A844CE" : {
+            "distance" : 14525,
+            "duration" : 1179
+          },
+          "B000A82WN6" : {
+            "distance" : 13772,
+            "duration" : 1083
+          }
+        },
+        "B0G2LMK7CJ" : {
+          "B0G2X7N5D2" : {
+            "distance" : 102533,
+            "duration" : 5766
+          },
+          "B000A81HEV" : {
+            "distance" : 104323,
+            "duration" : 6408
+          },
+          "B0G2LMK7CJ" : {
+            "distance" : 1,
+            "duration" : 1
+          },
+          "B000A88E89" : {
+            "distance" : 87843,
+            "duration" : 8307
+          },
+          "B000A8VTYN" : {
+            "distance" : 89826,
+            "duration" : 7911
+          },
+          "B000A84LU2" : {
+            "distance" : 162953,
+            "duration" : 10731
+          },
+          "B000A844N5" : {
+            "distance" : 78607,
+            "duration" : 4559
+          },
+          "B000A81I2J" : {
+            "distance" : 127512,
+            "duration" : 11615
+          },
+          "B000A85I3V" : {
+            "distance" : 126815,
+            "duration" : 8700
+          },
+          "B000AA6SYO" : {
+            "distance" : 47020,
+            "duration" : 3339
+          },
+          "B000A81I43" : {
+            "distance" : 120224,
+            "duration" : 9524
+          },
+          "B000A844CE" : {
+            "distance" : 121555,
+            "duration" : 8500
+          },
+          "B000A82WN6" : {
+            "distance" : 123515,
+            "duration" : 8760
+          }
+        },
+        "B000A88E89" : {
+          "B0G2X7N5D2" : {
+            "distance" : 43470,
+            "duration" : 2671
+          },
+          "B000A81HEV" : {
+            "distance" : 26858,
+            "duration" : 1625
+          },
+          "B0G2LMK7CJ" : {
+            "distance" : 83820,
+            "duration" : 7911
+          },
+          "B000A88E89" : {
+            "distance" : 81,
+            "duration" : 34
+          },
+          "B000A8VTYN" : {
+            "distance" : 27940,
+            "duration" : 2637
+          },
+          "B000A84LU2" : {
+            "distance" : 46558,
+            "duration" : 3066
+          },
+          "B000A844N5" : {
+            "distance" : 69301,
+            "duration" : 3533
+          },
+          "B000A81I2J" : {
+            "distance" : 42504,
+            "duration" : 4646
+          },
+          "B000A85I3V" : {
+            "distance" : 25363,
+            "duration" : 1740
+          },
+          "B000AA6SYO" : {
+            "distance" : 117679,
+            "duration" : 5429
+          },
+          "B000A81I43" : {
+            "distance" : 30056,
+            "duration" : 2381
+          },
+          "B000A844CE" : {
+            "distance" : 17263,
+            "duration" : 1410
+          },
+          "B000A82WN6" : {
+            "distance" : 24703,
+            "duration" : 1752
+          }
+        },
+        "B000A8VTYN" : {
+          "B0G2X7N5D2" : {
+            "distance" : 14745,
+            "duration" : 1746
+          },
+          "B000A81HEV" : {
+            "distance" : 30056,
+            "duration" : 2769
+          },
+          "B0G2LMK7CJ" : {
+            "distance" : 90168,
+            "duration" : 8307
+          },
+          "B000A88E89" : {
+            "distance" : 29281,
+            "duration" : 2769
+          },
+          "B000A8VTYN" : {
+            "distance" : 329,
+            "duration" : 81
+          },
+          "B000A84LU2" : {
+            "distance" : 46558,
+            "duration" : 3066
+          },
+          "B000A844N5" : {
+            "distance" : 41704,
+            "duration" : 2389
+          },
+          "B000A81I2J" : {
+            "distance" : 20434,
+            "duration" : 2323
+          },
+          "B000A85I3V" : {
+            "distance" : 25363,
+            "duration" : 1740
+          },
+          "B000AA6SYO" : {
+            "distance" : 90082,
+            "duration" : 4330
+          },
+          "B000A81I43" : {
+            "distance" : 30056,
+            "duration" : 2381
+          },
+          "B000A844CE" : {
+            "distance" : 24311,
+            "duration" : 1700
+          },
+          "B000A82WN6" : {
+            "distance" : 24703,
+            "duration" : 1752
+          }
+        },
+        "B000A84LU2" : {
+          "B0G2X7N5D2" : {
+            "distance" : 28760,
+            "duration" : 2395
+          },
+          "B000A81HEV" : {
+            "distance" : 22890,
+            "duration" : 1518
+          },
+          "B0G2LMK7CJ" : {
+            "distance" : 114450,
+            "duration" : 7590
+          },
+          "B000A88E89" : {
+            "distance" : 22890,
+            "duration" : 1518
+          },
+          "B000A8VTYN" : {
+            "distance" : 22890,
+            "duration" : 1518
+          },
+          "B000A84LU2" : {
+            "distance" : 21,
+            "duration" : 12
+          },
+          "B000A844N5" : {
+            "distance" : 78607,
+            "duration" : 4559
+          },
+          "B000A81I2J" : {
+            "distance" : 21252,
+            "duration" : 1299
+          },
+          "B000A85I3V" : {
+            "distance" : 8010,
+            "duration" : 711
+          },
+          "B000AA6SYO" : {
+            "distance" : 117679,
+            "duration" : 5429
+          },
+          "B000A81I43" : {
+            "distance" : 17006,
+            "duration" : 1308
+          },
+          "B000A844CE" : {
+            "distance" : 24311,
+            "duration" : 1700
+          },
+          "B000A82WN6" : {
+            "distance" : 22890,
+            "duration" : 1518
+          }
+        },
+        "B000A844N5" : {
+          "B0G2X7N5D2" : {
+            "distance" : 39196,
+            "duration" : 2352
+          },
+          "B000A81HEV" : {
+            "distance" : 80145,
+            "duration" : 4709
+          },
+          "B0G2LMK7CJ" : {
+            "distance" : 80145,
+            "duration" : 4709
+          },
+          "B000A88E89" : {
+            "distance" : 69720,
+            "duration" : 3572
+          },
+          "B000A8VTYN" : {
+            "distance" : 40986,
+            "duration" : 2361
+          },
+          "B000A84LU2" : {
+            "distance" : 80145,
+            "duration" : 4709
+          },
+          "B000A844N5" : {
+            "distance" : 189,
+            "duration" : 75
+          },
+          "B000A81I2J" : {
+            "distance" : 63756,
+            "duration" : 4646
+          },
+          "B000A85I3V" : {
+            "distance" : 76089,
+            "duration" : 5220
+          },
+          "B000AA6SYO" : {
+            "distance" : 64759,
+            "duration" : 3267
+          },
+          "B000A81I43" : {
+            "distance" : 60112,
+            "duration" : 4762
+          },
+          "B000A844CE" : {
+            "distance" : 48622,
+            "duration" : 3400
+          },
+          "B000A82WN6" : {
+            "distance" : 74109,
+            "duration" : 5256
+          }
+        },
+        "B000A81I2J" : {
+          "B0G2X7N5D2" : {
+            "distance" : 11493,
+            "duration" : 1316
+          },
+          "B000A81HEV" : {
+            "distance" : 46558,
+            "duration" : 2147
+          },
+          "B0G2LMK7CJ" : {
+            "distance" : 139674,
+            "duration" : 10735
+          },
+          "B000A88E89" : {
+            "distance" : 46558,
+            "duration" : 4294
+          },
+          "B000A8VTYN" : {
+            "distance" : 19266,
+            "duration" : 2147
+          },
+          "B000A84LU2" : {
+            "distance" : 23279,
+            "duration" : 1533
+          },
+          "B000A844N5" : {
+            "distance" : 69837,
+            "duration" : 4294
+          },
+          "B000A81I2J" : {
+            "distance" : 784,
+            "duration" : 141
+          },
+          "B000A85I3V" : {
+            "distance" : 14284,
+            "duration" : 1067
+          },
+          "B000AA6SYO" : {
+            "distance" : 117679,
+            "duration" : 5429
+          },
+          "B000A81I43" : {
+            "distance" : 3217,
+            "duration" : 546
+          },
+          "B000A844CE" : {
+            "distance" : 24311,
+            "duration" : 1700
+          },
+          "B000A82WN6" : {
+            "distance" : 24703,
+            "duration" : 1752
+          }
+        },
+        "B000A85I3V" : {
+          "B0G2X7N5D2" : {
+            "distance" : 22283,
+            "duration" : 2243
+          },
+          "B000A81HEV" : {
+            "distance" : 24703,
+            "duration" : 1752
+          },
+          "B0G2LMK7CJ" : {
+            "distance" : 123515,
+            "duration" : 8760
+          },
+          "B000A88E89" : {
+            "distance" : 24703,
+            "duration" : 1752
+          },
+          "B000A8VTYN" : {
+            "distance" : 24703,
+            "duration" : 1752
+          },
+          "B000A84LU2" : {
+            "distance" : 10555,
+            "duration" : 900
+          },
+          "B000A844N5" : {
+            "distance" : 74109,
+            "duration" : 5256
+          },
+          "B000A81I2J" : {
+            "distance" : 10209,
+            "duration" : 1319
+          },
+          "B000A85I3V" : {
+            "distance" : 1,
+            "duration" : 1
+          },
+          "B000AA6SYO" : {
+            "distance" : 117679,
+            "duration" : 5429
+          },
+          "B000A81I43" : {
+            "distance" : 9056,
+            "duration" : 1191
+          },
+          "B000A844CE" : {
+            "distance" : 24311,
+            "duration" : 1700
+          },
+          "B000A82WN6" : {
+            "distance" : 24703,
+            "duration" : 1752
+          }
+        },
+        "B000AA6SYO" : {
+          "B0G2X7N5D2" : {
+            "distance" : 88171,
+            "duration" : 4364
+          },
+          "B000A81HEV" : {
+            "distance" : 118695,
+            "duration" : 5895
+          },
+          "B0G2LMK7CJ" : {
+            "distance" : 42041,
+            "duration" : 3345
+          },
+          "B000A88E89" : {
+            "distance" : 118695,
+            "duration" : 5895
+          },
+          "B000A8VTYN" : {
+            "distance" : 89961,
+            "duration" : 4454
+          },
+          "B000A84LU2" : {
+            "distance" : 118695,
+            "duration" : 5895
+          },
+          "B000A844N5" : {
+            "distance" : 64245,
+            "duration" : 3300
+          },
+          "B000A81I2J" : {
+            "distance" : 118695,
+            "duration" : 5895
+          },
+          "B000A85I3V" : {
+            "distance" : 118695,
+            "duration" : 5895
+          },
+          "B000AA6SYO" : {
+            "distance" : 182,
+            "duration" : 64
+          },
+          "B000A81I43" : {
+            "distance" : 150280,
+            "duration" : 11905
+          },
+          "B000A844CE" : {
+            "distance" : 121555,
+            "duration" : 8500
+          },
+          "B000A82WN6" : {
+            "distance" : 148218,
+            "duration" : 10512
+          }
+        },
+        "B000A81I43" : {
+          "B0G2X7N5D2" : {
+            "distance" : 14207,
+            "duration" : 1723
+          },
+          "B000A81HEV" : {
+            "distance" : 29942,
+            "duration" : 2016
+          },
+          "B0G2LMK7CJ" : {
+            "distance" : 119768,
+            "duration" : 8064
+          },
+          "B000A88E89" : {
+            "distance" : 29942,
+            "duration" : 2016
+          },
+          "B000A8VTYN" : {
+            "distance" : 29942,
+            "duration" : 2016
+          },
+          "B000A84LU2" : {
+            "distance" : 17834,
+            "duration" : 1363
+          },
+          "B000A844N5" : {
+            "distance" : 59884,
+            "duration" : 4032
+          },
+          "B000A81I2J" : {
+            "distance" : 2594,
+            "duration" : 588
+          },
+          "B000A85I3V" : {
+            "distance" : 10435,
+            "duration" : 1378
+          },
+          "B000AA6SYO" : {
+            "distance" : 149710,
+            "duration" : 10080
+          },
+          "B000A81I43" : {
+            "distance" : 175,
+            "duration" : 95
+          },
+          "B000A844CE" : {
+            "distance" : 24311,
+            "duration" : 1700
+          },
+          "B000A82WN6" : {
+            "distance" : 24703,
+            "duration" : 1752
+          }
+        },
+        "B000A844CE" : {
+          "B0G2X7N5D2" : {
+            "distance" : 34997,
+            "duration" : 2260
+          },
+          "B000A81HEV" : {
+            "distance" : 14194,
+            "duration" : 1103
+          },
+          "B0G2LMK7CJ" : {
+            "distance" : 118320,
+            "duration" : 7810
+          },
+          "B000A88E89" : {
+            "distance" : 16418,
+            "duration" : 1227
+          },
+          "B000A8VTYN" : {
+            "distance" : 23664,
+            "duration" : 1562
+          },
+          "B000A84LU2" : {
+            "distance" : 23664,
+            "duration" : 1562
+          },
+          "B000A844N5" : {
+            "distance" : 47328,
+            "duration" : 3124
+          },
+          "B000A81I2J" : {
+            "distance" : 23664,
+            "duration" : 1562
+          },
+          "B000A85I3V" : {
+            "distance" : 23664,
+            "duration" : 1562
+          },
+          "B000AA6SYO" : {
+            "distance" : 118320,
+            "duration" : 7810
+          },
+          "B000A81I43" : {
+            "distance" : 23664,
+            "duration" : 1562
+          },
+          "B000A844CE" : {
+            "distance" : 969,
+            "duration" : 193
+          },
+          "B000A82WN6" : {
+            "distance" : 7868,
+            "duration" : 612
+          }
+        },
+        "B000A82WN6" : {
+          "B0G2X7N5D2" : {
+            "distance" : 41474,
+            "duration" : 2601
+          },
+          "B000A81HEV" : {
+            "distance" : 13042,
+            "duration" : 965
+          },
+          "B0G2LMK7CJ" : {
+            "distance" : 126815,
+            "duration" : 8700
+          },
+          "B000A88E89" : {
+            "distance" : 25363,
+            "duration" : 1740
+          },
+          "B000A8VTYN" : {
+            "distance" : 25363,
+            "duration" : 1740
+          },
+          "B000A84LU2" : {
+            "distance" : 23193,
+            "duration" : 1375
+          },
+          "B000A844N5" : {
+            "distance" : 76089,
+            "duration" : 5220
+          },
+          "B000A81I2J" : {
+            "distance" : 25363,
+            "duration" : 1740
+          },
+          "B000A85I3V" : {
+            "distance" : 25363,
+            "duration" : 1740
+          },
+          "B000AA6SYO" : {
+            "distance" : 152178,
+            "duration" : 10440
+          },
+          "B000A81I43" : {
+            "distance" : 25363,
+            "duration" : 1740
+          },
+          "B000A844CE" : {
+            "distance" : 8446,
+            "duration" : 728
+          },
+          "B000A82WN6" : {
+            "distance" : 11,
+            "duration" : 4
+          }
+        }
+      }
+    },
+    "constraint_configuration" : {
+      "name" : "default",
+      "agent_capacity" : "1hard/0medium/0soft",
+      "same_depo" : "0hard/0medium/0soft",
+      "service_finished_after_max_end_time" : "1hard/0medium/0soft",
+      "ref_ticket_after_dep_ticket" : "0hard/0medium/0soft",
+      "ref_ticket_same_agent_with_dep_ticket" : "0hard/0medium/0soft",
+      "balance_agent_loading" : "0hard/0medium/0soft",
+      "minimize_travel_time" : "0hard/0medium/1soft",
+      "minimize_travel_distance" : "0hard/0medium/0soft",
+      "minimize_agent_fixed_cost" : "0hard/0medium/20soft",
+      "minimize_ticket_changing" : "0hard/0medium/0soft"
+    },
+    "cost_parameter" : {
+      "start_price" : 500.0,
+      "node_fee" : 20.0,
+      "max_overload_ratio" : 1.2,
+      "overload_fee" : 100.0,
+      "cross_region_threshold" : 100000.0,
+      "cross_region_fee" : 200.0,
+      "guaranteed_income" : 1000.0,
+      "time_restricted_traffic_charge" : 0.0,
+      "elec_price" : 0.0,
+      "gas92_price" : 0.0
+    },
+    "metrics" : {
+      "distance_total" : 0,
+      "duration_total" : 0,
+      "ton_total" : 0.0,
+      "cost_total" : 0.0,
+      "cost_per_ton_per_km" : 0.0
+    }
+  },
+  "constraint_configuration" : {
+    "name" : "default",
+    "agent_capacity" : "1hard/0medium/0soft",
+    "same_depo" : "0hard/0medium/0soft",
+    "service_finished_after_max_end_time" : "1hard/0medium/0soft",
+    "ref_ticket_after_dep_ticket" : "0hard/0medium/0soft",
+    "ref_ticket_same_agent_with_dep_ticket" : "0hard/0medium/0soft",
+    "balance_agent_loading" : "0hard/0medium/0soft",
+    "minimize_travel_time" : "0hard/0medium/1soft",
+    "minimize_travel_distance" : "0hard/0medium/0soft",
+    "minimize_agent_fixed_cost" : "0hard/0medium/20soft",
+    "minimize_ticket_changing" : "0hard/0medium/0soft"
+  },
+  "cost_parameter" : {
+    "start_price" : 500.0,
+    "node_fee" : 20.0,
+    "max_overload_ratio" : 1.2,
+    "overload_fee" : 100.0,
+    "cross_region_threshold" : 100000.0,
+    "cross_region_fee" : 200.0,
+    "guaranteed_income" : 1000.0,
+    "time_restricted_traffic_charge" : 0.0,
+    "elec_price" : 0.0,
+    "gas92_price" : 0.0
+  },
+  "create_time" : "2024-04-07 05:18:58",
+  "update_time" : "2024-04-07 05:18:58",
+  "matrix_build" : true,
+  "poi_build" : true
+}

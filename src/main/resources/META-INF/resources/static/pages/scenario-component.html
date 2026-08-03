@@ -1,0 +1,131 @@
+<div x-data="scenarioComponentPage" x-init="init()" class="relative flex h-full min-h-0 flex-col overflow-hidden">
+  <template x-if="error">
+    <div class="absolute inset-x-[1.25rem] top-[1.25rem] z-50 rounded-[0.46875rem] border-[1.25px] border-rose-200 bg-rose-50 px-[1.25rem] py-[0.9375rem] text-[1.09375rem]/[1.5625rem] text-rose-700" x-text="error"></div>
+  </template>
+
+  <template x-if="scenarioProviderMismatch">
+    <div class="shrink-0 border-b-[1.25px] border-rose-200 bg-rose-50 px-[1.25rem] py-[0.9375rem] text-[1.09375rem]/[1.5625rem] text-rose-700" role="alert">
+      <div class="flex flex-wrap items-center justify-between gap-[0.9375rem]">
+        <div class="flex min-w-0 items-start gap-[0.625rem]">
+          <span class="material-symbols-rounded mt-[0.15625rem] text-[22.5px]" aria-hidden="true">warning</span>
+          <div>
+            <div class="font-semibold" x-text="t('scenario.host.recreate')"></div>
+            <p class="mt-[0.15625rem]" x-text="t('scenario.host.providerMismatch')"></p>
+          </div>
+        </div>
+        <button type="button" class="action-danger shrink-0" @click="deleteScenario()" :disabled="saving">
+          <span class="material-symbols-rounded text-[22.5px]">delete</span>
+          <span x-text="t('scenario.host.clearAndRestart')"></span>
+        </button>
+      </div>
+    </div>
+  </template>
+
+  <dialog
+    x-ref="importSolveRequestDialog"
+    class="overflow-hidden rounded-[0.9375rem] border-[1.25px] border-slate-300 bg-white p-0 text-slate-900 shadow-[0_31.25px_62.5px_-15px_rgba(0,0,0,0.25)] backdrop:bg-white/85"
+    style="width: min(88vw, 55rem); max-height: min(82vh, 42.5rem); margin: auto; inset: 0;"
+    @close="importRequestDialog.open = false"
+    @click.self="closeImportSolveRequestDialog()"
+  >
+    <div class="flex items-center justify-between border-b-[1.25px] border-slate-200 px-[1.5625rem] py-[1.25rem]">
+      <div>
+        <div class="field-label" x-text="t('scenario.host.importSolveRequest')"></div>
+        <div class="mt-[0.3125rem] text-[1.09375rem]/[1.5625rem] font-medium text-slate-900" x-text="t('scenario.host.pasteSolveRequest')"></div>
+        <div class="mt-[0.3125rem] text-[0.9375rem]/[1.25rem] text-slate-500" x-text="t('scenario.host.importHint')"></div>
+      </div>
+      <div class="flex items-center gap-[0.625rem]">
+        <button type="button" class="action-secondary" @click="formatImportRequestJson()" x-text="t('common.format')"></button>
+        <button type="button" class="action-secondary" @click="toggleImportRequestFold()" x-text="t(importRequestDialog.folded ? 'common.expandAll' : 'common.collapseAll')"></button>
+      </div>
+    </div>
+    <div class="p-[1.5625rem]">
+      <div x-ref="importSolveRequestEditor"></div>
+      <template x-if="importRequestDialog.error">
+        <div class="mt-[0.9375rem] rounded-[0.46875rem] border-[1.25px] border-rose-500/20 bg-rose-500/10 px-[0.9375rem] py-[0.9375rem] text-[1.09375rem]/[1.5625rem] text-rose-700" x-text="importRequestDialog.error"></div>
+      </template>
+      <div class="mt-[1.25rem] flex w-full pr-[0.625rem]">
+        <div class="ml-auto flex items-center gap-[0.625rem]">
+          <button type="button" class="action-secondary" @click="closeImportSolveRequestDialog()" x-text="t('common.cancel')"></button>
+          <button type="button" class="action-primary" @click="applyImportedSolveRequest()" x-text="t('common.import')"></button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <div x-show="!resultPage" class="scenario-console-toolbar shrink-0 flex flex-wrap items-center justify-between gap-[0.46875rem] border-b-[1.25px] border-slate-200 bg-white px-[0.9375rem] py-[0.46875rem]">
+    <div data-scenario-toolbar-group="workflow" class="flex min-w-0 flex-1 flex-wrap items-center gap-[0.625rem]">
+      <button type="button" class="action-secondary" @click="generateMatrix()" :disabled="saving">
+        <span class="material-symbols-rounded text-[22.5px]">hub</span>
+        <span x-text="t('scenario.host.buildTransitMatrix')"></span>
+      </button>
+
+      <span class="hidden h-[1.875rem] w-[1.25px] bg-slate-200 min-[800px]:block" aria-hidden="true"></span>
+
+      <button type="button" class="action-primary ui-tooltip" @click="openPlanningDrawer()" :disabled="saving || !ready || !scenarioPersisted" :data-tooltip="scenarioPersisted ? '' : t('scenario.host.saveBeforePlan')">
+        <span class="material-symbols-rounded text-[22.5px]">play_arrow</span>
+        <span x-text="t('scenario.host.planAndSolve')"></span>
+      </button>
+    </div>
+
+    <div data-scenario-toolbar-group="scenario-management" class="flex min-w-0 flex-wrap items-center justify-end gap-[0.625rem]">
+      <div data-scenario-toolbar-section="save" class="flex items-center gap-[0.625rem]">
+        <button type="button" class="action-secondary" @click="saveScenario()" :disabled="saving">
+          <span class="material-symbols-rounded text-[22.5px]">save</span>
+          <span x-text="t('common.saveScenario')"></span>
+        </button>
+        <span class="inline-flex items-center gap-[0.46875rem] text-[0.9375rem]/[1.25rem] font-medium" :class="scenarioDirty ? 'text-amber-700' : (scenarioPersisted ? 'text-emerald-700' : 'text-slate-500')" role="status" aria-live="polite">
+          <span class="material-symbols-rounded text-[21.25px]" x-text="scenarioDirty ? 'edit' : (scenarioPersisted ? 'check_circle' : 'add_circle')"></span>
+          <span x-text="t(scenarioDirty ? 'common.unsavedChanges' : (scenarioPersisted ? 'common.saved' : 'common.newScenario'))"></span>
+        </span>
+      </div>
+
+      <span class="hidden h-[1.875rem] w-[1.25px] bg-slate-200 min-[800px]:block" aria-hidden="true"></span>
+
+      <div data-scenario-toolbar-section="import-export" class="relative" @keydown.escape="toolbarImportMenuOpen = false">
+        <button
+          type="button"
+          class="action-secondary"
+          :aria-expanded="String(toolbarImportMenuOpen)"
+          aria-controls="scenario-import-export-menu"
+          @click="toolbarImportMenuOpen = !toolbarImportMenuOpen"
+        >
+          <span class="material-symbols-rounded text-[22.5px]">swap_horiz</span>
+          <span x-text="t('scenario.host.importExport')"></span>
+          <span class="material-symbols-rounded text-[22.5px]" x-text="toolbarImportMenuOpen ? 'expand_less' : 'expand_more'"></span>
+        </button>
+        <div
+          id="scenario-import-export-menu"
+          x-cloak
+          x-show="toolbarImportMenuOpen"
+          x-transition.opacity.duration.150ms
+          @click.outside="toolbarImportMenuOpen = false"
+          class="absolute right-0 top-full z-30 mt-[0.625rem] min-w-[16.25rem] overflow-hidden rounded-[0.46875rem] border-[1.25px] border-slate-200 bg-white py-[0.3125rem] shadow-[0_12.5px_18.75px_-3.75px_rgba(0,0,0,0.1),0_5px_7.5px_-5px_rgba(0,0,0,0.1)]"
+          role="menu"
+        >
+          <button type="button" class="flex w-full items-center gap-[0.625rem] px-[0.9375rem] py-[0.625rem] text-left text-[1.09375rem]/[1.5625rem] text-slate-700 transition hover:bg-slate-50" role="menuitem" @click="copySolveRequestPayload(); toolbarImportMenuOpen = false">
+            <span class="material-symbols-rounded text-[22.5px] text-slate-500">content_copy</span>
+            <span x-text="t('scenario.host.copyRequest')"></span>
+          </button>
+          <button type="button" class="flex w-full items-center gap-[0.625rem] px-[0.9375rem] py-[0.625rem] text-left text-[1.09375rem]/[1.5625rem] text-slate-700 transition hover:bg-slate-50" role="menuitem" @click="openImportSolveRequestDialog(); toolbarImportMenuOpen = false">
+            <span class="material-symbols-rounded text-[22.5px] text-slate-500">input</span>
+            <span x-text="t('scenario.host.pasteAndUpdate')"></span>
+          </button>
+        </div>
+      </div>
+
+      <span class="hidden h-[1.875rem] w-[1.25px] bg-slate-200 min-[800px]:block" aria-hidden="true"></span>
+
+      <div data-scenario-toolbar-section="danger">
+        <button type="button" class="action-danger" @click="deleteScenario()" :disabled="saving">
+          <span class="material-symbols-rounded text-[22.5px]">delete</span>
+          <span x-text="t('common.delete')"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex-1 min-h-0 overflow-hidden">
+    <div x-ref="component" class="h-full min-h-0"></div>
+  </div>
+</div>

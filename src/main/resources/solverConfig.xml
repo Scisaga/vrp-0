@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<solver xmlns="https://www.optaplanner.org/xsd/solver" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="https://www.optaplanner.org/xsd/solver https://www.optaplanner.org/xsd/solver/solver.xsd">
+
+    <!-- https://www.optaplanner.org/docs/optaplanner/latest/optimization-algorithms/optimization-algorithms.html#multithreadedIncrementalSolving -->
+    <moveThreadCount>4</moveThreadCount>
+
+    <!-- 仅暴露求解监控 gauge，不改变求解算法、约束或终止策略。 -->
+    <monitoring>
+        <metric>BEST_SCORE</metric>
+        <metric>STEP_SCORE</metric>
+    </monitoring>
+
+    <!-- Define the model -->
+
+    <!-- Define the score function -->
+    <scoreDirectorFactory>
+        <constraintProviderClass>one.rewind.xforce.vehicle_routing.solver.RoutePlanConstraintProvider</constraintProviderClass>
+    </scoreDirectorFactory>
+
+    <!-- Configure the optimization algorithms (optional) -->
+    <termination>
+        <spentLimit>PT4H0M0S</spentLimit>
+    </termination>
+
+    <customPhase>
+        <customPhaseCommandClass>one.rewind.xforce.vehicle_routing.solver.InitialArrivalTimeCustomPhaseCommand</customPhaseCommandClass>
+    </customPhase>
+    <constructionHeuristic>
+    </constructionHeuristic>
+    <localSearch>
+        <unionMoveSelector>
+            <listChangeMoveSelector>
+                <filterClass>one.rewind.xforce.vehicle_routing.solver.filter.TicketChangeMoveFilter</filterClass>
+            </listChangeMoveSelector>
+        </unionMoveSelector>
+        <acceptor>
+            <entityTabuSize>4</entityTabuSize>
+            <simulatedAnnealingStartingTemperature>2hard/2medium/100soft</simulatedAnnealingStartingTemperature>
+        </acceptor>
+        <forager>
+            <acceptedCountLimit>4</acceptedCountLimit>
+        </forager>
+    </localSearch>
+</solver>

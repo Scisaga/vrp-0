@@ -1,0 +1,40 @@
+{
+  "name": "vrp-static-ui",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "sync:vendor": "node scripts/sync-vendor.cjs",
+    "build:host-dependencies": "node scripts/build-scenario-host-dependencies.cjs",
+    "build:scenario": "node scripts/build-scenario-component.cjs",
+    "verify:scenario": "node scripts/verify-scenario-component.cjs",
+    "test:score-progress": "node --test tests/solver-score-progress.test.mjs",
+    "test:scenario-import": "node --test tests/scenario-import-payload.test.mjs",
+    "test:datetime24": "node --test tests/date-time-24-input.test.mjs",
+    "test:solver-job-list": "node --test tests/solver-job-list-page.test.mjs",
+    "test:solver-job-detail-layout": "node --test tests/solver-job-detail-layout.test.mjs",
+    "test:solver-job-gantt": "node --test tests/solver-job-gantt-view.test.mjs",
+    "test:solver-job-map-layout": "node --test tests/solver-job-map-layout.test.mjs",
+    "test:ui-density": "node --test tests/ui-density-layout.test.mjs",
+    "test:scenario-solve": "node --test tests/scenario-persisted-solve.test.mjs",
+    "test:i18n": "node --test tests/i18n.test.mjs",
+    "test:i18n-ui": "playwright test tests/i18n-ui.spec.mjs",
+    "build:css": "node scripts/build-css.cjs",
+    "watch:css": "node scripts/build-css.cjs --watch"
+  },
+  "dependencies": {
+    "@codemirror/lang-json": "^6.0.2",
+    "alpinejs": "3.15.3",
+    "alpinejs-web-components": "0.1.3",
+    "codemirror": "^6.0.2",
+    "lightweight-charts": "5.1.0",
+    "plotly.js": "3.3.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.1.18",
+    "autoprefixer": "10.4.23",
+    "@playwright/test": "^1.55.0",
+    "esbuild": "^0.12.29",
+    "postcss": "8.5.6",
+    "tailwindcss": "4.1.18"
+  }
+}

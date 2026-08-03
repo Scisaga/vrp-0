@@ -1,0 +1,33 @@
+services:
+  vrp-0:
+    build:
+      context: .
+      dockerfile: src/main/docker/Dockerfile.jvm
+    image: vrp-0:1.0.4-alpha-SNAPSHOT
+    container_name: vrp-0
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      JAVA_OPTS_APPEND: >-
+        -Dquarkus.http.host=0.0.0.0
+        -Dvrp.scenario.store.dir=/data/scenarios/
+        -Dvrp.solverjob.store.dir=/data/solver_jobs/
+        -Dmap.provider=${MAP_PROVIDER:-AMAP}
+        -Damap.enabled=${AMAP_ENABLED:-true}
+        -Damap.app-key=${AMAP_APP_KEY:-}
+        -Dhere.api-key=${HERE_API_KEY:-}
+        -Dhere.qps=${HERE_QPS:-10}
+        -Dhere.quota=${HERE_QUOTA:-10000}
+        -Dhere.interval=${HERE_INTERVAL:-86400}
+        -Dhere.wait-timeout=${HERE_WAIT_TIMEOUT:-10}
+        -Dhere.matrix-routing-enabled=${HERE_MATRIX_ROUTING_ENABLED:-false}
+        -Dvrp.mcp.enabled=${VRP_MCP_ENABLED:-false}
+        -Dvrp.mcp.auth.token=${VRP_MCP_AUTH_TOKEN:-}
+        -Dvrp.mcp.allowed-origins=${VRP_MCP_ALLOWED_ORIGINS:-}
+        -Djava.util.logging.manager=org.jboss.logmanager.LogManager
+    volumes:
+      - vrp-data:/data
+    restart: unless-stopped
+
+volumes:
+  vrp-data:

@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://servforce.local/schemas/vrp0/result-summary-schema.json",
+  "title": "VRP0 result summary",
+  "type": "object",
+  "required": [
+    "result_score",
+    "route_count",
+    "assigned_order_count",
+    "unassigned_order_count"
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "result_score": {
+      "type": "string"
+    },
+    "route_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "assigned_order_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "unassigned_order_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "total_distance_meters": {
+      "type": "number",
+      "minimum": 0
+    },
+    "total_duration_seconds": {
+      "type": "number",
+      "minimum": 0
+    }
+  }
+}

@@ -1,0 +1,21 @@
+@font-face {
+  font-family: "Material Symbols Rounded Scenario 2026-06-v1";
+  font-style: normal;
+  font-weight: 400;
+  src: url("./material-symbols-rounded.ttf") format("truetype");
+}
+
+.material-symbols-rounded {
+  font-family: "Material Symbols Rounded Scenario 2026-06-v1";
+  font-style: normal;
+  font-weight: normal;
+  display: inline-block;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  font-feature-settings: "liga";
+  -webkit-font-smoothing: antialiased;
+}

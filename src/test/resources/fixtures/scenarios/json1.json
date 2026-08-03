@@ -1,0 +1,1024 @@
+{
+  "id": null,
+  "name": "1775806224338",
+  "desc": "1775806224338",
+  "planning_date": "2026-04-10",
+  "start_time": "2026-04-10 00:00:00",
+  "end_time": "2026-04-10 23:59:59",
+  "plan": {
+    "skus": [
+      {
+        "id": "sku-1",
+        "name": "SKU-1",
+        "weight": 0.25,
+        "vol": 0.05
+      },
+      {
+        "id": "sku-2",
+        "name": "SKU-2",
+        "weight": 0.5,
+        "vol": 0.15
+      },
+      {
+        "id": "sku-3",
+        "name": "SKU-3",
+        "weight": 1,
+        "vol": 0.25
+      },
+      {
+        "id": "sku-4",
+        "name": "SKU-4",
+        "weight": 2,
+        "vol": 0.4
+      },
+      {
+        "id": "sku-5",
+        "name": "SKU-5",
+        "weight": 1.5,
+        "vol": 0.3
+      },
+      {
+        "id": "sku-6",
+        "name": "SKU-6",
+        "weight": 0.75,
+        "vol": 0.2
+      }
+    ],
+    "pois": [
+      {
+        "id": "61ad9201-83fc-e811-80c3-feb97782ffcd",
+        "location": "121.794673,29.893302",
+        "loc": {
+          "lat": 29.893302,
+          "lon": 121.794673
+        },
+        "entr_loc": {
+          "lat": 29.893302,
+          "lon": 121.794673
+        },
+        "entr_location": "121.794673,29.893302"
+      },
+      {
+        "id": "test-ly-10144630",
+        "location": "121.364601,29.865597",
+        "loc": {
+          "lat": 29.865597,
+          "lon": 121.364601
+        },
+        "entr_loc": {
+          "lat": 29.865597,
+          "lon": 121.364601
+        },
+        "entr_location": "121.364601,29.865597"
+      },
+      {
+        "id": "test-ly-10152905",
+        "location": "121.468857,29.823896",
+        "loc": {
+          "lat": 29.823896,
+          "lon": 121.468857
+        },
+        "entr_loc": {
+          "lat": 29.823896,
+          "lon": 121.468857
+        },
+        "entr_location": "121.468857,29.823896"
+      },
+      {
+        "id": "test-ly-10150452",
+        "location": "121.406747,29.81442",
+        "loc": {
+          "lat": 29.81442,
+          "lon": 121.406747
+        },
+        "entr_loc": {
+          "lat": 29.81442,
+          "lon": 121.406747
+        },
+        "entr_location": "121.406747,29.81442"
+      },
+      {
+        "id": "test-ly-10110250",
+        "location": "121.283254,29.847241",
+        "loc": {
+          "lat": 29.847241,
+          "lon": 121.283254
+        },
+        "entr_loc": {
+          "lat": 29.847241,
+          "lon": 121.283254
+        },
+        "entr_location": "121.283254,29.847241"
+      },
+      {
+        "id": "test-ly-10145945",
+        "location": "121.424964,29.826351",
+        "loc": {
+          "lat": 29.826351,
+          "lon": 121.424964
+        },
+        "entr_loc": {
+          "lat": 29.826351,
+          "lon": 121.424964
+        },
+        "entr_location": "121.424964,29.826351"
+      },
+      {
+        "id": "test-ly-10152335",
+        "location": "121.413701,29.854923",
+        "loc": {
+          "lat": 29.854923,
+          "lon": 121.413701
+        },
+        "entr_loc": {
+          "lat": 29.854923,
+          "lon": 121.413701
+        },
+        "entr_location": "121.413701,29.854923"
+      },
+      {
+        "id": "bf973caa-b618-ef11-80cf-d28b9d72af96",
+        "location": "121.794673,29.893302",
+        "loc": {
+          "lat": 29.893302,
+          "lon": 121.794673
+        },
+        "entr_loc": {
+          "lat": 29.893302,
+          "lon": 121.794673
+        },
+        "entr_location": "121.794673,29.893302"
+      },
+      {
+        "id": "019defe9-6c46-f011-80cc-c9d226c39f76",
+        "location": "121.785559,29.875063",
+        "loc": {
+          "lat": 29.875063,
+          "lon": 121.785559
+        },
+        "entr_loc": {
+          "lat": 29.875063,
+          "lon": 121.785559
+        },
+        "entr_location": "121.785559,29.875063"
+      },
+      {
+        "id": "e0486e6c-ba7b-ef11-80cc-c9d226c39f76",
+        "location": "121.970143,29.784863",
+        "loc": {
+          "lat": 29.784863,
+          "lon": 121.970143
+        },
+        "entr_loc": {
+          "lat": 29.784863,
+          "lon": 121.970143
+        },
+        "entr_location": "121.970143,29.784863"
+      },
+      {
+        "id": "5b3bd26e-32e0-ee11-80ce-c795afcec3bb",
+        "location": "121.729973,29.930831",
+        "loc": {
+          "lat": 29.930831,
+          "lon": 121.729973
+        },
+        "entr_loc": {
+          "lat": 29.930831,
+          "lon": 121.729973
+        },
+        "entr_location": "121.729973,29.930831"
+      },
+      {
+        "id": "14c3675f-d03d-f011-80cc-80a933ddd5b7",
+        "location": "121.794702,29.896428",
+        "loc": {
+          "lat": 29.896428,
+          "lon": 121.794702
+        },
+        "entr_loc": {
+          "lat": 29.896428,
+          "lon": 121.794702
+        },
+        "entr_location": "121.794702,29.896428"
+      },
+      {
+        "id": "7c4f1c91-2b6d-4f65-92c1-82ce9f100001",
+        "location": "121.438512,29.836214",
+        "loc": {
+          "lat": 29.836214,
+          "lon": 121.438512
+        },
+        "entr_loc": {
+          "lat": 29.836214,
+          "lon": 121.438512
+        },
+        "entr_location": "121.438512,29.836214"
+      },
+      {
+        "id": "2f9c0a4e-7c5a-4c3a-ae12-6d6cf9000001",
+        "location": "121.441287,29.842105",
+        "loc": {
+          "lat": 29.842105,
+          "lon": 121.441287
+        },
+        "entr_loc": {
+          "lat": 29.842105,
+          "lon": 121.441287
+        },
+        "entr_location": "121.441287,29.842105"
+      },
+      {
+        "id": "test-ly-10161220",
+        "location": "121.452186,29.838974",
+        "loc": {
+          "lat": 29.838974,
+          "lon": 121.452186
+        },
+        "entr_loc": {
+          "lat": 29.838974,
+          "lon": 121.452186
+        },
+        "entr_location": "121.452186,29.838974"
+      },
+      {
+        "id": "test-ly-10163840",
+        "location": "121.397621,29.845730",
+        "loc": {
+          "lat": 29.84573,
+          "lon": 121.397621
+        },
+        "entr_loc": {
+          "lat": 29.84573,
+          "lon": 121.397621
+        },
+        "entr_location": "121.397621,29.845730"
+      }
+    ],
+    "depos": [
+      {
+        "id": "61ad9201-83fc-e811-80c3-feb97782ffcd",
+        "name": "Depo-0",
+        "loc": {
+          "id": "61ad9201-83fc-e811-80c3-feb97782ffcd",
+          "location": "121.794673,29.893302",
+          "loc": {
+            "lat": 29.893302,
+            "lon": 121.794673
+          },
+          "entr_loc": {
+            "lat": 29.893302,
+            "lon": 121.794673
+          },
+          "entr_location": "121.794673,29.893302"
+        }
+      },
+      {
+        "id": "7c4f1c91-2b6d-4f65-92c1-82ce9f100001",
+        "name": "Depo-1",
+        "loc": {
+          "id": "7c4f1c91-2b6d-4f65-92c1-82ce9f100001",
+          "location": "121.438512,29.836214",
+          "loc": {
+            "lat": 29.836214,
+            "lon": 121.438512
+          },
+          "entr_loc": {
+            "lat": 29.836214,
+            "lon": 121.438512
+          },
+          "entr_location": "121.438512,29.836214"
+        }
+      }
+    ],
+    "agents": [
+      {
+        "id": "bf973caa-b618-ef11-80cf-d28b9d72af96",
+        "name": "工程师4021",
+        "depo_id": "61ad9201-83fc-e811-80c3-feb97782ffcd",
+        "start_loc": "bf973caa-b618-ef11-80cf-d28b9d72af96",
+        "skills": [
+          "4_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf_E_COMMERCE",
+          "5_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf_E_COMMERCE",
+          "4_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf_OTHER",
+          "5_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf_OTHER"
+        ],
+        "brands": [],
+        "product_lines": [],
+        "qualification_levels": {
+          "5_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf": 0,
+          "4_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf": 0
+        },
+        "vehicle_type": "CAR",
+        "fuel_type": null,
+        "fuel_consumption": 0,
+        "rented": false,
+        "fix_cost_daily": 0,
+        "size": 0,
+        "height": 0,
+        "width": 0,
+        "weight": 0,
+        "vol": 0,
+        "transit_weight": 0,
+        "transit_vol": 0,
+        "transit_loading": null,
+        "total_driving_time_seconds": 0,
+        "tickets_done_time": null,
+        "total_driving_distance_meters": 0,
+        "routes": [],
+        "matrix": null,
+        "cost_parameter": null,
+        "date": "2026-04-10",
+        "restrict": false,
+        "max_ticket_num": 25,
+        "shift_start_time": "2026-04-10 15:30:00",
+        "shift_off_time": "2026-04-10 23:00:00",
+        "tickets": [
+          "test-ly-10152335",
+          "test-ly-10152905"
+        ],
+        "virtual": false
+      },
+      {
+        "id": "019defe9-6c46-f011-80cc-c9d226c39f76",
+        "name": "工程师3918",
+        "depo_id": "61ad9201-83fc-e811-80c3-feb97782ffcd",
+        "start_loc": "019defe9-6c46-f011-80cc-c9d226c39f76",
+        "skills": [
+          "4_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf_E_COMMERCE",
+          "5_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf_E_COMMERCE",
+          "4_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf_OTHER",
+          "5_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf_OTHER"
+        ],
+        "brands": [],
+        "product_lines": [],
+        "qualification_levels": {
+          "5_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf": 0,
+          "4_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf": 0
+        },
+        "vehicle_type": "CAR",
+        "fuel_type": null,
+        "fuel_consumption": 0,
+        "rented": false,
+        "fix_cost_daily": 0,
+        "size": 0,
+        "height": 0,
+        "width": 0,
+        "weight": 0,
+        "vol": 0,
+        "transit_weight": 0,
+        "transit_vol": 0,
+        "transit_loading": null,
+        "total_driving_time_seconds": 0,
+        "tickets_done_time": null,
+        "total_driving_distance_meters": 0,
+        "routes": [],
+        "matrix": null,
+        "cost_parameter": null,
+        "date": "2026-04-10",
+        "restrict": false,
+        "max_ticket_num": 25,
+        "shift_start_time": "2026-04-10 15:30:00",
+        "shift_off_time": "2026-04-10 23:00:00",
+        "tickets": [
+          "test-ly-10110250",
+          "test-ly-10144630"
+        ],
+        "virtual": false
+      },
+      {
+        "id": "e0486e6c-ba7b-ef11-80cc-c9d226c39f76",
+        "name": "工程师2675",
+        "depo_id": "7c4f1c91-2b6d-4f65-92c1-82ce9f100001",
+        "start_loc": "e0486e6c-ba7b-ef11-80cc-c9d226c39f76",
+        "skills": [
+          "4_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf_E_COMMERCE",
+          "5_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf_E_COMMERCE",
+          "4_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf_E_COMMERCE",
+          "5_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf_E_COMMERCE",
+          "4_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf_OTHER",
+          "5_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf_OTHER",
+          "4_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf_OTHER",
+          "5_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf_OTHER"
+        ],
+        "brands": [],
+        "product_lines": [],
+        "qualification_levels": {
+          "5_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf": 0,
+          "4_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf": 0
+        },
+        "vehicle_type": "CAR",
+        "fuel_type": null,
+        "fuel_consumption": 0,
+        "rented": false,
+        "fix_cost_daily": 0,
+        "size": 0,
+        "height": 0,
+        "width": 0,
+        "weight": 0,
+        "vol": 0,
+        "transit_weight": 0,
+        "transit_vol": 0,
+        "transit_loading": null,
+        "total_driving_time_seconds": 0,
+        "tickets_done_time": null,
+        "total_driving_distance_meters": 0,
+        "routes": [],
+        "matrix": null,
+        "cost_parameter": null,
+        "date": "2026-04-10",
+        "restrict": false,
+        "max_ticket_num": 25,
+        "shift_start_time": "2026-04-10 15:30:00",
+        "shift_off_time": "2026-04-10 23:00:00",
+        "tickets": [
+          "test-ly-10145945",
+          "test-ly-10150452"
+        ],
+        "virtual": false
+      },
+      {
+        "id": "5b3bd26e-32e0-ee11-80ce-c795afcec3bb",
+        "name": "工程师3130",
+        "depo_id": "7c4f1c91-2b6d-4f65-92c1-82ce9f100001",
+        "start_loc": "5b3bd26e-32e0-ee11-80ce-c795afcec3bb",
+        "skills": [
+          "5_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf_E_COMMERCE",
+          "4_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf_E_COMMERCE",
+          "5_1_a1b6b93f-34c3-e811-80cb-f0709a5f128c_E_COMMERCE",
+          "5_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf_OTHER",
+          "4_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf_OTHER",
+          "5_1_a1b6b93f-34c3-e811-80cb-f0709a5f128c_OTHER"
+        ],
+        "brands": [],
+        "product_lines": [],
+        "qualification_levels": {
+          "5_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf": 0,
+          "4_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf": 0,
+          "5_1_a1b6b93f-34c3-e811-80cb-f0709a5f128c": 0
+        },
+        "vehicle_type": "CAR",
+        "fuel_type": null,
+        "fuel_consumption": 0,
+        "rented": false,
+        "fix_cost_daily": 0,
+        "size": 0,
+        "height": 0,
+        "width": 0,
+        "weight": 0,
+        "vol": 0,
+        "transit_weight": 0,
+        "transit_vol": 0,
+        "transit_loading": null,
+        "total_driving_time_seconds": 0,
+        "tickets_done_time": null,
+        "total_driving_distance_meters": 0,
+        "routes": [],
+        "matrix": null,
+        "cost_parameter": null,
+        "date": "2026-04-10",
+        "restrict": false,
+        "max_ticket_num": 25,
+        "shift_start_time": "2026-04-10 15:30:00",
+        "shift_off_time": "2026-04-10 23:00:00",
+        "tickets": [],
+        "virtual": false
+      },
+      {
+        "id": "2f9c0a4e-7c5a-4c3a-ae12-6d6cf9000001",
+        "name": "工程师4102",
+        "depo_id": "7c4f1c91-2b6d-4f65-92c1-82ce9f100001",
+        "start_loc": "2f9c0a4e-7c5a-4c3a-ae12-6d6cf9000001",
+        "skills": [
+          "4_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf_E_COMMERCE",
+          "5_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf_E_COMMERCE",
+          "4_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf_OTHER",
+          "5_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf_OTHER"
+        ],
+        "brands": [],
+        "product_lines": [],
+        "qualification_levels": {
+          "5_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf": 0,
+          "4_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf": 0
+        },
+        "vehicle_type": "CAR",
+        "fuel_type": null,
+        "fuel_consumption": 0,
+        "rented": false,
+        "fix_cost_daily": 0,
+        "size": 0,
+        "height": 0,
+        "width": 0,
+        "weight": 0,
+        "vol": 0,
+        "transit_weight": 0,
+        "transit_vol": 0,
+        "transit_loading": null,
+        "total_driving_time_seconds": 0,
+        "tickets_done_time": null,
+        "total_driving_distance_meters": 0,
+        "routes": [],
+        "matrix": null,
+        "cost_parameter": null,
+        "date": "2026-04-10",
+        "restrict": false,
+        "max_ticket_num": 25,
+        "shift_start_time": "2026-04-10 15:30:00",
+        "shift_off_time": "2026-04-10 23:00:00",
+        "tickets": [
+          "test-ly-10161220",
+          "test-ly-10163840"
+        ],
+        "virtual": false
+      },
+      {
+        "id": "14c3675f-d03d-f011-80cc-80a933ddd5b7",
+        "name": "工程师3674",
+        "depo_id": "61ad9201-83fc-e811-80c3-feb97782ffcd",
+        "start_loc": "14c3675f-d03d-f011-80cc-80a933ddd5b7",
+        "skills": [
+          "4_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf_E_COMMERCE",
+          "5_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf_E_COMMERCE",
+          "4_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf_OTHER",
+          "5_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf_OTHER"
+        ],
+        "brands": [],
+        "product_lines": [],
+        "qualification_levels": {
+          "5_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf": 0,
+          "4_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf": 0
+        },
+        "vehicle_type": "CAR",
+        "fuel_type": null,
+        "fuel_consumption": 0,
+        "rented": false,
+        "fix_cost_daily": 0,
+        "size": 0,
+        "height": 0,
+        "width": 0,
+        "weight": 0,
+        "vol": 0,
+        "transit_weight": 0,
+        "transit_vol": 0,
+        "transit_loading": null,
+        "total_driving_time_seconds": 0,
+        "tickets_done_time": null,
+        "total_driving_distance_meters": 0,
+        "routes": [],
+        "matrix": null,
+        "cost_parameter": null,
+        "date": "2026-04-10",
+        "restrict": false,
+        "max_ticket_num": 25,
+        "shift_start_time": "2026-04-10 15:30:00",
+        "shift_off_time": "2026-04-10 23:00:00",
+        "tickets": [],
+        "virtual": false
+      }
+    ],
+    "tickets": [
+      {
+        "id": "test-ly-10110250",
+        "depo_id": "61ad9201-83fc-e811-80c3-feb97782ffcd",
+        "type": "Inst",
+        "brand": "",
+        "product_lines": [],
+        "qualification_levels_required": {
+          "4_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf": 0
+        },
+        "status": "New",
+        "skills_required": [
+          "4_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf_E_COMMERCE"
+        ],
+        "dep_tickets": [],
+        "ref_tickets": [],
+        "items": [
+          {
+            "sku": "sku-1",
+            "value": 1
+          },
+          {
+            "sku": "sku-2",
+            "value": 2
+          }
+        ],
+        "engineer_order": [
+          "test-ly-10110250",
+          "test-ly-10144630"
+        ],
+        "weight": 1.25,
+        "vol": 0.35,
+        "loc": "test-ly-10110250",
+        "matrix": {
+          "data": {}
+        },
+        "create_time": "2026-04-10 11:02:51",
+        "min_start_time": "2026-04-10 00:01:00",
+        "max_end_time": "2026-04-10 23:00:00",
+        "duration": "PT10M",
+        "agent": "019defe9-6c46-f011-80cc-c9d226c39f76",
+        "original_agent": null,
+        "previous_ticket": null,
+        "next_ticket": "test-ly-10144630",
+        "arrival_time": "2026-04-10 11:58:00",
+        "moved": false,
+        "relation_tickets": []
+      },
+      {
+        "id": "test-ly-10144630",
+        "depo_id": "61ad9201-83fc-e811-80c3-feb97782ffcd",
+        "type": "Inst",
+        "brand": "",
+        "product_lines": [],
+        "qualification_levels_required": {
+          "5_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf": 0
+        },
+        "status": "New",
+        "skills_required": [
+          "5_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf_E_COMMERCE"
+        ],
+        "dep_tickets": [],
+        "ref_tickets": [],
+        "items": [
+          {
+            "sku": "sku-3",
+            "value": 1
+          },
+          {
+            "sku": "sku-1",
+            "value": 2
+          }
+        ],
+        "engineer_order": [
+          "test-ly-10110250",
+          "test-ly-10144630"
+        ],
+        "weight": 1.5,
+        "vol": 0.35,
+        "loc": "test-ly-10144630",
+        "matrix": {
+          "data": {}
+        },
+        "create_time": "2026-04-10 14:46:32",
+        "min_start_time": "2026-04-10 00:01:00",
+        "max_end_time": "2026-04-10 23:00:00",
+        "duration": "PT10M",
+        "agent": "019defe9-6c46-f011-80cc-c9d226c39f76",
+        "original_agent": null,
+        "previous_ticket": "test-ly-10110250",
+        "next_ticket": null,
+        "arrival_time": "2026-04-10 15:31:00",
+        "moved": false,
+        "relation_tickets": []
+      },
+      {
+        "id": "test-ly-10145945",
+        "depo_id": "7c4f1c91-2b6d-4f65-92c1-82ce9f100001",
+        "type": "Inst",
+        "brand": "",
+        "product_lines": [],
+        "qualification_levels_required": {
+          "4_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf": 0
+        },
+        "status": "New",
+        "skills_required": [
+          "4_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf_OTHER"
+        ],
+        "dep_tickets": [],
+        "ref_tickets": [
+          "test-ly-10150452"
+        ],
+        "items": [
+          {
+            "sku": "sku-2",
+            "value": 1
+          },
+          {
+            "sku": "sku-4",
+            "value": 1
+          }
+        ],
+        "engineer_order": [
+          "test-ly-10145945",
+          "test-ly-10150452"
+        ],
+        "weight": 2.5,
+        "vol": 0.55,
+        "loc": "test-ly-10145945",
+        "matrix": {
+          "data": {}
+        },
+        "create_time": "2026-04-10 14:59:45",
+        "min_start_time": "2026-04-10 00:01:00",
+        "max_end_time": "2026-04-10 23:00:00",
+        "duration": "PT10M",
+        "agent": "e0486e6c-ba7b-ef11-80cc-c9d226c39f76",
+        "original_agent": null,
+        "previous_ticket": null,
+        "next_ticket": "test-ly-10150452",
+        "arrival_time": "2026-04-10 15:43:00",
+        "moved": false,
+        "relation_tickets": []
+      },
+      {
+        "id": "test-ly-10150452",
+        "depo_id": "7c4f1c91-2b6d-4f65-92c1-82ce9f100001",
+        "type": "Inst",
+        "brand": "",
+        "product_lines": [],
+        "qualification_levels_required": {
+          "5_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf": 0
+        },
+        "status": "New",
+        "skills_required": [
+          "5_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf_OTHER"
+        ],
+        "dep_tickets": [],
+        "ref_tickets": [
+          "test-ly-10145945"
+        ],
+        "items": [
+          {
+            "sku": "sku-1",
+            "value": 1
+          },
+          {
+            "sku": "sku-2",
+            "value": 1
+          },
+          {
+            "sku": "sku-3",
+            "value": 1
+          }
+        ],
+        "engineer_order": [
+          "test-ly-10145945",
+          "test-ly-10150452"
+        ],
+        "weight": 1.75,
+        "vol": 0.45,
+        "loc": "test-ly-10150452",
+        "matrix": {
+          "data": {}
+        },
+        "create_time": "2026-04-10 15:04:52",
+        "min_start_time": "2026-04-10 00:01:00",
+        "max_end_time": "2026-04-10 23:00:00",
+        "duration": "PT10M",
+        "agent": "e0486e6c-ba7b-ef11-80cc-c9d226c39f76",
+        "original_agent": null,
+        "previous_ticket": "test-ly-10145945",
+        "next_ticket": null,
+        "arrival_time": "2026-04-10 16:46:00",
+        "moved": false,
+        "relation_tickets": []
+      },
+      {
+        "id": "test-ly-10152335",
+        "depo_id": "61ad9201-83fc-e811-80c3-feb97782ffcd",
+        "type": "Inst",
+        "brand": "",
+        "product_lines": [],
+        "qualification_levels_required": {
+          "4_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf": 0
+        },
+        "status": "New",
+        "skills_required": [
+          "4_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf_E_COMMERCE"
+        ],
+        "dep_tickets": [],
+        "ref_tickets": [],
+        "items": [
+          {
+            "sku": "sku-4",
+            "value": 1
+          },
+          {
+            "sku": "sku-1",
+            "value": 3
+          }
+        ],
+        "engineer_order": [
+          "test-ly-10152335",
+          "test-ly-10152905"
+        ],
+        "weight": 2.75,
+        "vol": 0.55,
+        "loc": "test-ly-10152335",
+        "matrix": {
+          "data": {}
+        },
+        "create_time": "2026-04-10 15:23:36",
+        "min_start_time": "2026-04-10 00:01:00",
+        "max_end_time": "2026-04-10 23:00:00",
+        "duration": "PT10M",
+        "agent": "bf973caa-b618-ef11-80cf-d28b9d72af96",
+        "original_agent": null,
+        "previous_ticket": null,
+        "next_ticket": "test-ly-10152905",
+        "arrival_time": "2026-04-10 15:52:00",
+        "moved": false,
+        "relation_tickets": []
+      },
+      {
+        "id": "test-ly-10152905",
+        "depo_id": "61ad9201-83fc-e811-80c3-feb97782ffcd",
+        "type": "Inst",
+        "brand": "",
+        "product_lines": [],
+        "qualification_levels_required": {
+          "4_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf": 0
+        },
+        "status": "New",
+        "skills_required": [
+          "4_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf_E_COMMERCE"
+        ],
+        "dep_tickets": [],
+        "ref_tickets": [],
+        "items": [
+          {
+            "sku": "sku-2",
+            "value": 2
+          },
+          {
+            "sku": "sku-3",
+            "value": 1
+          }
+        ],
+        "engineer_order": [
+          "test-ly-10152335",
+          "test-ly-10152905"
+        ],
+        "weight": 2,
+        "vol": 0.55,
+        "loc": "test-ly-10152905",
+        "matrix": {
+          "data": {}
+        },
+        "create_time": "2026-04-10 15:29:05",
+        "min_start_time": "2026-04-10 00:01:00",
+        "max_end_time": "2026-04-10 23:00:00",
+        "duration": "PT10M",
+        "agent": "bf973caa-b618-ef11-80cf-d28b9d72af96",
+        "original_agent": null,
+        "previous_ticket": "test-ly-10152335",
+        "next_ticket": null,
+        "arrival_time": "2026-04-10 16:18:00",
+        "moved": false,
+        "relation_tickets": []
+      },
+      {
+        "id": "test-ly-10161220",
+        "depo_id": "7c4f1c91-2b6d-4f65-92c1-82ce9f100001",
+        "type": "Inst",
+        "brand": "",
+        "product_lines": [],
+        "qualification_levels_required": {
+          "5_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf": 0
+        },
+        "status": "New",
+        "skills_required": [
+          "5_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf_E_COMMERCE"
+        ],
+        "dep_tickets": [],
+        "ref_tickets": [],
+        "items": [
+          {
+            "sku": "sku-5",
+            "value": 1
+          },
+          {
+            "sku": "sku-2",
+            "value": 1
+          }
+        ],
+        "engineer_order": [
+          "test-ly-10161220",
+          "test-ly-10163840"
+        ],
+        "weight": 2,
+        "vol": 0.45,
+        "loc": "test-ly-10161220",
+        "matrix": {
+          "data": {}
+        },
+        "create_time": "2026-04-10 16:12:20",
+        "min_start_time": "2026-04-10 00:01:00",
+        "max_end_time": "2026-04-10 23:00:00",
+        "duration": "PT10M",
+        "agent": "2f9c0a4e-7c5a-4c3a-ae12-6d6cf9000001",
+        "original_agent": null,
+        "previous_ticket": null,
+        "next_ticket": "test-ly-10163840",
+        "arrival_time": "2026-04-10 16:12:00",
+        "moved": false,
+        "relation_tickets": []
+      },
+      {
+        "id": "test-ly-10163840",
+        "depo_id": "7c4f1c91-2b6d-4f65-92c1-82ce9f100001",
+        "type": "Inst",
+        "brand": "",
+        "product_lines": [],
+        "qualification_levels_required": {
+          "5_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf": 0
+        },
+        "status": "New",
+        "skills_required": [
+          "5_1_91c8c5ba-3e74-e811-80c7-822b5c0c59bf_OTHER"
+        ],
+        "dep_tickets": [],
+        "ref_tickets": [],
+        "items": [
+          {
+            "sku": "sku-6",
+            "value": 2
+          },
+          {
+            "sku": "sku-3",
+            "value": 1
+          }
+        ],
+        "engineer_order": [
+          "test-ly-10161220",
+          "test-ly-10163840"
+        ],
+        "weight": 2.5,
+        "vol": 0.65,
+        "loc": "test-ly-10163840",
+        "matrix": {
+          "data": {}
+        },
+        "create_time": "2026-04-10 16:38:40",
+        "min_start_time": "2026-04-10 00:01:00",
+        "max_end_time": "2026-04-10 23:00:00",
+        "duration": "PT10M",
+        "agent": "2f9c0a4e-7c5a-4c3a-ae12-6d6cf9000001",
+        "original_agent": null,
+        "previous_ticket": "test-ly-10161220",
+        "next_ticket": null,
+        "arrival_time": "2026-04-10 16:41:00",
+        "moved": false,
+        "relation_tickets": []
+      }
+    ],
+    "constraint_configuration": {
+      "name": "default",
+      "agent_capacity": "0hard/0medium/0soft",
+      "service_finished_after_max_end_time": "0hard/0medium/0soft",
+      "ref_ticket_after_dep_ticket": "0hard/0medium/0soft",
+      "ref_ticket_same_agent_with_dep_ticket": "0hard/0medium/0soft",
+      "balance_agent_loading": "0hard/0medium/100soft",
+      "minimize_travel_time": "0hard/0medium/0soft",
+      "minimize_travel_distance": "0hard/0medium/1soft",
+      "minimize_agent_fixed_cost": "0hard/0medium/0soft",
+      "minimize_ticket_changing": "1hard/0medium/0soft",
+      "agent_skills_accord_with_ticket_skills": "1hard/0medium/0soft",
+      "agent_brands_contain_ticket_brand": "0hard/0medium/0soft",
+      "ticket_arrival_time_same_date_with_plan_time": "1hard/0medium/0soft",
+      "ticket_start_service_time_match_expected": "0hard/0medium/0soft",
+      "agent_qualification_levels_match_ticket": "0hard/10medium/0soft",
+      "agent_product_lines_match_ticket": "0hard/0medium/0soft",
+      "same_depo": "1hard/0medium/0soft",
+      "relation_tickets_same_agent": "0hard/100medium/0soft"
+    },
+    "cost_parameter": {
+      "startPrice": 200,
+      "nodeFee": 0,
+      "maxOverloadRatio": 1.2,
+      "overloadFee": 100,
+      "crossRegionThreshold": 100000,
+      "crossRegionFee": 0,
+      "guaranteedIncome": 0,
+      "timeRestrictedTrafficCharge": 50,
+      "elecPrice": 1.5,
+      "gas92Price": 8.1
+    },
+    "score": null,
+    "metrics": null
+  },
+  "constraint_configuration": {
+    "name": "default",
+    "agent_capacity": "0hard/0medium/0soft",
+    "service_finished_after_max_end_time": "0hard/0medium/0soft",
+    "ref_ticket_after_dep_ticket": "0hard/0medium/0soft",
+    "ref_ticket_same_agent_with_dep_ticket": "0hard/0medium/0soft",
+    "balance_agent_loading": "0hard/0medium/100soft",
+    "minimize_travel_time": "0hard/0medium/0soft",
+    "minimize_travel_distance": "0hard/0medium/1soft",
+    "minimize_agent_fixed_cost": "0hard/0medium/0soft",
+    "minimize_ticket_changing": "1hard/0medium/0soft",
+    "agent_skills_accord_with_ticket_skills": "1hard/0medium/0soft",
+    "agent_brands_contain_ticket_brand": "0hard/0medium/0soft",
+    "ticket_arrival_time_same_date_with_plan_time": "1hard/0medium/0soft",
+    "ticket_start_service_time_match_expected": "0hard/0medium/0soft",
+    "agent_qualification_levels_match_ticket": "0hard/10medium/0soft",
+    "agent_product_lines_match_ticket": "0hard/0medium/0soft",
+    "same_depo": "1hard/0medium/0soft",
+    "relation_tickets_same_agent": "0hard/100medium/0soft"
+  },
+  "cost_parameter": null,
+  "poi_build": false,
+  "matrix_build": false,
+  "create_time": null,
+  "update_time": null
+}

@@ -1,0 +1,34 @@
+{
+  "runtime_version": "scenario_host_runtime_v1",
+  "prerequisites": {
+    "alpine@3.15.3": {
+      "type": "global",
+      "global": "Alpine",
+      "version_property": "version"
+    }
+  },
+  "provides": {
+    "material_symbols_rounded@2026-06-v1": {
+      "type": "stylesheet",
+      "entry": "/static/assets/scenario-runtime/dependencies/material_symbols_rounded/2026-06-v1/material-symbols-rounded.css",
+      "entry_sha256": "0b3712d7782c1d87900702d77c44d0f6ee81850a621cde440a9c550f57de4ca5",
+      "files": {
+        "/static/assets/scenario-runtime/dependencies/material_symbols_rounded/2026-06-v1/material-symbols-rounded.css": "0b3712d7782c1d87900702d77c44d0f6ee81850a621cde440a9c550f57de4ca5",
+        "/static/assets/scenario-runtime/dependencies/material_symbols_rounded/2026-06-v1/material-symbols-rounded.ttf": "0ae4633d30eae52d79b1e7c577ad45dc67a1e48a9c5f8c115f065947b282e6b8"
+      },
+      "font_families": [
+        "Material Symbols Rounded Scenario 2026-06-v1"
+      ]
+    },
+    "plotly_basic@3.3.1": {
+      "type": "script",
+      "entry": "/static/assets/scenario-runtime/dependencies/plotly_basic/3.3.1/plotly-basic.min.js",
+      "entry_sha256": "90eb7dccb54ee270be77f2096d4e7833456e6fc61ebde387bffae749e0308465",
+      "files": {
+        "/static/assets/scenario-runtime/dependencies/plotly_basic/3.3.1/plotly-basic.min.js": "90eb7dccb54ee270be77f2096d4e7833456e6fc61ebde387bffae749e0308465"
+      },
+      "global": "Plotly",
+      "version_property": "version"
+    }
+  }
+}

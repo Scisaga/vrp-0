@@ -1,0 +1,1303 @@
+{
+  "name" : "scen-1-1",
+  "desc" : "t10, d2, ad5(1), 地址为解析, 矩阵未生成",
+  "planning_date" : "2024-04-07",
+  "start_time" : "2024-04-08 00:00:00",
+  "end_time" : "2024-04-09 00:00:00",
+  "plan" : {
+    "skus" : [
+      {
+        "id" : "sku-1",
+        "name" : "SKU-1",
+        "weight" : 0.25,
+        "vol" : 0.05
+      },
+      {
+        "id" : "sku-2",
+        "name" : "SKU-2",
+        "weight" : 0.5,
+        "vol" : 0.15
+      },
+      {
+        "id" : "sku-3",
+        "name" : "SKU-3",
+        "weight" : 1.0,
+        "vol" : 0.25
+      },
+      {
+        "id" : "sku-4",
+        "name" : "SKU-4",
+        "weight" : 2.0,
+        "vol" : 0.4
+      }
+    ],
+    "pois" : [
+      {
+        "id" : "B0G2X7N5D2",
+        "name" : "北七家家具建材批发市场",
+        "location" : "116.412804,40.120071",
+        "loc" : {
+          "lat" : 116.412804,
+          "lon" : 40.120071
+        },
+        "address" : "立汤路与稷安南街交叉口东北220米",
+        "pcode" : "110000",
+        "type" : "购物服务;家居建材市场;家具建材综合市场",
+        "photos" : [
+          {
+            "title" : "默认",
+            "url" : "http://store.is.autonavi.com/showpic/87b2f72887fda1dd7886cdb2c065fcac"
+          }
+        ],
+        "gridcode" : "6016134310",
+        "typecode" : "060601",
+        "citycode" : "010",
+        "adname" : "昌平区",
+        "entr_location" : "116.411526,40.120282",
+        "entr_loc" : {
+          "lat" : 116.411526,
+          "lon" : 40.120282
+        },
+        "adcode" : "110114",
+        "pname" : "北京市",
+        "cityname" : "北京市"
+      },
+      {
+        "id" : "B000A8VNHP",
+        "name" : "NAGA上院",
+        "location" : "116.428097,39.941989",
+        "loc" : {
+          "lat" : 116.428097,
+          "lon" : 39.941989
+        },
+        "address" : "东直门内大街9号院",
+        "pcode" : "110000",
+        "type" : "商务住宅;住宅区;住宅小区",
+        "photos" : [
+          {
+            "title" : "外景图",
+            "url" : "http://store.is.autonavi.com/showpic/939a72cdd21388e10bf14ce156cd2fc9"
+          },
+          {
+            "title" : "外景图",
+            "url" : "http://store.is.autonavi.com/showpic/685f65a8e6cd2af43f0f7e61c8c7ecea"
+          },
+          {
+            "title" : "外景图",
+            "url" : "http://store.is.autonavi.com/showpic/3985c67c47a77d46906ab631468bc02c"
+          }
+        ],
+        "gridcode" : "5916733400",
+        "typecode" : "120302",
+        "citycode" : "010",
+        "adname" : "东城区",
+        "entr_loc" : {
+          "lat" : 116.428097,
+          "lon" : 39.941989
+        },
+        "adcode" : "110101",
+        "pname" : "北京市",
+        "cityname" : "北京市"
+      },
+      {
+        "id" : "B000A7OMH8",
+        "name" : "常青藤嘉园",
+        "location" : "116.333144,39.880115",
+        "loc" : {
+          "lat" : 116.333144,
+          "lon" : 39.880115
+        },
+        "address" : "马连道东街甲2号",
+        "pcode" : "110000",
+        "type" : "商务住宅;住宅区;住宅小区",
+        "photos" : [
+          {
+            "title" : "实景图",
+            "url" : "http://store.is.autonavi.com/showpic/8399734a1c40aa387263deb35cba1058"
+          },
+          {
+            "title" : "外景图",
+            "url" : "http://store.is.autonavi.com/showpic/6fbdb235579766180f2241ce3cf13e1f"
+          },
+          {
+            "title" : "实景图",
+            "url" : "http://store.is.autonavi.com/showpic/b1a00140a9adcc0ab628da2b80093ea2"
+          }
+        ],
+        "gridcode" : "5916625611",
+        "typecode" : "120302",
+        "citycode" : "010",
+        "adname" : "西城区",
+        "entr_location" : "116.332701,39.880868",
+        "entr_loc" : {
+          "lat" : 116.332701,
+          "lon" : 39.880868
+        },
+        "adcode" : "110102",
+        "pname" : "北京市",
+        "cityname" : "北京市"
+      },
+      {
+        "id" : "B000A87Z1K",
+        "name" : "桃花岛",
+        "location" : "116.659483,39.867638",
+        "loc" : {
+          "lat" : 116.659483,
+          "lon" : 39.867638
+        },
+        "address" : "通州梨园群芳四园",
+        "pcode" : "110000",
+        "type" : "商务住宅;住宅区;住宅小区",
+        "photos" : [
+          {
+            "title" : "外景图",
+            "url" : "http://store.is.autonavi.com/showpic/0668a7f6f8508b2812eb17477745470e"
+          },
+          {
+            "title" : "外景图",
+            "url" : "http://store.is.autonavi.com/showpic/17577e925ec046557b6d70378ff9b93f"
+          },
+          {
+            "title" : "外景图",
+            "url" : "http://store.is.autonavi.com/showpic/23482a790f0eba64d85dbd5af8033ed5"
+          }
+        ],
+        "gridcode" : "5916654202",
+        "typecode" : "120302",
+        "citycode" : "010",
+        "adname" : "通州区",
+        "entr_location" : "116.660228,39.868658",
+        "entr_loc" : {
+          "lat" : 116.660228,
+          "lon" : 39.868658
+        },
+        "adcode" : "110112",
+        "pname" : "北京市",
+        "cityname" : "北京市"
+      },
+      {
+        "id" : "B000A84KFE",
+        "name" : "黄寺大街2号院",
+        "location" : "116.403756,39.958348",
+        "loc" : {
+          "lat" : 116.403756,
+          "lon" : 39.958348
+        },
+        "address" : "黄寺大街2号",
+        "pcode" : "110000",
+        "type" : "商务住宅;住宅区;住宅小区",
+        "photos" : [
+          {
+            "title" : "实景图",
+            "url" : "http://store.is.autonavi.com/showpic/ff8960752b5fac526a7a7ee668640326"
+          },
+          {
+            "title" : "外景图",
+            "url" : "http://store.is.autonavi.com/showpic/83be9e1004ffdb287815d366f6c73f4f"
+          },
+          {
+            "title" : "实景图",
+            "url" : "http://store.is.autonavi.com/showpic/7f108fce1e7e1354371c2fc2845ffeb8"
+          }
+        ],
+        "gridcode" : "5916735200",
+        "typecode" : "120302",
+        "citycode" : "010",
+        "adname" : "东城区",
+        "entr_location" : "116.403121,39.957600",
+        "entr_loc" : {
+          "lat" : 116.403121,
+          "lon" : 39.9576
+        },
+        "adcode" : "110101",
+        "pname" : "北京市",
+        "cityname" : "北京市"
+      },
+      {
+        "id" : "B000A81G63",
+        "name" : "鲁谷74号院",
+        "location" : "116.244868,39.904387",
+        "loc" : {
+          "lat" : 116.244868,
+          "lon" : 39.904387
+        },
+        "address" : "鲁谷路74号院",
+        "pcode" : "110000",
+        "type" : "商务住宅;住宅区;住宅小区",
+        "photos" : [
+          {
+            "title" : "实景图",
+            "url" : "http://store.is.autonavi.com/showpic/1f83f5ad9d2bbdedcd2103953f9371ee"
+          },
+          {
+            "title" : "实景图",
+            "url" : "http://store.is.autonavi.com/showpic/600fdceb2d3eb42ba400826897cb5ab4"
+          },
+          {
+            "title" : "实景图",
+            "url" : "http://store.is.autonavi.com/showpic/313bce36f4860813b53c2a18656ba36a"
+          }
+        ],
+        "gridcode" : "5916618911",
+        "typecode" : "120302",
+        "citycode" : "010",
+        "adname" : "石景山区",
+        "entr_location" : "116.244101,39.903985",
+        "entr_loc" : {
+          "lat" : 116.244101,
+          "lon" : 39.903985
+        },
+        "adcode" : "110107",
+        "pname" : "北京市",
+        "cityname" : "北京市"
+      },
+      {
+        "id" : "B0JDSZKWHT",
+        "name" : "黄土梁村新村",
+        "location" : "116.283073,40.461723",
+        "loc" : {
+          "lat" : 116.283073,
+          "lon" : 40.461723
+        },
+        "address" : "汉太路",
+        "pcode" : "110000",
+        "type" : "商务住宅;住宅区;住宅小区",
+        "photos" : [
+          {
+            "title" : "默认",
+            "url" : "http://store.is.autonavi.com/showpic/0918c5fdd73fd3c805cf7c1b4b865a3a"
+          },
+          {
+            "title" : "默认",
+            "url" : "http://store.is.autonavi.com/showpic/200589ebcb05edeaa88a319225b8bb66"
+          },
+          {
+            "title" : "默认",
+            "url" : "http://store.is.autonavi.com/showpic/2358772b81a7a072fa29d6f554ed917a"
+          }
+        ],
+        "gridcode" : "6016525211",
+        "typecode" : "120302",
+        "citycode" : "010",
+        "adname" : "延庆区",
+        "entr_loc" : {
+          "lat" : 116.283073,
+          "lon" : 40.461723
+        },
+        "adcode" : "110119",
+        "pname" : "北京市",
+        "cityname" : "北京市"
+      },
+      {
+        "id" : "B000A85WKS",
+        "name" : "顶秀美泉小镇",
+        "location" : "116.671811,40.370404",
+        "loc" : {
+          "lat" : 116.671811,
+          "lon" : 40.370404
+        },
+        "address" : "雁栖湖范各庄村京加路",
+        "pcode" : "110000",
+        "type" : "商务住宅;住宅区;住宅小区",
+        "photos" : [
+          {
+            "title" : "默认",
+            "url" : "http://store.is.autonavi.com/showpic/a7a40a14fba8462e4e908c57074db601"
+          },
+          {
+            "title" : "默认",
+            "url" : "http://store.is.autonavi.com/showpic/4669c26c3541d6a06fa7b3820127257f"
+          },
+          {
+            "title" : "默认",
+            "url" : "http://store.is.autonavi.com/showpic/05821a5d62b3786e1c6812557fa922fa"
+          }
+        ],
+        "gridcode" : "6016454312",
+        "typecode" : "120302",
+        "citycode" : "010",
+        "adname" : "怀柔区",
+        "entr_location" : "116.673891,40.37059",
+        "entr_loc" : {
+          "lat" : 116.673891,
+          "lon" : 40.37059
+        },
+        "adcode" : "110116",
+        "pname" : "北京市",
+        "cityname" : "北京市"
+      },
+      {
+        "id" : "B000A844KN",
+        "name" : "龙腾苑三区",
+        "location" : "116.331649,40.076814",
+        "loc" : {
+          "lat" : 116.331649,
+          "lon" : 40.076814
+        },
+        "address" : "回龙观西大街18东南方向150米",
+        "pcode" : "110000",
+        "type" : "商务住宅;住宅区;住宅小区",
+        "photos" : [
+          {
+            "title" : "默认",
+            "url" : "http://store.is.autonavi.com/showpic/2b5f52ba8b4bc91d2991819a279baf68"
+          },
+          {
+            "title" : "实景图",
+            "url" : "http://store.is.autonavi.com/showpic/7289b742b7c90c6fae48633a48ae4325"
+          },
+          {
+            "title" : "外景图",
+            "url" : "http://store.is.autonavi.com/showpic/817d848da28952337a06994a6b360c31"
+          }
+        ],
+        "gridcode" : "6016029601",
+        "typecode" : "120302",
+        "citycode" : "010",
+        "adname" : "昌平区",
+        "entr_location" : "116.333499,40.077266",
+        "entr_loc" : {
+          "lat" : 116.333499,
+          "lon" : 40.077266
+        },
+        "adcode" : "110114",
+        "pname" : "北京市",
+        "cityname" : "北京市"
+      },
+      {
+        "id" : "B000A7ZXNW",
+        "name" : "菜园北里",
+        "location" : "116.351471,39.884883",
+        "loc" : {
+          "lat" : 116.351471,
+          "lon" : 39.884883
+        },
+        "address" : "广安门南街与南线里交叉口东南160米",
+        "pcode" : "110000",
+        "type" : "商务住宅;住宅区;住宅小区",
+        "photos" : [
+          {
+            "title" : "外景图",
+            "url" : "http://store.is.autonavi.com/showpic/29df26921495df4fe7d9f2065b09cd99"
+          },
+          {
+            "title" : "外景图",
+            "url" : "http://store.is.autonavi.com/showpic/934d206ec681a672486dfead0cb4d700"
+          },
+          {
+            "title" : "实景图",
+            "url" : "http://store.is.autonavi.com/showpic/083802839f0b0473adc3026806962584"
+          }
+        ],
+        "gridcode" : "5916626800",
+        "typecode" : "120302",
+        "citycode" : "010",
+        "adname" : "西城区",
+        "entr_location" : "116.3518,39.884954",
+        "entr_loc" : {
+          "lat" : 116.3518,
+          "lon" : 39.884954
+        },
+        "adcode" : "110102",
+        "pname" : "北京市",
+        "cityname" : "北京市"
+      },
+      {
+        "id" : "B000A85Z6V",
+        "name" : "文化大院",
+        "location" : "117.1523390000,40.5782790000",
+        "loc" : {
+          "lat" : 117.152339,
+          "lon" : 40.578279
+        },
+        "address" : "太师屯密云区桑园小学附近",
+        "pcode" : "110000",
+        "type" : "商务住宅;住宅区;住宅小区",
+        "photos" : [ ],
+        "gridcode" : "6017619210",
+        "typecode" : "120302",
+        "citycode" : "010",
+        "adname" : "密云区",
+        "entr_location" : "117.153269,40.578907",
+        "entr_loc" : {
+          "lat" : 117.153269,
+          "lon" : 40.578907
+        },
+        "adcode" : "110118",
+        "pname" : "北京市",
+        "cityname" : "北京市"
+      }
+    ],
+    "depos" : [
+      {
+        "id" : "depo-0",
+        "name" : "Depo-0",
+        "loc" : "B0G2X7N5D2"
+      },
+      {
+        "id" : "depo-1",
+        "name" : "Depo-1",
+        "loc" : {
+          "address" : "北京市朝阳区阜通东大街6号院3方恒国际中心B座",
+          "cityname" : "北京市"
+        }
+      }
+    ],
+    "agents" : [
+      {
+        "id" : "agent-1-240408",
+        "name" : "Agent-1-240408",
+        "start_loc" : "B0G2X7N5D2",
+        "skills" : [
+          "Delv",
+          "Inst"
+        ],
+        "fuel_type" : "ELEC",
+        "fuel_consumption" : 25.0,
+        "rented" : false,
+        "fix_cost_daily" : 0.0,
+        "weight" : 8.0,
+        "vol" : 14.0,
+        "date" : "2024-04-08",
+        "restrict" : false,
+        "shift_start_time" : "2024-04-08 06:00:00",
+        "shift_off_time" : "2024-04-08 21:00:00",
+        "tickets" : [ ],
+        "total_driving_distance_meters" : 0,
+        "transit_loading" : {
+          "weight" : 0.0,
+          "vol" : 0.0
+        },
+        "total_driving_time_seconds" : 0,
+        "transit_weight" : 0.0,
+        "tickets_done_time" : "2024-04-08 06:00:00",
+        "transit_vol" : 0.0
+      },
+      {
+        "id" : "agent-2-240408",
+        "name" : "Agent-2-240408",
+        "start_loc" : "B0G2X7N5D2",
+        "skills" : [
+          "Delv",
+          "Inst"
+        ],
+        "fuel_type" : "ELEC",
+        "fuel_consumption" : 25.0,
+        "rented" : false,
+        "fix_cost_daily" : 0.0,
+        "weight" : 2.5,
+        "vol" : 4.0,
+        "date" : "2024-04-08",
+        "restrict" : false,
+        "shift_start_time" : "2024-04-08 06:00:00",
+        "shift_off_time" : "2024-04-08 21:00:00",
+        "tickets" : [ ],
+        "total_driving_distance_meters" : 0,
+        "transit_loading" : {
+          "weight" : 0.0,
+          "vol" : 0.0
+        },
+        "total_driving_time_seconds" : 0,
+        "transit_weight" : 0.0,
+        "tickets_done_time" : "2024-04-08 06:00:00",
+        "transit_vol" : 0.0
+      },
+      {
+        "id" : "agent-4-240408",
+        "name" : "Agent-4-240408",
+        "start_loc" : "B0G2X7N5D2",
+        "skills" : [
+          "Delv",
+          "Inst"
+        ],
+        "fuel_type" : "ELEC",
+        "fuel_consumption" : 25.0,
+        "rented" : false,
+        "fix_cost_daily" : 0.0,
+        "weight" : 2.5,
+        "vol" : 4.0,
+        "date" : "2024-04-08",
+        "restrict" : false,
+        "shift_start_time" : "2024-04-08 06:00:00",
+        "shift_off_time" : "2024-04-08 21:00:00",
+        "tickets" : [ ],
+        "total_driving_distance_meters" : 0,
+        "transit_loading" : {
+          "weight" : 0.0,
+          "vol" : 0.0
+        },
+        "total_driving_time_seconds" : 0,
+        "transit_weight" : 0.0,
+        "tickets_done_time" : "2024-04-08 06:00:00",
+        "transit_vol" : 0.0
+      },
+      {
+        "id" : "agent-0-240408",
+        "name" : "Agent-0-240408",
+        "start_loc" : "B0G2X7N5D2",
+        "skills" : [
+          "Delv",
+          "Inst"
+        ],
+        "fuel_type" : "ELEC",
+        "fuel_consumption" : 25.0,
+        "rented" : false,
+        "fix_cost_daily" : 0.0,
+        "weight" : 8.0,
+        "vol" : 14.0,
+        "date" : "2024-04-08",
+        "restrict" : false,
+        "shift_start_time" : "2024-04-08 06:00:00",
+        "shift_off_time" : "2024-04-08 21:00:00",
+        "tickets" : [ ],
+        "total_driving_distance_meters" : 0,
+        "transit_loading" : {
+          "weight" : 0.0,
+          "vol" : 0.0
+        },
+        "total_driving_time_seconds" : 0,
+        "transit_weight" : 0.0,
+        "tickets_done_time" : "2024-04-08 06:00:00",
+        "transit_vol" : 0.0
+      },
+      {
+        "id" : "agent-3-240408",
+        "name" : "Agent-3-240408",
+        "start_loc" : "B0G2X7N5D2",
+        "skills" : [
+          "Delv",
+          "Inst"
+        ],
+        "fuel_type" : "ELEC",
+        "fuel_consumption" : 25.0,
+        "rented" : false,
+        "fix_cost_daily" : 0.0,
+        "weight" : 2.5,
+        "vol" : 4.0,
+        "date" : "2024-04-08",
+        "restrict" : false,
+        "shift_start_time" : "2024-04-08 06:00:00",
+        "shift_off_time" : "2024-04-08 21:00:00",
+        "tickets" : [ ],
+        "total_driving_distance_meters" : 0,
+        "transit_loading" : {
+          "weight" : 0.0,
+          "vol" : 0.0
+        },
+        "total_driving_time_seconds" : 0,
+        "transit_weight" : 0.0,
+        "tickets_done_time" : "2024-04-08 06:00:00",
+        "transit_vol" : 0.0
+      }
+    ],
+    "tickets" : [
+      {
+        "id" : "ticket-240407-0-d",
+        "type" : "Delv",
+        "status" : "New",
+        "skills_required" : [
+          "Delv"
+        ],
+        "dep_tickets" : [ ],
+        "ref_tickets" : [
+          "ticket-240407-0-i"
+        ],
+        "items" : [
+          {
+            "sku" : "sku-2",
+            "value" : 1
+          },
+          {
+            "sku" : "sku-3",
+            "value" : 1
+          },
+          {
+            "sku" : "sku-1",
+            "value" : 1
+          }
+        ],
+        "weight" : 1.75,
+        "vol" : 1.75,
+        "loc" : "B000A8VNHP",
+        "create_time" : "2024-04-07 17:53:00",
+        "min_start_time" : "2024-04-08 09:00:00",
+        "max_end_time" : "2024-04-08 21:00:00",
+        "duration" : "PT5M",
+        "reassign_time" : "2025-03-14 12:51:00",
+        "cancel_time" : "2024-08-19 03:50:00",
+        "moved" : false
+      },
+      {
+        "id" : "ticket-240407-0-i",
+        "type" : "Inst",
+        "status" : "New",
+        "skills_required" : [
+          "Inst"
+        ],
+        "dep_tickets" : [
+          "ticket-240407-0-d"
+        ],
+        "ref_tickets" : [ ],
+        "items" : [
+          {
+            "sku" : "sku-2",
+            "value" : 1
+          },
+          {
+            "sku" : "sku-3",
+            "value" : 1
+          },
+          {
+            "sku" : "sku-1",
+            "value" : 1
+          }
+        ],
+        "weight" : 1.75,
+        "vol" : 1.75,
+        "loc" : "B000A8VNHP",
+        "create_time" : "2024-04-07 17:53:00",
+        "min_start_time" : "2024-04-08 09:00:00",
+        "max_end_time" : "2024-04-08 21:00:00",
+        "duration" : "PT5M",
+        "reassign_time" : "2025-03-14 12:51:00",
+        "cancel_time" : "2024-08-19 03:50:00",
+        "moved" : false
+      },
+      {
+        "id" : "ticket-240407-1-d",
+        "type" : "Delv",
+        "status" : "New",
+        "skills_required" : [
+          "Delv"
+        ],
+        "dep_tickets" : [ ],
+        "ref_tickets" : [
+          "ticket-240407-1-i"
+        ],
+        "items" : [
+          {
+            "sku" : "sku-2",
+            "value" : 2
+          },
+          {
+            "sku" : "sku-1",
+            "value" : 2
+          }
+        ],
+        "weight" : 1.5,
+        "vol" : 1.5,
+        "loc" : "B000A7OMH8",
+        "create_time" : "2024-04-07 14:31:00",
+        "min_start_time" : "2024-04-08 00:00:00",
+        "max_end_time" : "2024-04-08 22:00:00",
+        "duration" : "PT5M",
+        "reassign_time" : "2024-05-26 07:17:00",
+        "cancel_time" : "2024-06-16 19:38:00",
+        "moved" : false
+      },
+      {
+        "id" : "ticket-240407-1-i",
+        "type" : "Inst",
+        "status" : "New",
+        "skills_required" : [
+          "Inst"
+        ],
+        "dep_tickets" : [
+          "ticket-240407-1-d"
+        ],
+        "ref_tickets" : [ ],
+        "items" : [
+          {
+            "sku" : "sku-2",
+            "value" : 2
+          },
+          {
+            "sku" : "sku-1",
+            "value" : 2
+          }
+        ],
+        "weight" : 1.5,
+        "vol" : 1.5,
+        "loc" : "B000A7OMH8",
+        "create_time" : "2024-04-07 14:31:00",
+        "min_start_time" : "2024-04-08 00:00:00",
+        "max_end_time" : "2024-04-08 22:00:00",
+        "duration" : "PT5M",
+        "reassign_time" : "2024-05-26 07:17:00",
+        "cancel_time" : "2024-06-16 19:38:00",
+        "moved" : false
+      },
+      {
+        "id" : "ticket-240407-2-d",
+        "type" : "Delv",
+        "status" : "New",
+        "skills_required" : [
+          "Delv"
+        ],
+        "dep_tickets" : [ ],
+        "ref_tickets" : [
+          "ticket-240407-2-i"
+        ],
+        "items" : [
+          {
+            "sku" : "sku-4",
+            "value" : 2
+          },
+          {
+            "sku" : "sku-1",
+            "value" : 1
+          }
+        ],
+        "weight" : 4.25,
+        "vol" : 4.25,
+        "loc" : "B000A87Z1K",
+        "create_time" : "2024-04-07 13:27:00",
+        "min_start_time" : "2024-04-08 09:00:00",
+        "max_end_time" : "2024-04-08 21:00:00",
+        "duration" : "PT5M",
+        "reassign_time" : "2024-06-06 08:18:00",
+        "cancel_time" : "2024-12-25 07:23:00",
+        "moved" : false
+      },
+      {
+        "id" : "ticket-240407-2-i",
+        "type" : "Inst",
+        "status" : "New",
+        "skills_required" : [
+          "Inst"
+        ],
+        "dep_tickets" : [
+          "ticket-240407-2-d"
+        ],
+        "ref_tickets" : [ ],
+        "items" : [
+          {
+            "sku" : "sku-4",
+            "value" : 2
+          },
+          {
+            "sku" : "sku-1",
+            "value" : 1
+          }
+        ],
+        "weight" : 4.25,
+        "vol" : 4.25,
+        "loc" : "B000A87Z1K",
+        "create_time" : "2024-04-07 13:27:00",
+        "min_start_time" : "2024-04-08 09:00:00",
+        "max_end_time" : "2024-04-08 21:00:00",
+        "duration" : "PT5M",
+        "reassign_time" : "2024-06-06 08:18:00",
+        "cancel_time" : "2024-12-25 07:23:00",
+        "moved" : false
+      },
+      {
+        "id" : "ticket-240407-3-d",
+        "type" : "Delv",
+        "status" : "New",
+        "skills_required" : [
+          "Delv"
+        ],
+        "dep_tickets" : [ ],
+        "ref_tickets" : [
+          "ticket-240407-3-i"
+        ],
+        "items" : [
+          {
+            "sku" : "sku-2",
+            "value" : 1
+          },
+          {
+            "sku" : "sku-3",
+            "value" : 2
+          },
+          {
+            "sku" : "sku-1",
+            "value" : 1
+          }
+        ],
+        "weight" : 2.75,
+        "vol" : 2.75,
+        "loc" : "B000A84KFE",
+        "create_time" : "2024-04-07 16:20:00",
+        "min_start_time" : "2024-04-08 00:00:00",
+        "max_end_time" : "2024-04-08 22:00:00",
+        "duration" : "PT5M",
+        "reassign_time" : "2025-09-08 07:55:00",
+        "cancel_time" : "2024-04-25 07:18:00",
+        "moved" : false
+      },
+      {
+        "id" : "ticket-240407-3-i",
+        "type" : "Inst",
+        "status" : "New",
+        "skills_required" : [
+          "Inst"
+        ],
+        "dep_tickets" : [
+          "ticket-240407-3-d"
+        ],
+        "ref_tickets" : [ ],
+        "items" : [
+          {
+            "sku" : "sku-2",
+            "value" : 1
+          },
+          {
+            "sku" : "sku-3",
+            "value" : 2
+          },
+          {
+            "sku" : "sku-1",
+            "value" : 1
+          }
+        ],
+        "weight" : 2.75,
+        "vol" : 2.75,
+        "loc" : "B000A84KFE",
+        "create_time" : "2024-04-07 16:20:00",
+        "min_start_time" : "2024-04-08 00:00:00",
+        "max_end_time" : "2024-04-08 22:00:00",
+        "duration" : "PT5M",
+        "reassign_time" : "2025-09-08 07:55:00",
+        "cancel_time" : "2024-04-25 07:18:00",
+        "moved" : false
+      },
+      {
+        "id" : "ticket-240407-4-d",
+        "type" : "Delv",
+        "status" : "New",
+        "skills_required" : [
+          "Delv"
+        ],
+        "dep_tickets" : [ ],
+        "ref_tickets" : [
+          "ticket-240407-4-i"
+        ],
+        "items" : [
+          {
+            "sku" : "sku-4",
+            "value" : 1
+          },
+          {
+            "sku" : "sku-1",
+            "value" : 1
+          }
+        ],
+        "weight" : 2.25,
+        "vol" : 2.25,
+        "loc" : "B000A81G63",
+        "create_time" : "2024-04-07 10:51:00",
+        "min_start_time" : "2024-04-08 09:00:00",
+        "max_end_time" : "2024-04-08 21:00:00",
+        "duration" : "PT5M",
+        "reassign_time" : "2024-04-11 14:56:00",
+        "cancel_time" : "2024-04-29 19:00:00",
+        "moved" : false
+      },
+      {
+        "id" : "ticket-240407-4-i",
+        "type" : "Inst",
+        "status" : "New",
+        "skills_required" : [
+          "Inst"
+        ],
+        "dep_tickets" : [
+          "ticket-240407-4-d"
+        ],
+        "ref_tickets" : [ ],
+        "items" : [
+          {
+            "sku" : "sku-4",
+            "value" : 1
+          },
+          {
+            "sku" : "sku-1",
+            "value" : 1
+          }
+        ],
+        "weight" : 2.25,
+        "vol" : 2.25,
+        "loc" : "B000A81G63",
+        "create_time" : "2024-04-07 10:51:00",
+        "min_start_time" : "2024-04-08 09:00:00",
+        "max_end_time" : "2024-04-08 21:00:00",
+        "duration" : "PT5M",
+        "reassign_time" : "2024-04-11 14:56:00",
+        "cancel_time" : "2024-04-29 19:00:00",
+        "moved" : false
+      },
+      {
+        "id" : "ticket-240407-5-d",
+        "type" : "Delv",
+        "status" : "New",
+        "skills_required" : [
+          "Delv"
+        ],
+        "dep_tickets" : [ ],
+        "ref_tickets" : [
+          "ticket-240407-5-i"
+        ],
+        "items" : [
+          {
+            "sku" : "sku-4",
+            "value" : 1
+          },
+          {
+            "sku" : "sku-1",
+            "value" : 1
+          }
+        ],
+        "weight" : 2.25,
+        "vol" : 2.25,
+        "loc" : "B0JDSZKWHT",
+        "create_time" : "2024-04-07 14:47:00",
+        "min_start_time" : "2024-04-08 00:00:00",
+        "max_end_time" : "2024-04-08 22:00:00",
+        "duration" : "PT5M",
+        "reassign_time" : "2024-11-17 11:35:00",
+        "cancel_time" : "2024-05-27 22:21:00",
+        "moved" : false
+      },
+      {
+        "id" : "ticket-240407-5-i",
+        "type" : "Inst",
+        "status" : "New",
+        "skills_required" : [
+          "Inst"
+        ],
+        "dep_tickets" : [
+          "ticket-240407-5-d"
+        ],
+        "ref_tickets" : [ ],
+        "items" : [
+          {
+            "sku" : "sku-4",
+            "value" : 1
+          },
+          {
+            "sku" : "sku-1",
+            "value" : 1
+          }
+        ],
+        "weight" : 2.25,
+        "vol" : 2.25,
+        "loc" : "B0JDSZKWHT",
+        "create_time" : "2024-04-07 14:47:00",
+        "min_start_time" : "2024-04-08 00:00:00",
+        "max_end_time" : "2024-04-08 22:00:00",
+        "duration" : "PT5M",
+        "reassign_time" : "2024-11-17 11:35:00",
+        "cancel_time" : "2024-05-27 22:21:00",
+        "moved" : false
+      },
+      {
+        "id" : "ticket-240407-6-d",
+        "type" : "Delv",
+        "status" : "New",
+        "skills_required" : [
+          "Delv"
+        ],
+        "dep_tickets" : [ ],
+        "ref_tickets" : [
+          "ticket-240407-6-i"
+        ],
+        "items" : [
+          {
+            "sku" : "sku-4",
+            "value" : 1
+          },
+          {
+            "sku" : "sku-2",
+            "value" : 1
+          },
+          {
+            "sku" : "sku-1",
+            "value" : 1
+          }
+        ],
+        "weight" : 2.75,
+        "vol" : 2.75,
+        "loc" : "B000A85WKS",
+        "create_time" : "2024-04-07 17:08:00",
+        "min_start_time" : "2024-04-08 00:00:00",
+        "max_end_time" : "2024-04-08 22:00:00",
+        "duration" : "PT5M",
+        "reassign_time" : "2024-04-26 06:36:00",
+        "cancel_time" : "2024-08-22 00:24:00",
+        "moved" : false
+      },
+      {
+        "id" : "ticket-240407-6-i",
+        "type" : "Inst",
+        "status" : "New",
+        "skills_required" : [
+          "Inst"
+        ],
+        "dep_tickets" : [
+          "ticket-240407-6-d"
+        ],
+        "ref_tickets" : [ ],
+        "items" : [
+          {
+            "sku" : "sku-4",
+            "value" : 1
+          },
+          {
+            "sku" : "sku-2",
+            "value" : 1
+          },
+          {
+            "sku" : "sku-1",
+            "value" : 1
+          }
+        ],
+        "weight" : 2.75,
+        "vol" : 2.75,
+        "loc" : "B000A85WKS",
+        "create_time" : "2024-04-07 17:08:00",
+        "min_start_time" : "2024-04-08 00:00:00",
+        "max_end_time" : "2024-04-08 22:00:00",
+        "duration" : "PT5M",
+        "reassign_time" : "2024-04-26 06:36:00",
+        "cancel_time" : "2024-08-22 00:24:00",
+        "moved" : false
+      },
+      {
+        "id" : "ticket-240407-7-d",
+        "type" : "Delv",
+        "status" : "New",
+        "skills_required" : [
+          "Delv"
+        ],
+        "dep_tickets" : [ ],
+        "ref_tickets" : [
+          "ticket-240407-7-i"
+        ],
+        "items" : [
+          {
+            "sku" : "sku-2",
+            "value" : 3
+          },
+          {
+            "sku" : "sku-1",
+            "value" : 1
+          }
+        ],
+        "weight" : 1.75,
+        "vol" : 1.75,
+        "loc" : "B000A844KN",
+        "create_time" : "2024-04-07 13:34:00",
+        "min_start_time" : "2024-04-08 00:00:00",
+        "max_end_time" : "2024-04-08 22:00:00",
+        "duration" : "PT5M",
+        "reassign_time" : "2024-06-03 23:36:00",
+        "cancel_time" : "2025-03-30 22:37:00",
+        "moved" : false
+      },
+      {
+        "id" : "ticket-240407-7-i",
+        "type" : "Inst",
+        "status" : "New",
+        "skills_required" : [
+          "Inst"
+        ],
+        "dep_tickets" : [
+          "ticket-240407-7-d"
+        ],
+        "ref_tickets" : [ ],
+        "items" : [
+          {
+            "sku" : "sku-2",
+            "value" : 3
+          },
+          {
+            "sku" : "sku-1",
+            "value" : 1
+          }
+        ],
+        "weight" : 1.75,
+        "vol" : 1.75,
+        "loc" : "B000A844KN",
+        "create_time" : "2024-04-07 13:34:00",
+        "min_start_time" : "2024-04-08 00:00:00",
+        "max_end_time" : "2024-04-08 22:00:00",
+        "duration" : "PT5M",
+        "reassign_time" : "2024-06-03 23:36:00",
+        "cancel_time" : "2025-03-30 22:37:00",
+        "moved" : false
+      },
+      {
+        "id" : "ticket-240407-8-d",
+        "type" : "Delv",
+        "status" : "New",
+        "skills_required" : [
+          "Delv"
+        ],
+        "dep_tickets" : [ ],
+        "ref_tickets" : [
+          "ticket-240407-8-i"
+        ],
+        "items" : [
+          {
+            "sku" : "sku-4",
+            "value" : 2
+          }
+        ],
+        "weight" : 4.0,
+        "vol" : 4.0,
+        "loc" : "B000A7ZXNW",
+        "create_time" : "2024-04-07 16:51:00",
+        "min_start_time" : "2024-04-08 00:00:00",
+        "max_end_time" : "2024-04-08 22:00:00",
+        "duration" : "PT5M",
+        "reassign_time" : "2024-06-19 08:49:00",
+        "cancel_time" : "2024-05-24 09:28:00",
+        "moved" : false
+      },
+      {
+        "id" : "ticket-240407-8-i",
+        "type" : "Inst",
+        "status" : "New",
+        "skills_required" : [
+          "Inst"
+        ],
+        "dep_tickets" : [
+          "ticket-240407-8-d"
+        ],
+        "ref_tickets" : [ ],
+        "items" : [
+          {
+            "sku" : "sku-4",
+            "value" : 2
+          }
+        ],
+        "weight" : 4.0,
+        "vol" : 4.0,
+        "loc" : "B000A7ZXNW",
+        "create_time" : "2024-04-07 16:51:00",
+        "min_start_time" : "2024-04-08 00:00:00",
+        "max_end_time" : "2024-04-08 22:00:00",
+        "duration" : "PT5M",
+        "reassign_time" : "2024-06-19 08:49:00",
+        "cancel_time" : "2024-05-24 09:28:00",
+        "moved" : false
+      },
+      {
+        "id" : "ticket-240407-9-d",
+        "type" : "Delv",
+        "status" : "New",
+        "skills_required" : [
+          "Delv"
+        ],
+        "dep_tickets" : [ ],
+        "ref_tickets" : [
+          "ticket-240407-9-i"
+        ],
+        "items" : [
+          {
+            "sku" : "sku-4",
+            "value" : 1
+          }
+        ],
+        "weight" : 2.0,
+        "vol" : 2.0,
+        "loc" : "B000A85Z6V",
+        "create_time" : "2024-04-07 17:44:00",
+        "min_start_time" : "2024-04-08 09:00:00",
+        "max_end_time" : "2024-04-08 21:00:00",
+        "duration" : "PT5M",
+        "reassign_time" : "2024-04-27 15:45:00",
+        "cancel_time" : "2024-05-07 01:01:00",
+        "moved" : false
+      },
+      {
+        "id" : "ticket-240407-9-i",
+        "type" : "Inst",
+        "status" : "New",
+        "skills_required" : [
+          "Inst"
+        ],
+        "dep_tickets" : [
+          "ticket-240407-9-d"
+        ],
+        "ref_tickets" : [ ],
+        "items" : [
+          {
+            "sku" : "sku-4",
+            "value" : 1
+          }
+        ],
+        "weight" : 2.0,
+        "vol" : 2.0,
+        "loc" : "B000A85Z6V",
+        "create_time" : "2024-04-07 17:44:00",
+        "min_start_time" : "2024-04-08 09:00:00",
+        "max_end_time" : "2024-04-08 21:00:00",
+        "duration" : "PT5M",
+        "reassign_time" : "2024-04-27 15:45:00",
+        "cancel_time" : "2024-05-07 01:01:00",
+        "moved" : false
+      }
+    ],
+    "constraint_configuration" : {
+      "name" : "default",
+      "agent_capacity" : "1hard/0medium/0soft",
+      "service_finished_after_max_end_time" : "1hard/0medium/0soft",
+      "ref_ticket_after_dep_ticket" : "0hard/0medium/0soft",
+      "ref_ticket_same_agent_with_dep_ticket" : "0hard/0medium/0soft",
+      "balance_agent_loading" : "0hard/0medium/0soft",
+      "minimize_travel_time" : "0hard/0medium/1soft",
+      "minimize_travel_distance" : "0hard/0medium/0soft",
+      "minimize_agent_fixed_cost" : "0hard/0medium/20soft",
+      "minimize_ticket_changing" : "0hard/0medium/1000soft"
+    },
+    "cost_parameter" : {
+      "start_price" : 500.0,
+      "node_fee" : 20.0,
+      "max_overload_ratio" : 1.2,
+      "overload_fee" : 100.0,
+      "cross_region_threshold" : 100000.0,
+      "cross_region_fee" : 200.0,
+      "guaranteed_income" : 1000.0,
+      "time_restricted_traffic_charge" : 0.0,
+      "elec_price" : 0.0,
+      "gas92_price" : 0.0
+    },
+    "metrics" : {
+      "distance_total" : 0,
+      "duration_total" : 0,
+      "ton_total" : 0.0,
+      "cost_total" : 0.0,
+      "cost_per_ton_per_km" : 0.0
+    }
+  },
+  "constraint_configuration" : {
+    "name" : "default",
+    "agent_capacity" : "1hard/0medium/0soft",
+    "service_finished_after_max_end_time" : "1hard/0medium/0soft",
+    "ref_ticket_after_dep_ticket" : "0hard/0medium/0soft",
+    "ref_ticket_same_agent_with_dep_ticket" : "0hard/0medium/0soft",
+    "balance_agent_loading" : "0hard/0medium/0soft",
+    "minimize_travel_time" : "0hard/0medium/1soft",
+    "minimize_travel_distance" : "0hard/0medium/0soft",
+    "minimize_agent_fixed_cost" : "0hard/0medium/20soft",
+    "minimize_ticket_changing" : "0hard/0medium/1000soft"
+  },
+  "cost_parameter" : {
+    "start_price" : 500.0,
+    "node_fee" : 20.0,
+    "max_overload_ratio" : 1.2,
+    "overload_fee" : 100.0,
+    "cross_region_threshold" : 100000.0,
+    "cross_region_fee" : 200.0,
+    "guaranteed_income" : 1000.0,
+    "time_restricted_traffic_charge" : 0.0,
+    "elec_price" : 0.0,
+    "gas92_price" : 0.0
+  },
+  "create_time" : "2024-04-07 05:19:19",
+  "update_time" : "2024-04-07 05:19:19",
+  "matrix_build" : false,
+  "poi_build" : false
+}

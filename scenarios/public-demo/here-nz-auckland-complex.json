@@ -1,0 +1,3042 @@
+{
+  "scenario_name": "Auckland multi-depot field-service planning demo",
+  "scenario": {
+    "id": "a04a5bd2-85a6-5e71-a164-09dd91acc4cb",
+    "name": "Auckland multi-depot field-service planning demo",
+    "desc": "A HERE/WGS84 Auckland scenario with 4 real depot addresses, 12 heterogeneous engineers and 44 skill-, qualification-, dependency-, capacity- and time-window-constrained jobs across the North Shore, CBD/west, east and south. Costs are in NZD: elec_price is NZ$0.24/kWh, gas_92_price uses the engine's fixed field name but is calibrated to NZ Regular 91 at NZ$2.94/L, and engineer daily fixed costs use the NZ$29-48/hour trade range plus employer and vehicle overhead.",
+    "map_provider": "HERE",
+    "planning_date": "2026-08-18",
+    "start_time": "2026-08-18 07:00:00",
+    "end_time": "2026-08-18 20:00:00",
+    "plan": {
+      "skus": [
+        {
+          "id": "sku-bms-sensor-kit",
+          "name": "BMS temperature/pressure sensor kit",
+          "weight": 1.2,
+          "vol": 0.008
+        },
+        {
+          "id": "sku-control-board",
+          "name": "HVAC/refrigeration control board",
+          "weight": 1.8,
+          "vol": 0.012
+        },
+        {
+          "id": "sku-fan-motor",
+          "name": "Commercial AHU fan motor",
+          "weight": 18.0,
+          "vol": 0.09
+        },
+        {
+          "id": "sku-filter-kit",
+          "name": "Commercial AHU filter kit",
+          "weight": 8.0,
+          "vol": 0.12
+        },
+        {
+          "id": "sku-scroll-compressor",
+          "name": "Commercial scroll compressor",
+          "weight": 65.0,
+          "vol": 0.18
+        },
+        {
+          "id": "sku-refrigerant-cylinder",
+          "name": "Refrigerant recovery/supply cylinder",
+          "weight": 14.0,
+          "vol": 0.045
+        },
+        {
+          "id": "sku-gas-safety-valve",
+          "name": "Commercial kitchen gas safety valve",
+          "weight": 4.5,
+          "vol": 0.02
+        },
+        {
+          "id": "sku-access-controller",
+          "name": "Four-door access controller",
+          "weight": 2.5,
+          "vol": 0.018
+        },
+        {
+          "id": "sku-cctv-camera",
+          "name": "PoE CCTV camera",
+          "weight": 1.2,
+          "vol": 0.01
+        },
+        {
+          "id": "sku-network-switch",
+          "name": "Industrial PoE network switch",
+          "weight": 4.0,
+          "vol": 0.025
+        },
+        {
+          "id": "sku-fire-loop-module",
+          "name": "Addressable fire-loop interface module",
+          "weight": 0.6,
+          "vol": 0.004
+        },
+        {
+          "id": "sku-electrical-service-kit",
+          "name": "Electrical protection and termination kit",
+          "weight": 3.0,
+          "vol": 0.018
+        },
+        {
+          "id": "sku-mounting-kit",
+          "name": "Mechanical mounting and consumables kit",
+          "weight": 6.0,
+          "vol": 0.035
+        }
+      ],
+      "pois": [
+        {
+          "id": "poi-depot-north",
+          "name": "125 Wairau Rd, Wairau Valley, Auckland 0627, New Zealand",
+          "address": "125 Wairau Rd, Wairau Valley, Auckland 0627, New Zealand",
+          "cityname": "Auckland",
+          "location": "174.74238,-36.77277",
+          "loc": {
+            "lat": 174.74238,
+            "lon": -36.77277
+          },
+          "entr_location": "174.74163,-36.77309",
+          "entr_loc": {
+            "lat": 174.74163,
+            "lon": -36.77309
+          },
+          "pname": "Auckland",
+          "adname": "Wairau Valley",
+          "type": "HERE_GEOCODE"
+        },
+        {
+          "id": "poi-depot-central",
+          "name": "14 Penrose Rd, Penrose, Auckland 1061, New Zealand",
+          "address": "14 Penrose Rd, Penrose, Auckland 1061, New Zealand",
+          "cityname": "Auckland",
+          "location": "174.81932,-36.90962",
+          "loc": {
+            "lat": 174.81932,
+            "lon": -36.90962
+          },
+          "entr_location": "174.81963,-36.90986",
+          "entr_loc": {
+            "lat": 174.81963,
+            "lon": -36.90986
+          },
+          "pname": "Auckland",
+          "adname": "Penrose",
+          "type": "HERE_GEOCODE"
+        },
+        {
+          "id": "poi-depot-east",
+          "name": "74 Harris Rd, East Tamaki, Auckland 2013, New Zealand",
+          "address": "74 Harris Rd, East Tamaki, Auckland 2013, New Zealand",
+          "cityname": "Auckland",
+          "location": "174.89489,-36.93666",
+          "loc": {
+            "lat": 174.89489,
+            "lon": -36.93666
+          },
+          "entr_location": "174.89479,-36.93700",
+          "entr_loc": {
+            "lat": 174.89479,
+            "lon": -36.937
+          },
+          "pname": "Auckland",
+          "adname": "East Tamaki",
+          "type": "HERE_GEOCODE"
+        },
+        {
+          "id": "poi-depot-south",
+          "name": "7 Ha Cres, Wiri, Auckland 2104, New Zealand",
+          "address": "7 Ha Cres, Wiri, Auckland 2104, New Zealand",
+          "cityname": "Auckland",
+          "location": "174.85605,-37.01034",
+          "loc": {
+            "lat": 174.85605,
+            "lon": -37.01034
+          },
+          "entr_location": "174.85574,-37.01044",
+          "entr_loc": {
+            "lat": 174.85574,
+            "lon": -37.01044
+          },
+          "pname": "Auckland",
+          "adname": "Wiri",
+          "type": "HERE_GEOCODE"
+        },
+        {
+          "id": "poi-n01",
+          "name": "124 Shakespeare Rd, Takapuna, Auckland 0620, New Zealand",
+          "address": "124 Shakespeare Rd, Takapuna, Auckland 0620, New Zealand",
+          "cityname": "Auckland",
+          "location": "174.75743,-36.78135",
+          "loc": {
+            "lat": 174.75743,
+            "lon": -36.78135
+          },
+          "entr_location": "174.75547,-36.78002",
+          "entr_loc": {
+            "lat": 174.75547,
+            "lon": -36.78002
+          },
+          "pname": "Auckland",
+          "adname": "Takapuna",
+          "type": "HERE_GEOCODE"
+        },
+        {
+          "id": "poi-n02",
+          "name": "90 Akoranga Dr, Northcote, Auckland 0627, New Zealand",
+          "address": "90 Akoranga Dr, Northcote, Auckland 0627, New Zealand",
+          "cityname": "Auckland",
+          "location": "174.75579,-36.79741",
+          "loc": {
+            "lat": 174.75579,
+            "lon": -36.79741
+          },
+          "entr_location": "174.75577,-36.79742",
+          "entr_loc": {
+            "lat": 174.75577,
+            "lon": -36.79742
+          },
+          "pname": "Auckland",
+          "adname": "Northcote",
+          "type": "HERE_GEOCODE"
+        },
+        {
+          "id": "poi-n03",
+          "name": "52-56 Anzac St, Takapuna, Auckland 0622, New Zealand",
+          "address": "52-56 Anzac St, Takapuna, Auckland 0622, New Zealand",
+          "cityname": "Auckland",
+          "location": "174.76927,-36.78803",
+          "loc": {
+            "lat": 174.76927,
+            "lon": -36.78803
+          },
+          "entr_location": "174.76945,-36.78760",
+          "entr_loc": {
+            "lat": 174.76945,
+            "lon": -36.7876
+          },
+          "pname": "Auckland",
+          "adname": "Takapuna",
+          "type": "HERE_GEOCODE"
+        },
+        {
+          "id": "poi-n04",
+          "name": "385 Glenfield Rd, Glenfield, Auckland 0629, New Zealand",
+          "address": "385 Glenfield Rd, Glenfield, Auckland 0629, New Zealand",
+          "cityname": "Auckland",
+          "location": "174.72204,-36.78196",
+          "loc": {
+            "lat": 174.72204,
+            "lon": -36.78196
+          },
+          "entr_location": "174.72145,-36.78191",
+          "entr_loc": {
+            "lat": 174.72145,
+            "lon": -36.78191
+          },
+          "pname": "Auckland",
+          "adname": "Glenfield",
+          "type": "HERE_GEOCODE"
+        },
+        {
+          "id": "poi-n05",
+          "name": "204 Hinemoa St, Birkenhead, Auckland 0626, New Zealand",
+          "address": "204 Hinemoa St, Birkenhead, Auckland 0626, New Zealand",
+          "cityname": "Auckland",
+          "location": "174.72684,-36.81285",
+          "loc": {
+            "lat": 174.72684,
+            "lon": -36.81285
+          },
+          "entr_location": "174.72696,-36.81272",
+          "entr_loc": {
+            "lat": 174.72696,
+            "lon": -36.81272
+          },
+          "pname": "Auckland",
+          "adname": "Birkenhead",
+          "type": "HERE_GEOCODE"
+        },
+        {
+          "id": "poi-n06",
+          "name": "17 Silverfield, Wairau Valley, Auckland 0627, New Zealand",
+          "address": "17 Silverfield, Wairau Valley, Auckland 0627, New Zealand",
+          "cityname": "Auckland",
+          "location": "174.74442,-36.78194",
+          "loc": {
+            "lat": 174.74442,
+            "lon": -36.78194
+          },
+          "entr_location": "174.74420,-36.78199",
+          "entr_loc": {
+            "lat": 174.7442,
+            "lon": -36.78199
+          },
+          "pname": "Auckland",
+          "adname": "Wairau Valley",
+          "type": "HERE_GEOCODE"
+        },
+        {
+          "id": "poi-n07",
+          "name": "219 Don McKinnon Dr, Albany, Auckland 0632, New Zealand",
+          "address": "219 Don McKinnon Dr, Albany, Auckland 0632, New Zealand",
+          "cityname": "Auckland",
+          "location": "174.70561,-36.72681",
+          "loc": {
+            "lat": 174.70561,
+            "lon": -36.72681
+          },
+          "entr_location": "174.70529,-36.72666",
+          "entr_loc": {
+            "lat": 174.70529,
+            "lon": -36.72666
+          },
+          "pname": "Auckland",
+          "adname": "Albany",
+          "type": "HERE_GEOCODE"
+        },
+        {
+          "id": "poi-n08",
+          "name": "24 Milford Rd, Milford, Auckland 0620, New Zealand",
+          "address": "24 Milford Rd, Milford, Auckland 0620, New Zealand",
+          "cityname": "Auckland",
+          "location": "174.76567,-36.77164",
+          "loc": {
+            "lat": 174.76567,
+            "lon": -36.77164
+          },
+          "entr_location": "174.76652,-36.77167",
+          "entr_loc": {
+            "lat": 174.76652,
+            "lon": -36.77167
+          },
+          "pname": "Auckland",
+          "adname": "Milford",
+          "type": "HERE_GEOCODE"
+        },
+        {
+          "id": "poi-c01",
+          "name": "2 Park Rd, Grafton, Auckland 1023, New Zealand",
+          "address": "2 Park Rd, Grafton, Auckland 1023, New Zealand",
+          "cityname": "Auckland",
+          "location": "174.76948,-36.86088",
+          "loc": {
+            "lat": 174.76948,
+            "lon": -36.86088
+          },
+          "entr_location": "174.76931,-36.86101",
+          "entr_loc": {
+            "lat": 174.76931,
+            "lon": -36.86101
+          },
+          "pname": "Auckland",
+          "adname": "Grafton",
+          "type": "HERE_GEOCODE"
+        },
+        {
+          "id": "poi-c02",
+          "name": "3 Maunsell Rd, Parnell, Auckland 1052, New Zealand",
+          "address": "3 Maunsell Rd, Parnell, Auckland 1052, New Zealand",
+          "cityname": "Auckland",
+          "location": "174.78082,-36.86238",
+          "loc": {
+            "lat": 174.78082,
+            "lon": -36.86238
+          },
+          "entr_location": "174.78070,-36.86248",
+          "entr_loc": {
+            "lat": 174.7807,
+            "lon": -36.86248
+          },
+          "pname": "Auckland",
+          "adname": "Parnell",
+          "type": "HERE_GEOCODE"
+        },
+        {
+          "id": "poi-c03",
+          "name": "83 Symonds St, Grafton, Auckland 1010, New Zealand",
+          "address": "83 Symonds St, Grafton, Auckland 1010, New Zealand",
+          "cityname": "Auckland",
+          "location": "174.76358,-36.85741",
+          "loc": {
+            "lat": 174.76358,
+            "lon": -36.85741
+          },
+          "entr_location": "174.76366,-36.85778",
+          "entr_loc": {
+            "lat": 174.76366,
+            "lon": -36.85778
+          },
+          "pname": "Auckland",
+          "adname": "Grafton",
+          "type": "HERE_GEOCODE"
+        },
+        {
+          "id": "poi-c04",
+          "name": "7 Queen St, Auckland Central, Auckland 1010, New Zealand",
+          "address": "7 Queen St, Auckland Central, Auckland 1010, New Zealand",
+          "cityname": "Auckland",
+          "location": "174.76666,-36.84393",
+          "loc": {
+            "lat": 174.76666,
+            "lon": -36.84393
+          },
+          "entr_location": "174.76696,-36.84401",
+          "entr_loc": {
+            "lat": 174.76696,
+            "lon": -36.84401
+          },
+          "pname": "Auckland",
+          "adname": "Auckland Central",
+          "type": "HERE_GEOCODE"
+        },
+        {
+          "id": "poi-c05",
+          "name": "99 Motions Rd, Western Springs, Auckland 1022, New Zealand",
+          "address": "99 Motions Rd, Western Springs, Auckland 1022, New Zealand",
+          "cityname": "Auckland",
+          "location": "174.71887,-36.86250",
+          "loc": {
+            "lat": 174.71887,
+            "lon": -36.8625
+          },
+          "entr_location": "174.71880,-36.86251",
+          "entr_loc": {
+            "lat": 174.7188,
+            "lon": -36.86251
+          },
+          "pname": "Auckland",
+          "adname": "Western Springs",
+          "type": "HERE_GEOCODE"
+        },
+        {
+          "id": "poi-c06",
+          "name": "3058 Great North Rd, New Lynn, Auckland 0600, New Zealand",
+          "address": "3058 Great North Rd, New Lynn, Auckland 0600, New Zealand",
+          "cityname": "Auckland",
+          "location": "174.68502,-36.90657",
+          "loc": {
+            "lat": 174.68502,
+            "lon": -36.90657
+          },
+          "entr_location": "174.68507,-36.90654",
+          "entr_loc": {
+            "lat": 174.68507,
+            "lon": -36.90654
+          },
+          "pname": "Auckland",
+          "adname": "New Lynn",
+          "type": "HERE_GEOCODE"
+        },
+        {
+          "id": "poi-c07",
+          "name": "55 Lincoln Rd, Henderson, Auckland 0610, New Zealand",
+          "address": "55 Lincoln Rd, Henderson, Auckland 0610, New Zealand",
+          "cityname": "Auckland",
+          "location": "174.62866,-36.86952",
+          "loc": {
+            "lat": 174.62866,
+            "lon": -36.86952
+          },
+          "entr_location": "174.62835,-36.86949",
+          "entr_loc": {
+            "lat": 174.62835,
+            "lon": -36.86949
+          },
+          "pname": "Auckland",
+          "adname": "Henderson",
+          "type": "HERE_GEOCODE"
+        },
+        {
+          "id": "poi-c08",
+          "name": "500 South Titirangi Rd, Titirangi, Auckland 0604, New Zealand",
+          "address": "500 South Titirangi Rd, Titirangi, Auckland 0604, New Zealand",
+          "cityname": "Auckland",
+          "location": "174.65582,-36.93905",
+          "loc": {
+            "lat": 174.65582,
+            "lon": -36.93905
+          },
+          "entr_location": "174.65588,-36.93893",
+          "entr_loc": {
+            "lat": 174.65588,
+            "lon": -36.93893
+          },
+          "pname": "Auckland",
+          "adname": "Titirangi",
+          "type": "HERE_GEOCODE"
+        },
+        {
+          "id": "poi-e01",
+          "name": "286 Mount Wellington Hwy, Mount Wellington, Auckland 1060, New Zealand",
+          "address": "286 Mount Wellington Hwy, Mount Wellington, Auckland 1060, New Zealand",
+          "cityname": "Auckland",
+          "location": "174.83925,-36.91453",
+          "loc": {
+            "lat": 174.83925,
+            "lon": -36.91453
+          },
+          "entr_location": "174.83891,-36.91457",
+          "entr_loc": {
+            "lat": 174.83891,
+            "lon": -36.91457
+          },
+          "pname": "Auckland",
+          "adname": "Mount Wellington",
+          "type": "HERE_GEOCODE"
+        },
+        {
+          "id": "poi-e02",
+          "name": "588 Chapel Rd, East Tamaki, Auckland 2016, New Zealand",
+          "address": "588 Chapel Rd, East Tamaki, Auckland 2016, New Zealand",
+          "cityname": "Auckland",
+          "location": "174.91346,-36.93348",
+          "loc": {
+            "lat": 174.91346,
+            "lon": -36.93348
+          },
+          "entr_location": "174.91403,-36.93352",
+          "entr_loc": {
+            "lat": 174.91403,
+            "lon": -36.93352
+          },
+          "pname": "Auckland",
+          "adname": "East Tamaki",
+          "type": "HERE_GEOCODE"
+        },
+        {
+          "id": "poi-e03",
+          "name": "Howick Library, 25 Uxbridge Rd, Mellons Bay, Auckland 2014, New Zealand",
+          "address": "Howick Library, 25 Uxbridge Rd, Mellons Bay, Auckland 2014, New Zealand",
+          "cityname": "Auckland",
+          "location": "174.93331,-36.89434",
+          "loc": {
+            "lat": 174.93331,
+            "lon": -36.89434
+          },
+          "entr_location": "174.93329,-36.89421",
+          "entr_loc": {
+            "lat": 174.93329,
+            "lon": -36.89421
+          },
+          "pname": "Auckland",
+          "adname": "25 Uxbridge Rd",
+          "type": "HERE_GEOCODE"
+        },
+        {
+          "id": "poi-e04",
+          "name": "10 Aylesbury St, Pakuranga, Auckland 2010, New Zealand",
+          "address": "10 Aylesbury St, Pakuranga, Auckland 2010, New Zealand",
+          "cityname": "Auckland",
+          "location": "174.87126,-36.91331",
+          "loc": {
+            "lat": 174.87126,
+            "lon": -36.91331
+          },
+          "entr_location": "174.87132,-36.91336",
+          "entr_loc": {
+            "lat": 174.87132,
+            "lon": -36.91336
+          },
+          "pname": "Auckland",
+          "adname": "Pakuranga",
+          "type": "HERE_GEOCODE"
+        },
+        {
+          "id": "poi-e05",
+          "name": "50 Argo Dr, Half Moon Bay, Auckland 2012, New Zealand",
+          "address": "50 Argo Dr, Half Moon Bay, Auckland 2012, New Zealand",
+          "cityname": "Auckland",
+          "location": "174.90264,-36.88081",
+          "loc": {
+            "lat": 174.90264,
+            "lon": -36.88081
+          },
+          "entr_location": "174.90279,-36.88082",
+          "entr_loc": {
+            "lat": 174.90279,
+            "lon": -36.88082
+          },
+          "pname": "Auckland",
+          "adname": "Half Moon Bay",
+          "type": "HERE_GEOCODE"
+        },
+        {
+          "id": "poi-e06",
+          "name": "261 Morrin Rd, St Johns, Auckland 1072, New Zealand",
+          "address": "261 Morrin Rd, St Johns, Auckland 1072, New Zealand",
+          "cityname": "Auckland",
+          "location": "174.85100,-36.88238",
+          "loc": {
+            "lat": 174.851,
+            "lon": -36.88238
+          },
+          "entr_location": "174.85064,-36.88217",
+          "entr_loc": {
+            "lat": 174.85064,
+            "lon": -36.88217
+          },
+          "pname": "Auckland",
+          "adname": "St Johns",
+          "type": "HERE_GEOCODE"
+        },
+        {
+          "id": "poi-e07",
+          "name": "507 Pakuranga Rd, Bucklands Beach, Auckland 2010, New Zealand",
+          "address": "507 Pakuranga Rd, Bucklands Beach, Auckland 2010, New Zealand",
+          "cityname": "Auckland",
+          "location": "174.90815,-36.89935",
+          "loc": {
+            "lat": 174.90815,
+            "lon": -36.89935
+          },
+          "entr_location": "174.90828,-36.89899",
+          "entr_loc": {
+            "lat": 174.90828,
+            "lon": -36.89899
+          },
+          "pname": "Auckland",
+          "adname": "Bucklands Beach",
+          "type": "HERE_GEOCODE"
+        },
+        {
+          "id": "poi-e08",
+          "name": "98 Line Rd, Glen Innes, Auckland 1072, New Zealand",
+          "address": "98 Line Rd, Glen Innes, Auckland 1072, New Zealand",
+          "cityname": "Auckland",
+          "location": "174.85694,-36.87880",
+          "loc": {
+            "lat": 174.85694,
+            "lon": -36.8788
+          },
+          "entr_location": "174.85696,-36.87871",
+          "entr_loc": {
+            "lat": 174.85696,
+            "lon": -36.87871
+          },
+          "pname": "Auckland",
+          "adname": "Glen Innes",
+          "type": "HERE_GEOCODE"
+        },
+        {
+          "id": "poi-s01",
+          "name": "100 Hospital Rd, Middlemore Hospital, Auckland 2025, New Zealand",
+          "address": "100 Hospital Rd, Middlemore Hospital, Auckland 2025, New Zealand",
+          "cityname": "Auckland",
+          "location": "174.84034,-36.96398",
+          "loc": {
+            "lat": 174.84034,
+            "lon": -36.96398
+          },
+          "entr_location": "174.84012,-36.96403",
+          "entr_loc": {
+            "lat": 174.84012,
+            "lon": -36.96403
+          },
+          "pname": "Auckland",
+          "adname": "Middlemore Hospital",
+          "type": "HERE_GEOCODE"
+        },
+        {
+          "id": "poi-s02",
+          "name": "901 Great South Rd, Wiri, Auckland 2104, New Zealand",
+          "address": "901 Great South Rd, Wiri, Auckland 2104, New Zealand",
+          "cityname": "Auckland",
+          "location": "174.88604,-37.00652",
+          "loc": {
+            "lat": 174.88604,
+            "lon": -37.00652
+          },
+          "entr_location": "174.88959,-37.00614",
+          "entr_loc": {
+            "lat": 174.88959,
+            "lon": -37.00614
+          },
+          "pname": "Auckland",
+          "adname": "Wiri",
+          "type": "HERE_GEOCODE"
+        },
+        {
+          "id": "poi-s03",
+          "name": "1 Leyton Way, Manukau, Auckland 2104, New Zealand",
+          "address": "1 Leyton Way, Manukau, Auckland 2104, New Zealand",
+          "cityname": "Auckland",
+          "location": "174.88061,-36.99188",
+          "loc": {
+            "lat": 174.88061,
+            "lon": -36.99188
+          },
+          "entr_location": "174.88240,-36.99107",
+          "entr_loc": {
+            "lat": 174.8824,
+            "lon": -36.99107
+          },
+          "pname": "Auckland",
+          "adname": "Manukau",
+          "type": "HERE_GEOCODE"
+        },
+        {
+          "id": "poi-s04",
+          "name": "58 Manukau Station Rd, Manukau, Auckland 2104, New Zealand",
+          "address": "58 Manukau Station Rd, Manukau, Auckland 2104, New Zealand",
+          "cityname": "Auckland",
+          "location": "174.87600,-36.99534",
+          "loc": {
+            "lat": 174.876,
+            "lon": -36.99534
+          },
+          "entr_location": "174.87595,-36.99505",
+          "entr_loc": {
+            "lat": 174.87595,
+            "lon": -36.99505
+          },
+          "pname": "Auckland",
+          "adname": "Manukau",
+          "type": "HERE_GEOCODE"
+        },
+        {
+          "id": "poi-s05",
+          "name": "770 Great South Rd, Wiri, Auckland 2104, New Zealand",
+          "address": "770 Great South Rd, Wiri, Auckland 2104, New Zealand",
+          "cityname": "Auckland",
+          "location": "174.88724,-36.99880",
+          "loc": {
+            "lat": 174.88724,
+            "lon": -36.9988
+          },
+          "entr_location": "174.88697,-36.99882",
+          "entr_loc": {
+            "lat": 174.88697,
+            "lon": -36.99882
+          },
+          "pname": "Auckland",
+          "adname": "Wiri",
+          "type": "HERE_GEOCODE"
+        },
+        {
+          "id": "poi-s06",
+          "name": "4 Leonard Isitt Dr, Auckland Airport, Auckland 2022, New Zealand",
+          "address": "4 Leonard Isitt Dr, Auckland Airport, Auckland 2022, New Zealand",
+          "cityname": "Auckland",
+          "location": "174.78923,-36.99910",
+          "loc": {
+            "lat": 174.78923,
+            "lon": -36.9991
+          },
+          "entr_location": "174.78943,-36.99905",
+          "entr_loc": {
+            "lat": 174.78943,
+            "lon": -36.99905
+          },
+          "pname": "Auckland",
+          "adname": "Auckland Airport",
+          "type": "HERE_GEOCODE"
+        },
+        {
+          "id": "poi-s07",
+          "name": "12 Tom Pearce Dr, Auckland Airport, Auckland 2022, New Zealand",
+          "address": "12 Tom Pearce Dr, Auckland Airport, Auckland 2022, New Zealand",
+          "cityname": "Auckland",
+          "location": "174.79502,-36.99980",
+          "loc": {
+            "lat": 174.79502,
+            "lon": -36.9998
+          },
+          "entr_location": "174.79517,-37.00015",
+          "entr_loc": {
+            "lat": 174.79517,
+            "lon": -37.00015
+          },
+          "pname": "Auckland",
+          "adname": "Auckland Airport",
+          "type": "HERE_GEOCODE"
+        },
+        {
+          "id": "poi-s08",
+          "name": "7 Hill Rd, Manurewa, Auckland 2102, New Zealand",
+          "address": "7 Hill Rd, Manurewa, Auckland 2102, New Zealand",
+          "cityname": "Auckland",
+          "location": "174.89734,-37.02088",
+          "loc": {
+            "lat": 174.89734,
+            "lon": -37.02088
+          },
+          "entr_location": "174.89725,-37.02101",
+          "entr_loc": {
+            "lat": 174.89725,
+            "lon": -37.02101
+          },
+          "pname": "Auckland",
+          "adname": "Manurewa",
+          "type": "HERE_GEOCODE"
+        }
+      ],
+      "depos": [
+        {
+          "id": "depo-north",
+          "name": "125 Wairau Rd, Wairau Valley, Auckland 0627, New Zealand",
+          "loc": "poi-depot-north"
+        },
+        {
+          "id": "depo-central",
+          "name": "14 Penrose Rd, Penrose, Auckland 1061, New Zealand",
+          "loc": "poi-depot-central"
+        },
+        {
+          "id": "depo-east",
+          "name": "74 Harris Rd, East Tamaki, Auckland 2013, New Zealand",
+          "loc": "poi-depot-east"
+        },
+        {
+          "id": "depo-south",
+          "name": "7 Ha Cres, Wiri, Auckland 2104, New Zealand",
+          "loc": "poi-depot-south"
+        }
+      ],
+      "agents": [
+        {
+          "id": "agent-north-hvac",
+          "depo_id": "depo-north",
+          "name": "Mia Thompson",
+          "start_loc": "poi-depot-north",
+          "skills": [
+            "refrigeration_service",
+            "hvac_mechanical",
+            "electrical_service",
+            "bms_controls",
+            "working_at_height",
+            "parts_logistics",
+            "heavy_lift"
+          ],
+          "qualification_levels": {
+            "refrigeration_service": 3.0,
+            "hvac_mechanical": 3.0,
+            "electrical_service": 2.0,
+            "bms_controls": 3.0,
+            "working_at_height": 2.0,
+            "heavy_lift": 2.0
+          },
+          "vehicle_type": "CAR",
+          "fuel_type": "ELEC",
+          "fuel_consumption": 22.0,
+          "rented": false,
+          "fix_cost_daily": 535.0,
+          "weight": 420.0,
+          "vol": 3.8,
+          "max_ticket_num": 5,
+          "shift_start_time": "2026-08-18 07:00:00",
+          "shift_off_time": "2026-08-18 20:00:00",
+          "tickets": [
+            "ticket-north-01-chiller-bms-diagnostic",
+            "ticket-north-02-ahu-fan-service",
+            "ticket-north-11-switchboard-thermal-inspection"
+          ],
+          "date": "2026-08-18",
+          "restrict": false,
+          "virtual": false
+        },
+        {
+          "id": "agent-north-systems",
+          "depo_id": "depo-north",
+          "name": "Arjun Patel",
+          "start_loc": "poi-depot-north",
+          "skills": [
+            "electrical_service",
+            "bms_controls",
+            "fire_alarm",
+            "access_control",
+            "cctv",
+            "structured_cabling",
+            "working_at_height"
+          ],
+          "qualification_levels": {
+            "electrical_service": 3.0,
+            "bms_controls": 2.0,
+            "fire_alarm": 3.0,
+            "access_control": 3.0,
+            "cctv": 3.0,
+            "structured_cabling": 2.0,
+            "working_at_height": 2.0
+          },
+          "vehicle_type": "CAR",
+          "fuel_type": "GAS_92",
+          "fuel_consumption": 9.4,
+          "rented": false,
+          "fix_cost_daily": 505.0,
+          "weight": 350.0,
+          "vol": 3.2,
+          "max_ticket_num": 5,
+          "shift_start_time": "2026-08-18 07:00:00",
+          "shift_off_time": "2026-08-18 20:00:00",
+          "tickets": [
+            "ticket-north-03-cctv-network-repair",
+            "ticket-north-04-access-control-upgrade",
+            "ticket-north-05-fire-alarm-loop-test",
+            "ticket-north-09-bms-sensor-calibration"
+          ],
+          "date": "2026-08-18",
+          "restrict": false,
+          "virtual": false
+        },
+        {
+          "id": "agent-north-cold",
+          "depo_id": "depo-north",
+          "name": "Wiremu Rangi",
+          "start_loc": "poi-depot-north",
+          "skills": [
+            "refrigeration_service",
+            "hvac_mechanical",
+            "cold_room",
+            "commercial_kitchen",
+            "gas_fitting",
+            "electrical_service",
+            "parts_logistics",
+            "heavy_lift",
+            "working_at_height"
+          ],
+          "qualification_levels": {
+            "refrigeration_service": 3.0,
+            "hvac_mechanical": 2.0,
+            "cold_room": 3.0,
+            "commercial_kitchen": 3.0,
+            "gas_fitting": 3.0,
+            "electrical_service": 2.0,
+            "heavy_lift": 3.0,
+            "working_at_height": 2.0
+          },
+          "vehicle_type": "TRUCK",
+          "fuel_type": "GAS_92",
+          "fuel_consumption": 13.2,
+          "rented": false,
+          "fix_cost_daily": 575.0,
+          "weight": 1100.0,
+          "vol": 7.5,
+          "max_ticket_num": 5,
+          "shift_start_time": "2026-08-18 07:00:00",
+          "shift_off_time": "2026-08-18 20:00:00",
+          "tickets": [
+            "ticket-north-06-compressor-parts-delivery",
+            "ticket-north-07-cold-room-compressor-replacement",
+            "ticket-north-08-kitchen-gas-interlock-service",
+            "ticket-north-10-rooftop-hvac-service"
+          ],
+          "date": "2026-08-18",
+          "restrict": false,
+          "virtual": false
+        },
+        {
+          "id": "agent-central-hvac",
+          "depo_id": "depo-central",
+          "name": "Sofia Martinez",
+          "start_loc": "poi-depot-central",
+          "skills": [
+            "refrigeration_service",
+            "hvac_mechanical",
+            "electrical_service",
+            "bms_controls",
+            "working_at_height",
+            "parts_logistics",
+            "heavy_lift"
+          ],
+          "qualification_levels": {
+            "refrigeration_service": 3.0,
+            "hvac_mechanical": 3.0,
+            "electrical_service": 2.0,
+            "bms_controls": 3.0,
+            "working_at_height": 2.0,
+            "heavy_lift": 2.0
+          },
+          "vehicle_type": "CAR",
+          "fuel_type": "ELEC",
+          "fuel_consumption": 22.0,
+          "rented": false,
+          "fix_cost_daily": 535.0,
+          "weight": 420.0,
+          "vol": 3.8,
+          "max_ticket_num": 5,
+          "shift_start_time": "2026-08-18 07:00:00",
+          "shift_off_time": "2026-08-18 20:00:00",
+          "tickets": [
+            "ticket-central-01-chiller-bms-diagnostic",
+            "ticket-central-02-ahu-fan-service",
+            "ticket-central-11-switchboard-thermal-inspection"
+          ],
+          "date": "2026-08-18",
+          "restrict": false,
+          "virtual": false
+        },
+        {
+          "id": "agent-central-systems",
+          "depo_id": "depo-central",
+          "name": "Ethan Chen",
+          "start_loc": "poi-depot-central",
+          "skills": [
+            "electrical_service",
+            "bms_controls",
+            "fire_alarm",
+            "access_control",
+            "cctv",
+            "structured_cabling",
+            "working_at_height"
+          ],
+          "qualification_levels": {
+            "electrical_service": 3.0,
+            "bms_controls": 2.0,
+            "fire_alarm": 3.0,
+            "access_control": 3.0,
+            "cctv": 3.0,
+            "structured_cabling": 2.0,
+            "working_at_height": 2.0
+          },
+          "vehicle_type": "CAR",
+          "fuel_type": "GAS_92",
+          "fuel_consumption": 9.4,
+          "rented": false,
+          "fix_cost_daily": 505.0,
+          "weight": 350.0,
+          "vol": 3.2,
+          "max_ticket_num": 5,
+          "shift_start_time": "2026-08-18 07:00:00",
+          "shift_off_time": "2026-08-18 20:00:00",
+          "tickets": [
+            "ticket-central-03-cctv-network-repair",
+            "ticket-central-04-access-control-upgrade",
+            "ticket-central-05-fire-alarm-loop-test",
+            "ticket-central-09-bms-sensor-calibration"
+          ],
+          "date": "2026-08-18",
+          "restrict": false,
+          "virtual": false
+        },
+        {
+          "id": "agent-central-cold",
+          "depo_id": "depo-central",
+          "name": "Aroha Ngata",
+          "start_loc": "poi-depot-central",
+          "skills": [
+            "refrigeration_service",
+            "hvac_mechanical",
+            "cold_room",
+            "commercial_kitchen",
+            "gas_fitting",
+            "electrical_service",
+            "parts_logistics",
+            "heavy_lift",
+            "working_at_height"
+          ],
+          "qualification_levels": {
+            "refrigeration_service": 3.0,
+            "hvac_mechanical": 2.0,
+            "cold_room": 3.0,
+            "commercial_kitchen": 3.0,
+            "gas_fitting": 3.0,
+            "electrical_service": 2.0,
+            "heavy_lift": 3.0,
+            "working_at_height": 2.0
+          },
+          "vehicle_type": "TRUCK",
+          "fuel_type": "GAS_92",
+          "fuel_consumption": 13.2,
+          "rented": false,
+          "fix_cost_daily": 575.0,
+          "weight": 1100.0,
+          "vol": 7.5,
+          "max_ticket_num": 5,
+          "shift_start_time": "2026-08-18 07:00:00",
+          "shift_off_time": "2026-08-18 20:00:00",
+          "tickets": [
+            "ticket-central-06-compressor-parts-delivery",
+            "ticket-central-07-cold-room-compressor-replacement",
+            "ticket-central-08-kitchen-gas-interlock-service",
+            "ticket-central-10-rooftop-hvac-service"
+          ],
+          "date": "2026-08-18",
+          "restrict": false,
+          "virtual": false
+        },
+        {
+          "id": "agent-east-hvac",
+          "depo_id": "depo-east",
+          "name": "Noah Williams",
+          "start_loc": "poi-depot-east",
+          "skills": [
+            "refrigeration_service",
+            "hvac_mechanical",
+            "electrical_service",
+            "bms_controls",
+            "working_at_height",
+            "parts_logistics",
+            "heavy_lift"
+          ],
+          "qualification_levels": {
+            "refrigeration_service": 3.0,
+            "hvac_mechanical": 3.0,
+            "electrical_service": 2.0,
+            "bms_controls": 3.0,
+            "working_at_height": 2.0,
+            "heavy_lift": 2.0
+          },
+          "vehicle_type": "CAR",
+          "fuel_type": "ELEC",
+          "fuel_consumption": 22.0,
+          "rented": false,
+          "fix_cost_daily": 535.0,
+          "weight": 420.0,
+          "vol": 3.8,
+          "max_ticket_num": 5,
+          "shift_start_time": "2026-08-18 07:00:00",
+          "shift_off_time": "2026-08-18 20:00:00",
+          "tickets": [
+            "ticket-east-01-chiller-bms-diagnostic",
+            "ticket-east-02-ahu-fan-service",
+            "ticket-east-11-switchboard-thermal-inspection"
+          ],
+          "date": "2026-08-18",
+          "restrict": false,
+          "virtual": false
+        },
+        {
+          "id": "agent-east-systems",
+          "depo_id": "depo-east",
+          "name": "Priya Nair",
+          "start_loc": "poi-depot-east",
+          "skills": [
+            "electrical_service",
+            "bms_controls",
+            "fire_alarm",
+            "access_control",
+            "cctv",
+            "structured_cabling",
+            "working_at_height"
+          ],
+          "qualification_levels": {
+            "electrical_service": 3.0,
+            "bms_controls": 2.0,
+            "fire_alarm": 3.0,
+            "access_control": 3.0,
+            "cctv": 3.0,
+            "structured_cabling": 2.0,
+            "working_at_height": 2.0
+          },
+          "vehicle_type": "CAR",
+          "fuel_type": "GAS_92",
+          "fuel_consumption": 9.4,
+          "rented": false,
+          "fix_cost_daily": 505.0,
+          "weight": 350.0,
+          "vol": 3.2,
+          "max_ticket_num": 5,
+          "shift_start_time": "2026-08-18 07:00:00",
+          "shift_off_time": "2026-08-18 20:00:00",
+          "tickets": [
+            "ticket-east-03-cctv-network-repair",
+            "ticket-east-04-access-control-upgrade",
+            "ticket-east-05-fire-alarm-loop-test",
+            "ticket-east-09-bms-sensor-calibration"
+          ],
+          "date": "2026-08-18",
+          "restrict": false,
+          "virtual": false
+        },
+        {
+          "id": "agent-east-cold",
+          "depo_id": "depo-east",
+          "name": "Liam Faumuina",
+          "start_loc": "poi-depot-east",
+          "skills": [
+            "refrigeration_service",
+            "hvac_mechanical",
+            "cold_room",
+            "commercial_kitchen",
+            "gas_fitting",
+            "electrical_service",
+            "parts_logistics",
+            "heavy_lift",
+            "working_at_height"
+          ],
+          "qualification_levels": {
+            "refrigeration_service": 3.0,
+            "hvac_mechanical": 2.0,
+            "cold_room": 3.0,
+            "commercial_kitchen": 3.0,
+            "gas_fitting": 3.0,
+            "electrical_service": 2.0,
+            "heavy_lift": 3.0,
+            "working_at_height": 2.0
+          },
+          "vehicle_type": "TRUCK",
+          "fuel_type": "GAS_92",
+          "fuel_consumption": 13.2,
+          "rented": false,
+          "fix_cost_daily": 575.0,
+          "weight": 1100.0,
+          "vol": 7.5,
+          "max_ticket_num": 5,
+          "shift_start_time": "2026-08-18 07:00:00",
+          "shift_off_time": "2026-08-18 20:00:00",
+          "tickets": [
+            "ticket-east-06-compressor-parts-delivery",
+            "ticket-east-07-cold-room-compressor-replacement",
+            "ticket-east-08-kitchen-gas-interlock-service",
+            "ticket-east-10-rooftop-hvac-service"
+          ],
+          "date": "2026-08-18",
+          "restrict": false,
+          "virtual": false
+        },
+        {
+          "id": "agent-south-hvac",
+          "depo_id": "depo-south",
+          "name": "Isabella Brown",
+          "start_loc": "poi-depot-south",
+          "skills": [
+            "refrigeration_service",
+            "hvac_mechanical",
+            "electrical_service",
+            "bms_controls",
+            "working_at_height",
+            "parts_logistics",
+            "heavy_lift"
+          ],
+          "qualification_levels": {
+            "refrigeration_service": 3.0,
+            "hvac_mechanical": 3.0,
+            "electrical_service": 2.0,
+            "bms_controls": 3.0,
+            "working_at_height": 2.0,
+            "heavy_lift": 2.0
+          },
+          "vehicle_type": "CAR",
+          "fuel_type": "ELEC",
+          "fuel_consumption": 22.0,
+          "rented": false,
+          "fix_cost_daily": 535.0,
+          "weight": 420.0,
+          "vol": 3.8,
+          "max_ticket_num": 5,
+          "shift_start_time": "2026-08-18 07:00:00",
+          "shift_off_time": "2026-08-18 20:00:00",
+          "tickets": [
+            "ticket-south-01-chiller-bms-diagnostic",
+            "ticket-south-02-ahu-fan-service",
+            "ticket-south-11-switchboard-thermal-inspection"
+          ],
+          "date": "2026-08-18",
+          "restrict": false,
+          "virtual": false
+        },
+        {
+          "id": "agent-south-systems",
+          "depo_id": "depo-south",
+          "name": "Daniel Kim",
+          "start_loc": "poi-depot-south",
+          "skills": [
+            "electrical_service",
+            "bms_controls",
+            "fire_alarm",
+            "access_control",
+            "cctv",
+            "structured_cabling",
+            "working_at_height"
+          ],
+          "qualification_levels": {
+            "electrical_service": 3.0,
+            "bms_controls": 2.0,
+            "fire_alarm": 3.0,
+            "access_control": 3.0,
+            "cctv": 3.0,
+            "structured_cabling": 2.0,
+            "working_at_height": 2.0
+          },
+          "vehicle_type": "CAR",
+          "fuel_type": "GAS_92",
+          "fuel_consumption": 9.4,
+          "rented": false,
+          "fix_cost_daily": 505.0,
+          "weight": 350.0,
+          "vol": 3.2,
+          "max_ticket_num": 5,
+          "shift_start_time": "2026-08-18 07:00:00",
+          "shift_off_time": "2026-08-18 20:00:00",
+          "tickets": [
+            "ticket-south-03-cctv-network-repair",
+            "ticket-south-04-access-control-upgrade",
+            "ticket-south-05-fire-alarm-loop-test",
+            "ticket-south-09-bms-sensor-calibration"
+          ],
+          "date": "2026-08-18",
+          "restrict": false,
+          "virtual": false
+        },
+        {
+          "id": "agent-south-cold",
+          "depo_id": "depo-south",
+          "name": "Mele Tuivaiti",
+          "start_loc": "poi-depot-south",
+          "skills": [
+            "refrigeration_service",
+            "hvac_mechanical",
+            "cold_room",
+            "commercial_kitchen",
+            "gas_fitting",
+            "electrical_service",
+            "parts_logistics",
+            "heavy_lift",
+            "working_at_height"
+          ],
+          "qualification_levels": {
+            "refrigeration_service": 3.0,
+            "hvac_mechanical": 2.0,
+            "cold_room": 3.0,
+            "commercial_kitchen": 3.0,
+            "gas_fitting": 3.0,
+            "electrical_service": 2.0,
+            "heavy_lift": 3.0,
+            "working_at_height": 2.0
+          },
+          "vehicle_type": "TRUCK",
+          "fuel_type": "GAS_92",
+          "fuel_consumption": 13.2,
+          "rented": false,
+          "fix_cost_daily": 575.0,
+          "weight": 1100.0,
+          "vol": 7.5,
+          "max_ticket_num": 5,
+          "shift_start_time": "2026-08-18 07:00:00",
+          "shift_off_time": "2026-08-18 20:00:00",
+          "tickets": [
+            "ticket-south-06-compressor-parts-delivery",
+            "ticket-south-07-cold-room-compressor-replacement",
+            "ticket-south-08-kitchen-gas-interlock-service",
+            "ticket-south-10-rooftop-hvac-service"
+          ],
+          "date": "2026-08-18",
+          "restrict": false,
+          "virtual": false
+        }
+      ],
+      "tickets": [
+        {
+          "id": "ticket-north-01-chiller-bms-diagnostic",
+          "pinned": false,
+          "depo_id": "depo-north",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "refrigeration_service",
+            "electrical_service",
+            "bms_controls"
+          ],
+          "qualification_levels_required": {
+            "refrigeration_service": 2.0,
+            "electrical_service": 2.0,
+            "bms_controls": 2.0
+          },
+          "dep_tickets": [],
+          "ref_tickets": [
+            "ticket-north-02-ahu-fan-service"
+          ],
+          "items": [
+            {
+              "sku": "sku-bms-sensor-kit",
+              "value": 2
+            },
+            {
+              "sku": "sku-control-board",
+              "value": 1
+            }
+          ],
+          "weight": 4.2,
+          "vol": 0.028,
+          "loc": "poi-n01",
+          "create_time": "2026-08-17 10:00:00",
+          "min_start_time": "2026-08-18 08:00:00",
+          "max_end_time": "2026-08-18 13:00:00",
+          "duration": "PT90M",
+          "agent": "agent-north-hvac",
+          "moved": false
+        },
+        {
+          "id": "ticket-north-02-ahu-fan-service",
+          "pinned": false,
+          "depo_id": "depo-north",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "hvac_mechanical",
+            "electrical_service",
+            "working_at_height"
+          ],
+          "qualification_levels_required": {
+            "hvac_mechanical": 2.0,
+            "electrical_service": 1.0,
+            "working_at_height": 2.0
+          },
+          "dep_tickets": [
+            "ticket-north-01-chiller-bms-diagnostic"
+          ],
+          "ref_tickets": [],
+          "items": [
+            {
+              "sku": "sku-fan-motor",
+              "value": 1
+            },
+            {
+              "sku": "sku-filter-kit",
+              "value": 1
+            }
+          ],
+          "weight": 26.0,
+          "vol": 0.21,
+          "loc": "poi-n01",
+          "create_time": "2026-08-17 10:00:00",
+          "min_start_time": "2026-08-18 09:00:00",
+          "max_end_time": "2026-08-18 14:00:00",
+          "duration": "PT75M",
+          "agent": "agent-north-hvac",
+          "moved": false
+        },
+        {
+          "id": "ticket-north-03-cctv-network-repair",
+          "pinned": false,
+          "depo_id": "depo-north",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "cctv",
+            "structured_cabling",
+            "working_at_height"
+          ],
+          "qualification_levels_required": {
+            "cctv": 2.0,
+            "structured_cabling": 2.0,
+            "working_at_height": 1.0
+          },
+          "dep_tickets": [],
+          "ref_tickets": [
+            "ticket-north-04-access-control-upgrade"
+          ],
+          "items": [
+            {
+              "sku": "sku-cctv-camera",
+              "value": 3
+            },
+            {
+              "sku": "sku-network-switch",
+              "value": 1
+            }
+          ],
+          "weight": 7.6,
+          "vol": 0.055,
+          "loc": "poi-n02",
+          "create_time": "2026-08-17 10:00:00",
+          "min_start_time": "2026-08-18 10:00:00",
+          "max_end_time": "2026-08-18 14:00:00",
+          "duration": "PT60M",
+          "agent": "agent-north-systems",
+          "moved": false
+        },
+        {
+          "id": "ticket-north-04-access-control-upgrade",
+          "pinned": false,
+          "depo_id": "depo-north",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "access_control",
+            "electrical_service",
+            "structured_cabling"
+          ],
+          "qualification_levels_required": {
+            "access_control": 2.0,
+            "electrical_service": 2.0,
+            "structured_cabling": 1.0
+          },
+          "dep_tickets": [
+            "ticket-north-03-cctv-network-repair"
+          ],
+          "ref_tickets": [],
+          "items": [
+            {
+              "sku": "sku-access-controller",
+              "value": 2
+            },
+            {
+              "sku": "sku-electrical-service-kit",
+              "value": 1
+            }
+          ],
+          "weight": 8.0,
+          "vol": 0.054,
+          "loc": "poi-n02",
+          "create_time": "2026-08-17 10:00:00",
+          "min_start_time": "2026-08-18 10:30:00",
+          "max_end_time": "2026-08-18 14:30:00",
+          "duration": "PT90M",
+          "agent": "agent-north-systems",
+          "moved": false
+        },
+        {
+          "id": "ticket-north-05-fire-alarm-loop-test",
+          "pinned": false,
+          "depo_id": "depo-north",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "fire_alarm",
+            "electrical_service"
+          ],
+          "qualification_levels_required": {
+            "fire_alarm": 2.0,
+            "electrical_service": 2.0
+          },
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "items": [
+            {
+              "sku": "sku-fire-loop-module",
+              "value": 4
+            }
+          ],
+          "weight": 2.4,
+          "vol": 0.016,
+          "loc": "poi-n03",
+          "create_time": "2026-08-17 10:00:00",
+          "min_start_time": "2026-08-18 11:00:00",
+          "max_end_time": "2026-08-18 15:00:00",
+          "duration": "PT75M",
+          "agent": "agent-north-systems",
+          "moved": false
+        },
+        {
+          "id": "ticket-north-06-compressor-parts-delivery",
+          "pinned": false,
+          "depo_id": "depo-north",
+          "type": "Delv",
+          "status": "New",
+          "skills_required": [
+            "refrigeration_service",
+            "parts_logistics",
+            "heavy_lift"
+          ],
+          "qualification_levels_required": {
+            "refrigeration_service": 2.0,
+            "heavy_lift": 2.0
+          },
+          "dep_tickets": [],
+          "ref_tickets": [
+            "ticket-north-07-cold-room-compressor-replacement"
+          ],
+          "items": [
+            {
+              "sku": "sku-scroll-compressor",
+              "value": 1
+            },
+            {
+              "sku": "sku-refrigerant-cylinder",
+              "value": 2
+            }
+          ],
+          "weight": 93.0,
+          "vol": 0.27,
+          "loc": "poi-n04",
+          "create_time": "2026-08-17 10:00:00",
+          "min_start_time": "2026-08-18 11:30:00",
+          "max_end_time": "2026-08-18 14:30:00",
+          "duration": "PT30M",
+          "agent": "agent-north-cold",
+          "moved": false
+        },
+        {
+          "id": "ticket-north-07-cold-room-compressor-replacement",
+          "pinned": false,
+          "depo_id": "depo-north",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "refrigeration_service",
+            "cold_room",
+            "electrical_service",
+            "heavy_lift"
+          ],
+          "qualification_levels_required": {
+            "refrigeration_service": 3.0,
+            "cold_room": 2.0,
+            "electrical_service": 2.0,
+            "heavy_lift": 2.0
+          },
+          "dep_tickets": [
+            "ticket-north-06-compressor-parts-delivery"
+          ],
+          "ref_tickets": [],
+          "items": [
+            {
+              "sku": "sku-refrigerant-cylinder",
+              "value": 1
+            },
+            {
+              "sku": "sku-mounting-kit",
+              "value": 1
+            },
+            {
+              "sku": "sku-control-board",
+              "value": 1
+            }
+          ],
+          "weight": 21.8,
+          "vol": 0.092,
+          "loc": "poi-n04",
+          "create_time": "2026-08-17 10:00:00",
+          "min_start_time": "2026-08-18 12:00:00",
+          "max_end_time": "2026-08-18 17:00:00",
+          "duration": "PT150M",
+          "agent": "agent-north-cold",
+          "moved": false
+        },
+        {
+          "id": "ticket-north-08-kitchen-gas-interlock-service",
+          "pinned": false,
+          "depo_id": "depo-north",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "commercial_kitchen",
+            "gas_fitting",
+            "electrical_service"
+          ],
+          "qualification_levels_required": {
+            "commercial_kitchen": 2.0,
+            "gas_fitting": 2.0,
+            "electrical_service": 1.0
+          },
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "items": [
+            {
+              "sku": "sku-gas-safety-valve",
+              "value": 1
+            },
+            {
+              "sku": "sku-bms-sensor-kit",
+              "value": 1
+            }
+          ],
+          "weight": 5.7,
+          "vol": 0.028,
+          "loc": "poi-n05",
+          "create_time": "2026-08-17 10:00:00",
+          "min_start_time": "2026-08-18 12:30:00",
+          "max_end_time": "2026-08-18 16:30:00",
+          "duration": "PT90M",
+          "agent": "agent-north-cold",
+          "moved": false
+        },
+        {
+          "id": "ticket-north-09-bms-sensor-calibration",
+          "pinned": false,
+          "depo_id": "depo-north",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "bms_controls",
+            "electrical_service"
+          ],
+          "qualification_levels_required": {
+            "bms_controls": 2.0,
+            "electrical_service": 2.0
+          },
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "items": [
+            {
+              "sku": "sku-bms-sensor-kit",
+              "value": 4
+            }
+          ],
+          "weight": 4.8,
+          "vol": 0.032,
+          "loc": "poi-n06",
+          "create_time": "2026-08-17 10:00:00",
+          "min_start_time": "2026-08-18 13:00:00",
+          "max_end_time": "2026-08-18 17:00:00",
+          "duration": "PT60M",
+          "agent": "agent-north-systems",
+          "moved": false
+        },
+        {
+          "id": "ticket-north-10-rooftop-hvac-service",
+          "pinned": false,
+          "depo_id": "depo-north",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "hvac_mechanical",
+            "electrical_service",
+            "working_at_height"
+          ],
+          "qualification_levels_required": {
+            "hvac_mechanical": 2.0,
+            "electrical_service": 2.0,
+            "working_at_height": 2.0
+          },
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "items": [
+            {
+              "sku": "sku-filter-kit",
+              "value": 2
+            },
+            {
+              "sku": "sku-fan-motor",
+              "value": 1
+            },
+            {
+              "sku": "sku-mounting-kit",
+              "value": 1
+            }
+          ],
+          "weight": 40.0,
+          "vol": 0.365,
+          "loc": "poi-n07",
+          "create_time": "2026-08-17 10:00:00",
+          "min_start_time": "2026-08-18 14:00:00",
+          "max_end_time": "2026-08-18 18:00:00",
+          "duration": "PT120M",
+          "agent": "agent-north-cold",
+          "moved": false
+        },
+        {
+          "id": "ticket-north-11-switchboard-thermal-inspection",
+          "pinned": false,
+          "depo_id": "depo-north",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "electrical_service"
+          ],
+          "qualification_levels_required": {
+            "electrical_service": 2.0
+          },
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "items": [
+            {
+              "sku": "sku-electrical-service-kit",
+              "value": 2
+            }
+          ],
+          "weight": 6.0,
+          "vol": 0.036,
+          "loc": "poi-n08",
+          "create_time": "2026-08-17 10:00:00",
+          "min_start_time": "2026-08-18 15:00:00",
+          "max_end_time": "2026-08-18 18:00:00",
+          "duration": "PT60M",
+          "agent": "agent-north-hvac",
+          "moved": false
+        },
+        {
+          "id": "ticket-central-01-chiller-bms-diagnostic",
+          "pinned": false,
+          "depo_id": "depo-central",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "refrigeration_service",
+            "electrical_service",
+            "bms_controls"
+          ],
+          "qualification_levels_required": {
+            "refrigeration_service": 2.0,
+            "electrical_service": 2.0,
+            "bms_controls": 2.0
+          },
+          "dep_tickets": [],
+          "ref_tickets": [
+            "ticket-central-02-ahu-fan-service"
+          ],
+          "items": [
+            {
+              "sku": "sku-bms-sensor-kit",
+              "value": 2
+            },
+            {
+              "sku": "sku-control-board",
+              "value": 1
+            }
+          ],
+          "weight": 4.2,
+          "vol": 0.028,
+          "loc": "poi-c01",
+          "create_time": "2026-08-17 10:00:00",
+          "min_start_time": "2026-08-18 07:00:00",
+          "max_end_time": "2026-08-18 12:00:00",
+          "duration": "PT90M",
+          "agent": "agent-central-hvac",
+          "moved": false
+        },
+        {
+          "id": "ticket-central-02-ahu-fan-service",
+          "pinned": false,
+          "depo_id": "depo-central",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "hvac_mechanical",
+            "electrical_service",
+            "working_at_height"
+          ],
+          "qualification_levels_required": {
+            "hvac_mechanical": 2.0,
+            "electrical_service": 1.0,
+            "working_at_height": 2.0
+          },
+          "dep_tickets": [
+            "ticket-central-01-chiller-bms-diagnostic"
+          ],
+          "ref_tickets": [],
+          "items": [
+            {
+              "sku": "sku-fan-motor",
+              "value": 1
+            },
+            {
+              "sku": "sku-filter-kit",
+              "value": 1
+            }
+          ],
+          "weight": 26.0,
+          "vol": 0.21,
+          "loc": "poi-c01",
+          "create_time": "2026-08-17 10:00:00",
+          "min_start_time": "2026-08-18 09:00:00",
+          "max_end_time": "2026-08-18 14:00:00",
+          "duration": "PT75M",
+          "agent": "agent-central-hvac",
+          "moved": false
+        },
+        {
+          "id": "ticket-central-03-cctv-network-repair",
+          "pinned": false,
+          "depo_id": "depo-central",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "cctv",
+            "structured_cabling",
+            "working_at_height"
+          ],
+          "qualification_levels_required": {
+            "cctv": 2.0,
+            "structured_cabling": 2.0,
+            "working_at_height": 1.0
+          },
+          "dep_tickets": [],
+          "ref_tickets": [
+            "ticket-central-04-access-control-upgrade"
+          ],
+          "items": [
+            {
+              "sku": "sku-cctv-camera",
+              "value": 3
+            },
+            {
+              "sku": "sku-network-switch",
+              "value": 1
+            }
+          ],
+          "weight": 7.6,
+          "vol": 0.055,
+          "loc": "poi-c02",
+          "create_time": "2026-08-17 10:00:00",
+          "min_start_time": "2026-08-18 09:30:00",
+          "max_end_time": "2026-08-18 13:30:00",
+          "duration": "PT60M",
+          "agent": "agent-central-systems",
+          "moved": false
+        },
+        {
+          "id": "ticket-central-04-access-control-upgrade",
+          "pinned": false,
+          "depo_id": "depo-central",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "access_control",
+            "electrical_service",
+            "structured_cabling"
+          ],
+          "qualification_levels_required": {
+            "access_control": 2.0,
+            "electrical_service": 2.0,
+            "structured_cabling": 1.0
+          },
+          "dep_tickets": [
+            "ticket-central-03-cctv-network-repair"
+          ],
+          "ref_tickets": [],
+          "items": [
+            {
+              "sku": "sku-access-controller",
+              "value": 2
+            },
+            {
+              "sku": "sku-electrical-service-kit",
+              "value": 1
+            }
+          ],
+          "weight": 8.0,
+          "vol": 0.054,
+          "loc": "poi-c02",
+          "create_time": "2026-08-17 10:00:00",
+          "min_start_time": "2026-08-18 10:00:00",
+          "max_end_time": "2026-08-18 14:00:00",
+          "duration": "PT90M",
+          "agent": "agent-central-systems",
+          "moved": false
+        },
+        {
+          "id": "ticket-central-05-fire-alarm-loop-test",
+          "pinned": false,
+          "depo_id": "depo-central",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "fire_alarm",
+            "electrical_service"
+          ],
+          "qualification_levels_required": {
+            "fire_alarm": 2.0,
+            "electrical_service": 2.0
+          },
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "items": [
+            {
+              "sku": "sku-fire-loop-module",
+              "value": 4
+            }
+          ],
+          "weight": 2.4,
+          "vol": 0.016,
+          "loc": "poi-c03",
+          "create_time": "2026-08-17 10:00:00",
+          "min_start_time": "2026-08-18 11:00:00",
+          "max_end_time": "2026-08-18 15:00:00",
+          "duration": "PT75M",
+          "agent": "agent-central-systems",
+          "moved": false
+        },
+        {
+          "id": "ticket-central-06-compressor-parts-delivery",
+          "pinned": false,
+          "depo_id": "depo-central",
+          "type": "Delv",
+          "status": "New",
+          "skills_required": [
+            "refrigeration_service",
+            "parts_logistics",
+            "heavy_lift"
+          ],
+          "qualification_levels_required": {
+            "refrigeration_service": 2.0,
+            "heavy_lift": 2.0
+          },
+          "dep_tickets": [],
+          "ref_tickets": [
+            "ticket-central-07-cold-room-compressor-replacement"
+          ],
+          "items": [
+            {
+              "sku": "sku-scroll-compressor",
+              "value": 1
+            },
+            {
+              "sku": "sku-refrigerant-cylinder",
+              "value": 2
+            }
+          ],
+          "weight": 93.0,
+          "vol": 0.27,
+          "loc": "poi-c04",
+          "create_time": "2026-08-17 10:00:00",
+          "min_start_time": "2026-08-18 11:30:00",
+          "max_end_time": "2026-08-18 14:30:00",
+          "duration": "PT30M",
+          "agent": "agent-central-cold",
+          "moved": false
+        },
+        {
+          "id": "ticket-central-07-cold-room-compressor-replacement",
+          "pinned": false,
+          "depo_id": "depo-central",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "refrigeration_service",
+            "cold_room",
+            "electrical_service",
+            "heavy_lift"
+          ],
+          "qualification_levels_required": {
+            "refrigeration_service": 3.0,
+            "cold_room": 2.0,
+            "electrical_service": 2.0,
+            "heavy_lift": 2.0
+          },
+          "dep_tickets": [
+            "ticket-central-06-compressor-parts-delivery"
+          ],
+          "ref_tickets": [],
+          "items": [
+            {
+              "sku": "sku-refrigerant-cylinder",
+              "value": 1
+            },
+            {
+              "sku": "sku-mounting-kit",
+              "value": 1
+            },
+            {
+              "sku": "sku-control-board",
+              "value": 1
+            }
+          ],
+          "weight": 21.8,
+          "vol": 0.092,
+          "loc": "poi-c04",
+          "create_time": "2026-08-17 10:00:00",
+          "min_start_time": "2026-08-18 12:00:00",
+          "max_end_time": "2026-08-18 17:00:00",
+          "duration": "PT150M",
+          "agent": "agent-central-cold",
+          "moved": false
+        },
+        {
+          "id": "ticket-central-08-kitchen-gas-interlock-service",
+          "pinned": false,
+          "depo_id": "depo-central",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "commercial_kitchen",
+            "gas_fitting",
+            "electrical_service"
+          ],
+          "qualification_levels_required": {
+            "commercial_kitchen": 2.0,
+            "gas_fitting": 2.0,
+            "electrical_service": 1.0
+          },
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "items": [
+            {
+              "sku": "sku-gas-safety-valve",
+              "value": 1
+            },
+            {
+              "sku": "sku-bms-sensor-kit",
+              "value": 1
+            }
+          ],
+          "weight": 5.7,
+          "vol": 0.028,
+          "loc": "poi-c05",
+          "create_time": "2026-08-17 10:00:00",
+          "min_start_time": "2026-08-18 12:30:00",
+          "max_end_time": "2026-08-18 16:30:00",
+          "duration": "PT90M",
+          "agent": "agent-central-cold",
+          "moved": false
+        },
+        {
+          "id": "ticket-central-09-bms-sensor-calibration",
+          "pinned": false,
+          "depo_id": "depo-central",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "bms_controls",
+            "electrical_service"
+          ],
+          "qualification_levels_required": {
+            "bms_controls": 2.0,
+            "electrical_service": 2.0
+          },
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "items": [
+            {
+              "sku": "sku-bms-sensor-kit",
+              "value": 4
+            }
+          ],
+          "weight": 4.8,
+          "vol": 0.032,
+          "loc": "poi-c06",
+          "create_time": "2026-08-17 10:00:00",
+          "min_start_time": "2026-08-18 13:00:00",
+          "max_end_time": "2026-08-18 17:00:00",
+          "duration": "PT60M",
+          "agent": "agent-central-systems",
+          "moved": false
+        },
+        {
+          "id": "ticket-central-10-rooftop-hvac-service",
+          "pinned": false,
+          "depo_id": "depo-central",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "hvac_mechanical",
+            "electrical_service",
+            "working_at_height"
+          ],
+          "qualification_levels_required": {
+            "hvac_mechanical": 2.0,
+            "electrical_service": 2.0,
+            "working_at_height": 2.0
+          },
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "items": [
+            {
+              "sku": "sku-filter-kit",
+              "value": 2
+            },
+            {
+              "sku": "sku-fan-motor",
+              "value": 1
+            },
+            {
+              "sku": "sku-mounting-kit",
+              "value": 1
+            }
+          ],
+          "weight": 40.0,
+          "vol": 0.365,
+          "loc": "poi-c07",
+          "create_time": "2026-08-17 10:00:00",
+          "min_start_time": "2026-08-18 13:30:00",
+          "max_end_time": "2026-08-18 17:30:00",
+          "duration": "PT120M",
+          "agent": "agent-central-cold",
+          "moved": false
+        },
+        {
+          "id": "ticket-central-11-switchboard-thermal-inspection",
+          "pinned": false,
+          "depo_id": "depo-central",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "electrical_service"
+          ],
+          "qualification_levels_required": {
+            "electrical_service": 2.0
+          },
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "items": [
+            {
+              "sku": "sku-electrical-service-kit",
+              "value": 2
+            }
+          ],
+          "weight": 6.0,
+          "vol": 0.036,
+          "loc": "poi-c08",
+          "create_time": "2026-08-17 10:00:00",
+          "min_start_time": "2026-08-18 15:30:00",
+          "max_end_time": "2026-08-18 18:30:00",
+          "duration": "PT60M",
+          "agent": "agent-central-hvac",
+          "moved": false
+        },
+        {
+          "id": "ticket-east-01-chiller-bms-diagnostic",
+          "pinned": false,
+          "depo_id": "depo-east",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "refrigeration_service",
+            "electrical_service",
+            "bms_controls"
+          ],
+          "qualification_levels_required": {
+            "refrigeration_service": 2.0,
+            "electrical_service": 2.0,
+            "bms_controls": 2.0
+          },
+          "dep_tickets": [],
+          "ref_tickets": [
+            "ticket-east-02-ahu-fan-service"
+          ],
+          "items": [
+            {
+              "sku": "sku-bms-sensor-kit",
+              "value": 2
+            },
+            {
+              "sku": "sku-control-board",
+              "value": 1
+            }
+          ],
+          "weight": 4.2,
+          "vol": 0.028,
+          "loc": "poi-e01",
+          "create_time": "2026-08-17 10:00:00",
+          "min_start_time": "2026-08-18 08:30:00",
+          "max_end_time": "2026-08-18 13:30:00",
+          "duration": "PT90M",
+          "agent": "agent-east-hvac",
+          "moved": false
+        },
+        {
+          "id": "ticket-east-02-ahu-fan-service",
+          "pinned": false,
+          "depo_id": "depo-east",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "hvac_mechanical",
+            "electrical_service",
+            "working_at_height"
+          ],
+          "qualification_levels_required": {
+            "hvac_mechanical": 2.0,
+            "electrical_service": 1.0,
+            "working_at_height": 2.0
+          },
+          "dep_tickets": [
+            "ticket-east-01-chiller-bms-diagnostic"
+          ],
+          "ref_tickets": [],
+          "items": [
+            {
+              "sku": "sku-fan-motor",
+              "value": 1
+            },
+            {
+              "sku": "sku-filter-kit",
+              "value": 1
+            }
+          ],
+          "weight": 26.0,
+          "vol": 0.21,
+          "loc": "poi-e01",
+          "create_time": "2026-08-17 10:00:00",
+          "min_start_time": "2026-08-18 09:00:00",
+          "max_end_time": "2026-08-18 14:00:00",
+          "duration": "PT75M",
+          "agent": "agent-east-hvac",
+          "moved": false
+        },
+        {
+          "id": "ticket-east-03-cctv-network-repair",
+          "pinned": false,
+          "depo_id": "depo-east",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "cctv",
+            "structured_cabling",
+            "working_at_height"
+          ],
+          "qualification_levels_required": {
+            "cctv": 2.0,
+            "structured_cabling": 2.0,
+            "working_at_height": 1.0
+          },
+          "dep_tickets": [],
+          "ref_tickets": [
+            "ticket-east-04-access-control-upgrade"
+          ],
+          "items": [
+            {
+              "sku": "sku-cctv-camera",
+              "value": 3
+            },
+            {
+              "sku": "sku-network-switch",
+              "value": 1
+            }
+          ],
+          "weight": 7.6,
+          "vol": 0.055,
+          "loc": "poi-e02",
+          "create_time": "2026-08-17 10:00:00",
+          "min_start_time": "2026-08-18 10:00:00",
+          "max_end_time": "2026-08-18 14:00:00",
+          "duration": "PT60M",
+          "agent": "agent-east-systems",
+          "moved": false
+        },
+        {
+          "id": "ticket-east-04-access-control-upgrade",
+          "pinned": false,
+          "depo_id": "depo-east",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "access_control",
+            "electrical_service",
+            "structured_cabling"
+          ],
+          "qualification_levels_required": {
+            "access_control": 2.0,
+            "electrical_service": 2.0,
+            "structured_cabling": 1.0
+          },
+          "dep_tickets": [
+            "ticket-east-03-cctv-network-repair"
+          ],
+          "ref_tickets": [],
+          "items": [
+            {
+              "sku": "sku-access-controller",
+              "value": 2
+            },
+            {
+              "sku": "sku-electrical-service-kit",
+              "value": 1
+            }
+          ],
+          "weight": 8.0,
+          "vol": 0.054,
+          "loc": "poi-e02",
+          "create_time": "2026-08-17 10:00:00",
+          "min_start_time": "2026-08-18 10:30:00",
+          "max_end_time": "2026-08-18 14:30:00",
+          "duration": "PT90M",
+          "agent": "agent-east-systems",
+          "moved": false
+        },
+        {
+          "id": "ticket-east-05-fire-alarm-loop-test",
+          "pinned": false,
+          "depo_id": "depo-east",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "fire_alarm",
+            "electrical_service"
+          ],
+          "qualification_levels_required": {
+            "fire_alarm": 2.0,
+            "electrical_service": 2.0
+          },
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "items": [
+            {
+              "sku": "sku-fire-loop-module",
+              "value": 4
+            }
+          ],
+          "weight": 2.4,
+          "vol": 0.016,
+          "loc": "poi-e03",
+          "create_time": "2026-08-17 10:00:00",
+          "min_start_time": "2026-08-18 11:00:00",
+          "max_end_time": "2026-08-18 15:00:00",
+          "duration": "PT75M",
+          "agent": "agent-east-systems",
+          "moved": false
+        },
+        {
+          "id": "ticket-east-06-compressor-parts-delivery",
+          "pinned": false,
+          "depo_id": "depo-east",
+          "type": "Delv",
+          "status": "New",
+          "skills_required": [
+            "refrigeration_service",
+            "parts_logistics",
+            "heavy_lift"
+          ],
+          "qualification_levels_required": {
+            "refrigeration_service": 2.0,
+            "heavy_lift": 2.0
+          },
+          "dep_tickets": [],
+          "ref_tickets": [
+            "ticket-east-07-cold-room-compressor-replacement"
+          ],
+          "items": [
+            {
+              "sku": "sku-scroll-compressor",
+              "value": 1
+            },
+            {
+              "sku": "sku-refrigerant-cylinder",
+              "value": 2
+            }
+          ],
+          "weight": 93.0,
+          "vol": 0.27,
+          "loc": "poi-e04",
+          "create_time": "2026-08-17 10:00:00",
+          "min_start_time": "2026-08-18 11:30:00",
+          "max_end_time": "2026-08-18 14:30:00",
+          "duration": "PT30M",
+          "agent": "agent-east-cold",
+          "moved": false
+        },
+        {
+          "id": "ticket-east-07-cold-room-compressor-replacement",
+          "pinned": false,
+          "depo_id": "depo-east",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "refrigeration_service",
+            "cold_room",
+            "electrical_service",
+            "heavy_lift"
+          ],
+          "qualification_levels_required": {
+            "refrigeration_service": 3.0,
+            "cold_room": 2.0,
+            "electrical_service": 2.0,
+            "heavy_lift": 2.0
+          },
+          "dep_tickets": [
+            "ticket-east-06-compressor-parts-delivery"
+          ],
+          "ref_tickets": [],
+          "items": [
+            {
+              "sku": "sku-refrigerant-cylinder",
+              "value": 1
+            },
+            {
+              "sku": "sku-mounting-kit",
+              "value": 1
+            },
+            {
+              "sku": "sku-control-board",
+              "value": 1
+            }
+          ],
+          "weight": 21.8,
+          "vol": 0.092,
+          "loc": "poi-e04",
+          "create_time": "2026-08-17 10:00:00",
+          "min_start_time": "2026-08-18 12:00:00",
+          "max_end_time": "2026-08-18 17:00:00",
+          "duration": "PT150M",
+          "agent": "agent-east-cold",
+          "moved": false
+        },
+        {
+          "id": "ticket-east-08-kitchen-gas-interlock-service",
+          "pinned": false,
+          "depo_id": "depo-east",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "commercial_kitchen",
+            "gas_fitting",
+            "electrical_service"
+          ],
+          "qualification_levels_required": {
+            "commercial_kitchen": 2.0,
+            "gas_fitting": 2.0,
+            "electrical_service": 1.0
+          },
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "items": [
+            {
+              "sku": "sku-gas-safety-valve",
+              "value": 1
+            },
+            {
+              "sku": "sku-bms-sensor-kit",
+              "value": 1
+            }
+          ],
+          "weight": 5.7,
+          "vol": 0.028,
+          "loc": "poi-e05",
+          "create_time": "2026-08-17 10:00:00",
+          "min_start_time": "2026-08-18 12:30:00",
+          "max_end_time": "2026-08-18 16:30:00",
+          "duration": "PT90M",
+          "agent": "agent-east-cold",
+          "moved": false
+        },
+        {
+          "id": "ticket-east-09-bms-sensor-calibration",
+          "pinned": false,
+          "depo_id": "depo-east",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "bms_controls",
+            "electrical_service"
+          ],
+          "qualification_levels_required": {
+            "bms_controls": 2.0,
+            "electrical_service": 2.0
+          },
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "items": [
+            {
+              "sku": "sku-bms-sensor-kit",
+              "value": 4
+            }
+          ],
+          "weight": 4.8,
+          "vol": 0.032,
+          "loc": "poi-e06",
+          "create_time": "2026-08-17 10:00:00",
+          "min_start_time": "2026-08-18 13:00:00",
+          "max_end_time": "2026-08-18 17:00:00",
+          "duration": "PT60M",
+          "agent": "agent-east-systems",
+          "moved": false
+        },
+        {
+          "id": "ticket-east-10-rooftop-hvac-service",
+          "pinned": false,
+          "depo_id": "depo-east",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "hvac_mechanical",
+            "electrical_service",
+            "working_at_height"
+          ],
+          "qualification_levels_required": {
+            "hvac_mechanical": 2.0,
+            "electrical_service": 2.0,
+            "working_at_height": 2.0
+          },
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "items": [
+            {
+              "sku": "sku-filter-kit",
+              "value": 2
+            },
+            {
+              "sku": "sku-fan-motor",
+              "value": 1
+            },
+            {
+              "sku": "sku-mounting-kit",
+              "value": 1
+            }
+          ],
+          "weight": 40.0,
+          "vol": 0.365,
+          "loc": "poi-e07",
+          "create_time": "2026-08-17 10:00:00",
+          "min_start_time": "2026-08-18 14:00:00",
+          "max_end_time": "2026-08-18 18:00:00",
+          "duration": "PT120M",
+          "agent": "agent-east-cold",
+          "moved": false
+        },
+        {
+          "id": "ticket-east-11-switchboard-thermal-inspection",
+          "pinned": false,
+          "depo_id": "depo-east",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "electrical_service"
+          ],
+          "qualification_levels_required": {
+            "electrical_service": 2.0
+          },
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "items": [
+            {
+              "sku": "sku-electrical-service-kit",
+              "value": 2
+            }
+          ],
+          "weight": 6.0,
+          "vol": 0.036,
+          "loc": "poi-e08",
+          "create_time": "2026-08-17 10:00:00",
+          "min_start_time": "2026-08-18 16:00:00",
+          "max_end_time": "2026-08-18 19:00:00",
+          "duration": "PT60M",
+          "agent": "agent-east-hvac",
+          "moved": false
+        },
+        {
+          "id": "ticket-south-01-chiller-bms-diagnostic",
+          "pinned": false,
+          "depo_id": "depo-south",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "refrigeration_service",
+            "electrical_service",
+            "bms_controls"
+          ],
+          "qualification_levels_required": {
+            "refrigeration_service": 2.0,
+            "electrical_service": 2.0,
+            "bms_controls": 2.0
+          },
+          "dep_tickets": [],
+          "ref_tickets": [
+            "ticket-south-02-ahu-fan-service"
+          ],
+          "items": [
+            {
+              "sku": "sku-bms-sensor-kit",
+              "value": 2
+            },
+            {
+              "sku": "sku-control-board",
+              "value": 1
+            }
+          ],
+          "weight": 4.2,
+          "vol": 0.028,
+          "loc": "poi-s01",
+          "create_time": "2026-08-17 10:00:00",
+          "min_start_time": "2026-08-18 08:00:00",
+          "max_end_time": "2026-08-18 13:00:00",
+          "duration": "PT90M",
+          "agent": "agent-south-hvac",
+          "moved": false
+        },
+        {
+          "id": "ticket-south-02-ahu-fan-service",
+          "pinned": false,
+          "depo_id": "depo-south",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "hvac_mechanical",
+            "electrical_service",
+            "working_at_height"
+          ],
+          "qualification_levels_required": {
+            "hvac_mechanical": 2.0,
+            "electrical_service": 1.0,
+            "working_at_height": 2.0
+          },
+          "dep_tickets": [
+            "ticket-south-01-chiller-bms-diagnostic"
+          ],
+          "ref_tickets": [],
+          "items": [
+            {
+              "sku": "sku-fan-motor",
+              "value": 1
+            },
+            {
+              "sku": "sku-filter-kit",
+              "value": 1
+            }
+          ],
+          "weight": 26.0,
+          "vol": 0.21,
+          "loc": "poi-s01",
+          "create_time": "2026-08-17 10:00:00",
+          "min_start_time": "2026-08-18 09:30:00",
+          "max_end_time": "2026-08-18 14:30:00",
+          "duration": "PT75M",
+          "agent": "agent-south-hvac",
+          "moved": false
+        },
+        {
+          "id": "ticket-south-03-cctv-network-repair",
+          "pinned": false,
+          "depo_id": "depo-south",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "cctv",
+            "structured_cabling",
+            "working_at_height"
+          ],
+          "qualification_levels_required": {
+            "cctv": 2.0,
+            "structured_cabling": 2.0,
+            "working_at_height": 1.0
+          },
+          "dep_tickets": [],
+          "ref_tickets": [
+            "ticket-south-04-access-control-upgrade"
+          ],
+          "items": [
+            {
+              "sku": "sku-cctv-camera",
+              "value": 3
+            },
+            {
+              "sku": "sku-network-switch",
+              "value": 1
+            }
+          ],
+          "weight": 7.6,
+          "vol": 0.055,
+          "loc": "poi-s02",
+          "create_time": "2026-08-17 10:00:00",
+          "min_start_time": "2026-08-18 10:00:00",
+          "max_end_time": "2026-08-18 14:00:00",
+          "duration": "PT60M",
+          "agent": "agent-south-systems",
+          "moved": false
+        },
+        {
+          "id": "ticket-south-04-access-control-upgrade",
+          "pinned": false,
+          "depo_id": "depo-south",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "access_control",
+            "electrical_service",
+            "structured_cabling"
+          ],
+          "qualification_levels_required": {
+            "access_control": 2.0,
+            "electrical_service": 2.0,
+            "structured_cabling": 1.0
+          },
+          "dep_tickets": [
+            "ticket-south-03-cctv-network-repair"
+          ],
+          "ref_tickets": [],
+          "items": [
+            {
+              "sku": "sku-access-controller",
+              "value": 2
+            },
+            {
+              "sku": "sku-electrical-service-kit",
+              "value": 1
+            }
+          ],
+          "weight": 8.0,
+          "vol": 0.054,
+          "loc": "poi-s02",
+          "create_time": "2026-08-17 10:00:00",
+          "min_start_time": "2026-08-18 11:00:00",
+          "max_end_time": "2026-08-18 15:00:00",
+          "duration": "PT90M",
+          "agent": "agent-south-systems",
+          "moved": false
+        },
+        {
+          "id": "ticket-south-05-fire-alarm-loop-test",
+          "pinned": false,
+          "depo_id": "depo-south",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "fire_alarm",
+            "electrical_service"
+          ],
+          "qualification_levels_required": {
+            "fire_alarm": 2.0,
+            "electrical_service": 2.0
+          },
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "items": [
+            {
+              "sku": "sku-fire-loop-module",
+              "value": 4
+            }
+          ],
+          "weight": 2.4,
+          "vol": 0.016,
+          "loc": "poi-s03",
+          "create_time": "2026-08-17 10:00:00",
+          "min_start_time": "2026-08-18 11:30:00",
+          "max_end_time": "2026-08-18 15:30:00",
+          "duration": "PT75M",
+          "agent": "agent-south-systems",
+          "moved": false
+        },
+        {
+          "id": "ticket-south-06-compressor-parts-delivery",
+          "pinned": false,
+          "depo_id": "depo-south",
+          "type": "Delv",
+          "status": "New",
+          "skills_required": [
+            "refrigeration_service",
+            "parts_logistics",
+            "heavy_lift"
+          ],
+          "qualification_levels_required": {
+            "refrigeration_service": 2.0,
+            "heavy_lift": 2.0
+          },
+          "dep_tickets": [],
+          "ref_tickets": [
+            "ticket-south-07-cold-room-compressor-replacement"
+          ],
+          "items": [
+            {
+              "sku": "sku-scroll-compressor",
+              "value": 1
+            },
+            {
+              "sku": "sku-refrigerant-cylinder",
+              "value": 2
+            }
+          ],
+          "weight": 93.0,
+          "vol": 0.27,
+          "loc": "poi-s04",
+          "create_time": "2026-08-17 10:00:00",
+          "min_start_time": "2026-08-18 12:00:00",
+          "max_end_time": "2026-08-18 15:00:00",
+          "duration": "PT30M",
+          "agent": "agent-south-cold",
+          "moved": false
+        },
+        {
+          "id": "ticket-south-07-cold-room-compressor-replacement",
+          "pinned": false,
+          "depo_id": "depo-south",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "refrigeration_service",
+            "cold_room",
+            "electrical_service",
+            "heavy_lift"
+          ],
+          "qualification_levels_required": {
+            "refrigeration_service": 3.0,
+            "cold_room": 2.0,
+            "electrical_service": 2.0,
+            "heavy_lift": 2.0
+          },
+          "dep_tickets": [
+            "ticket-south-06-compressor-parts-delivery"
+          ],
+          "ref_tickets": [],
+          "items": [
+            {
+              "sku": "sku-refrigerant-cylinder",
+              "value": 1
+            },
+            {
+              "sku": "sku-mounting-kit",
+              "value": 1
+            },
+            {
+              "sku": "sku-control-board",
+              "value": 1
+            }
+          ],
+          "weight": 21.8,
+          "vol": 0.092,
+          "loc": "poi-s04",
+          "create_time": "2026-08-17 10:00:00",
+          "min_start_time": "2026-08-18 12:30:00",
+          "max_end_time": "2026-08-18 17:30:00",
+          "duration": "PT150M",
+          "agent": "agent-south-cold",
+          "moved": false
+        },
+        {
+          "id": "ticket-south-08-kitchen-gas-interlock-service",
+          "pinned": false,
+          "depo_id": "depo-south",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "commercial_kitchen",
+            "gas_fitting",
+            "electrical_service"
+          ],
+          "qualification_levels_required": {
+            "commercial_kitchen": 2.0,
+            "gas_fitting": 2.0,
+            "electrical_service": 1.0
+          },
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "items": [
+            {
+              "sku": "sku-gas-safety-valve",
+              "value": 1
+            },
+            {
+              "sku": "sku-bms-sensor-kit",
+              "value": 1
+            }
+          ],
+          "weight": 5.7,
+          "vol": 0.028,
+          "loc": "poi-s05",
+          "create_time": "2026-08-17 10:00:00",
+          "min_start_time": "2026-08-18 13:00:00",
+          "max_end_time": "2026-08-18 17:00:00",
+          "duration": "PT90M",
+          "agent": "agent-south-cold",
+          "moved": false
+        },
+        {
+          "id": "ticket-south-09-bms-sensor-calibration",
+          "pinned": false,
+          "depo_id": "depo-south",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "bms_controls",
+            "electrical_service"
+          ],
+          "qualification_levels_required": {
+            "bms_controls": 2.0,
+            "electrical_service": 2.0
+          },
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "items": [
+            {
+              "sku": "sku-bms-sensor-kit",
+              "value": 4
+            }
+          ],
+          "weight": 4.8,
+          "vol": 0.032,
+          "loc": "poi-s06",
+          "create_time": "2026-08-17 10:00:00",
+          "min_start_time": "2026-08-18 14:00:00",
+          "max_end_time": "2026-08-18 18:00:00",
+          "duration": "PT60M",
+          "agent": "agent-south-systems",
+          "moved": false
+        },
+        {
+          "id": "ticket-south-10-rooftop-hvac-service",
+          "pinned": false,
+          "depo_id": "depo-south",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "hvac_mechanical",
+            "electrical_service",
+            "working_at_height"
+          ],
+          "qualification_levels_required": {
+            "hvac_mechanical": 2.0,
+            "electrical_service": 2.0,
+            "working_at_height": 2.0
+          },
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "items": [
+            {
+              "sku": "sku-filter-kit",
+              "value": 2
+            },
+            {
+              "sku": "sku-fan-motor",
+              "value": 1
+            },
+            {
+              "sku": "sku-mounting-kit",
+              "value": 1
+            }
+          ],
+          "weight": 40.0,
+          "vol": 0.365,
+          "loc": "poi-s07",
+          "create_time": "2026-08-17 10:00:00",
+          "min_start_time": "2026-08-18 15:00:00",
+          "max_end_time": "2026-08-18 19:00:00",
+          "duration": "PT120M",
+          "agent": "agent-south-cold",
+          "moved": false
+        },
+        {
+          "id": "ticket-south-11-switchboard-thermal-inspection",
+          "pinned": false,
+          "depo_id": "depo-south",
+          "type": "Inst",
+          "status": "New",
+          "skills_required": [
+            "electrical_service"
+          ],
+          "qualification_levels_required": {
+            "electrical_service": 2.0
+          },
+          "dep_tickets": [],
+          "ref_tickets": [],
+          "items": [
+            {
+              "sku": "sku-electrical-service-kit",
+              "value": 2
+            }
+          ],
+          "weight": 6.0,
+          "vol": 0.036,
+          "loc": "poi-s08",
+          "create_time": "2026-08-17 10:00:00",
+          "min_start_time": "2026-08-18 16:30:00",
+          "max_end_time": "2026-08-18 19:30:00",
+          "duration": "PT60M",
+          "agent": "agent-south-hvac",
+          "moved": false
+        }
+      ],
+      "cost_parameter": {
+        "start_price": 135.0,
+        "node_fee": 18.0,
+        "max_overload_ratio": 1.05,
+        "overload_fee": 350.0,
+        "cross_region_threshold": 18000.0,
+        "cross_region_fee": 45.0,
+        "guaranteed_income": 300.0,
+        "time_restricted_traffic_charge": 40.0,
+        "elec_price": 0.24,
+        "gas_92_price": 2.94
+      },
+      "constraint_configuration": {
+        "name": "aucklandHereComplex",
+        "agent_capacity": "1hard/0medium/0soft",
+        "agent_max_ticket": "1hard/0medium/0soft",
+        "service_finished_after_max_end_time": "1hard/0medium/0soft",
+        "ref_ticket_after_dep_ticket": "1hard/0medium/0soft",
+        "ref_ticket_same_agent_with_dep_ticket": "1hard/0medium/0soft",
+        "balance_agent_loading": "0hard/5medium/0soft",
+        "balance_agent_loading_ratio": "0hard/0medium/0soft",
+        "balance_agent_working_time": "0hard/3medium/0soft",
+        "minimize_travel_time": "0hard/0medium/2soft",
+        "minimize_travel_distance": "0hard/0medium/1soft",
+        "minimize_agent_fixed_cost": "0hard/0medium/1soft",
+        "minimize_ticket_changing": "0hard/0medium/0soft",
+        "agent_skills_accord_with_ticket_skills": "1hard/0medium/0soft",
+        "ticket_arrival_time_same_date_with_plan_time": "1hard/0medium/0soft",
+        "ticket_start_service_time_match_expected": "0hard/0medium/200soft",
+        "agent_qualification_levels_match_ticket": "1hard/0medium/0soft",
+        "same_depo": "1hard/0medium/0soft",
+        "relation_tickets_same_agent": "1hard/0medium/0soft",
+        "agent_is_virtual": "0hard/1000medium/0soft"
+      }
+    }
+  },
+  "solve_options": {
+    "solve_time": "PT2M",
+    "matrix_mode": "ROUTING",
+    "build_transit_matrix": true,
+    "draw_route": true
+  }
+}

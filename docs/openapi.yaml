@@ -1,0 +1,1767 @@
+---
+openapi: 3.0.3
+info:
+  title: vrp-0 API
+  version: 1.0.4-alpha-SNAPSHOT
+tags:
+- name: VRP求解引擎
+  description: 维护单例当前场景、求解任务历史和最新任务指针的 VRP 求解引擎
+- name: 地址查询生成
+  description: 根据关键词、城市/adcode、类型批量生成真实地址
+- name: 场景路由
+  description: VRP单例场景的查询与更新
+- name: 节点信息查询配置
+  description: 查询/配置API私钥及限流策略
+paths:
+  /:
+    get:
+      tags:
+      - 节点信息查询配置
+      summary: 跳转到静态控制台
+      responses:
+        "303":
+          description: 重定向到静态控制台入口
+  /amap_conf:
+    get:
+      tags:
+      - 节点信息查询配置
+      summary: 查询API私钥及限流策略
+      responses:
+        "200":
+          description: API私钥及限流策略
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Conf'
+  /map_context:
+    get:
+      tags:
+      - 节点信息查询配置
+      summary: 获取当前地图 SDK 上下文
+      responses:
+        "200":
+          description: 当前图商的浏览器地图上下文
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MapContext'
+  /matrix:
+    get:
+      tags:
+      - 节点信息查询配置
+      summary: 获取进程内 AMap 路由缓存矩阵
+      description: 只访问 AmapTransitCalculator 的进程内缓存，不读取当前场景或求解任务中的矩阵。仅 MAP_PROVIDER=AMAP
+        时可用。
+      responses:
+        "200":
+          description: 进程内 AMap 路由缓存矩阵
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransitMatrix'
+        "412":
+          description: 当前地图提供方不是 AMap
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+    post:
+      tags:
+      - 节点信息查询配置
+      summary: 替换进程内 AMap 路由缓存矩阵
+      description: 只更新 AmapTransitCalculator 的进程内缓存，不写入当前场景或求解任务中的矩阵。仅 MAP_PROVIDER=AMAP
+        时可用。
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransitMatrix'
+      responses:
+        "200":
+          description: 执行结果信息
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Msg'
+        "412":
+          description: 当前地图提供方不是 AMap
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+  /mcp/doc:
+    get:
+      tags:
+      - 节点信息查询配置
+      summary: 打开 MCP 参考文档
+      responses:
+        "200":
+          description: MCP Markdown 文档
+        "404":
+          description: 文档不存在
+  /mcp/meta:
+    get:
+      tags:
+      - 节点信息查询配置
+      summary: 查询 MCP 接入摘要
+      responses:
+        "200":
+          description: MCP 接入摘要
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/McpMeta'
+  /pois:
+    get:
+      tags:
+      - 地址查询生成
+      summary: 按关键词查询 POI
+      parameters:
+      - name: city
+        in: query
+        description: 城市/adcode
+        schema:
+          type: string
+      - name: keywords
+        in: query
+        description: 关键词
+        required: true
+        schema:
+          type: string
+      - name: page
+        in: query
+        description: 累计查询页数
+        schema:
+          format: int64
+          default: 1
+          minimum: 1
+          type: integer
+      - name: types
+        in: query
+        description: 类型
+        schema:
+          type: string
+      responses:
+        "200":
+          description: 真实地址列表
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/POI'
+        "400":
+          description: 参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+        "412":
+          description: 当前地图提供方不可用
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+        "500":
+          description: 请求当前地图提供方接口异常
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+  /pois/geocode:
+    get:
+      tags:
+      - 地址查询生成
+      summary: 按地址文本执行地理编码
+      parameters:
+      - name: city
+        in: query
+        description: 城市/adcode
+        schema:
+          type: string
+      - name: keywords
+        in: query
+        description: 关键词
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: 地理编码候选结果
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/POI'
+        "400":
+          description: 参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+        "412":
+          description: 当前地图提供方不可用
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+        "500":
+          description: 请求当前地图提供方接口异常
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+  /pois/regeocode:
+    get:
+      tags:
+      - 地址查询生成
+      summary: 按经纬度执行逆地理编码
+      parameters:
+      - name: location
+        in: query
+        description: "经纬度，格式：lng,lat"
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: 逆地理编码结果
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/POI'
+        "400":
+          description: 参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+        "412":
+          description: 当前地图提供方不可用
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+        "500":
+          description: 请求当前地图提供方接口异常
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+  /quota:
+    get:
+      tags:
+      - 节点信息查询配置
+      summary: 查询API私钥及限流策略（前端配置页口径）
+      responses:
+        "200":
+          description: API私钥及限流策略
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Conf'
+    put:
+      tags:
+      - 节点信息查询配置
+      summary: 更新API私钥及限流策略
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Conf'
+      responses:
+        "200":
+          description: 已保存的API私钥及限流策略
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Conf'
+  /scenario:
+    get:
+      tags:
+      - 场景路由
+      summary: 获取当前场景
+      responses:
+        "200":
+          description: 当前场景
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Scenario'
+        "404":
+          description: 当前没有场景
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+    put:
+      tags:
+      - 场景路由
+      summary: 创建或更新当前场景
+      description: 保存时，已有坐标的 POI 仅在地址或城市为空时执行逆地理解析，并且只补齐缺失的地址和城市；无坐标但有地址的 POI 保持既有正向解析行为。已填写字段不会被自动覆盖，解析失败不会阻断保存。
+      operationId: putScenario
+      parameters:
+      - name: build
+        in: query
+        description: 是否在普通的缺失位置补全之外，进一步完整构建 POI 和场景在途矩阵
+        schema:
+          default: false
+          type: boolean
+      - name: matrix_mode
+        in: query
+        description: 在途矩阵构建模式：ROUTING 使用当前 MAP_PROVIDER，MANHATTAN 使用离线估算；AMAP 仅兼容旧调用
+        schema:
+          allOf:
+          - $ref: '#/components/schemas/MatrixMode'
+          - default: ROUTING
+      - name: replace
+        in: query
+        description: 是否按导入替换场景处理；为 true 时会清理历史求解任务
+        schema:
+          default: false
+          type: boolean
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Scenario'
+      responses:
+        "200":
+          description: 已保存的当前场景
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Scenario'
+        "409":
+          description: 当前求解任务运行中，不允许修改场景
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+    delete:
+      tags:
+      - 场景路由
+      summary: 删除当前场景
+      responses:
+        "200":
+          description: 处理结果信息
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Msg'
+        "404":
+          description: 当前没有场景
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+        "409":
+          description: 当前求解任务运行中，不允许删除场景
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+  /scenario/available_agents:
+    get:
+      tags:
+      - 场景路由
+      summary: 按2小时颗粒度获取当前场景空闲工程师数量
+      responses:
+        "200":
+          description: 规划时间范围内的可用工程师数量数组（2小时一段）
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AvailableAgentWindow'
+  /scenario/optional:
+    get:
+      tags:
+      - 场景路由
+      summary: 获取当前场景，若不存在则返回 JSON null
+      responses:
+        "200":
+          description: 当前场景；不存在时返回 JSON null
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Scenario'
+  /solver_job:
+    get:
+      tags:
+      - VRP求解引擎
+      summary: 获取当前求解任务
+      parameters:
+      - name: remove_virtual
+        in: query
+        description: 是否清除虚拟工程师指派
+        schema:
+          default: false
+          type: boolean
+      responses:
+        "200":
+          description: 当前求解任务
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SolverJob'
+        "404":
+          description: 当前没有求解任务
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+    post:
+      tags:
+      - VRP求解引擎
+      summary: 基于当前场景提交求解
+      parameters:
+      - name: build_transit_matrix
+        in: query
+        description: 记录到任务并用于列表筛选的矩阵构建选项；当前求解阶段不会重新构建输入矩阵
+        schema:
+          default: false
+          type: boolean
+      - name: callback
+        in: query
+        description: 求解完成回调URL
+        schema:
+          default: ""
+          type: string
+      - name: draw_route
+        in: query
+        description: 是否生成完整路线规划
+        schema:
+          type: boolean
+      - name: matrix_mode
+        in: query
+        description: 记录到任务的矩阵方式元数据：ROUTING、MANHATTAN；当前求解要求输入矩阵已预先构建，AMAP 仅兼容旧调用
+        schema:
+          allOf:
+          - $ref: '#/components/schemas/MatrixMode'
+          - default: ROUTING
+      - name: solve_time
+        in: query
+        description: 期望求解时间，ISO 8601 duration format
+        schema:
+          default: PT30S
+          type: string
+      responses:
+        "200":
+          description: 已提交的当前求解任务
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SolverJob'
+        "404":
+          description: 当前没有场景
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+        "409":
+          description: 已有运行中的求解任务
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+    delete:
+      tags:
+      - VRP求解引擎
+      summary: 删除当前求解任务
+      responses:
+        "200":
+          description: 请求成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Msg'
+        "404":
+          description: 当前没有求解任务
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+  /solver_job/apply:
+    post:
+      tags:
+      - VRP求解引擎
+      summary: 将当前求解结果应用到当前场景
+      responses:
+        "200":
+          description: 应用后的当前场景
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Scenario'
+        "404":
+          description: 当前没有场景或求解任务
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+  /solver_job/list:
+    get:
+      tags:
+      - VRP求解引擎
+      summary: 按条件获取求解任务历史列表
+      description: 未传筛选条件时返回全部任务，并按创建时间倒序排列。创建时间范围使用 ISO 本地日期时间，首尾均包含。
+      parameters:
+      - name: build_transit_matrix
+        in: query
+        description: 按任务记录中的矩阵构建选项筛选
+        schema:
+          type: boolean
+      - name: create_time_from
+        in: query
+        description: 创建时间起点（ISO 本地日期时间，包含）
+        schema:
+          pattern: yyyy-MM-dd'T'HH:mm:ss
+          type: string
+      - name: create_time_to
+        in: query
+        description: 创建时间终点（ISO 本地日期时间，包含）
+        schema:
+          pattern: yyyy-MM-dd'T'HH:mm:ss
+          type: string
+      - name: draw_route
+        in: query
+        description: 是否生成完整路线规划
+        schema:
+          type: boolean
+      - name: matrix_mode
+        in: query
+        description: 按任务记录中的矩阵方式筛选：ROUTING、MANHATTAN；AMAP 兼容旧记录
+        schema:
+          $ref: '#/components/schemas/MatrixMode'
+      - name: status
+        in: query
+        description: 任务状态
+        schema:
+          $ref: '#/components/schemas/Status1'
+      responses:
+        "400":
+          description: 筛选参数非法
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+        "200":
+          description: 求解任务摘要列表
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SolverJobSummary'
+  /solver_job/terminate:
+    post:
+      tags:
+      - VRP求解引擎
+      summary: 终止当前求解任务
+      responses:
+        "200":
+          description: 当前求解任务
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SolverJob'
+        "404":
+          description: 当前没有求解任务
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+  /solver_job/{id}:
+    get:
+      tags:
+      - VRP求解引擎
+      summary: 按任务ID获取求解任务
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/UUID'
+      - name: remove_virtual
+        in: query
+        description: 是否清除虚拟工程师指派
+        schema:
+          default: false
+          type: boolean
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SolverJob'
+    delete:
+      tags:
+      - VRP求解引擎
+      summary: 删除指定求解任务
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/UUID'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Msg'
+  /solver_job/{id}/apply:
+    post:
+      tags:
+      - VRP求解引擎
+      summary: 将指定求解结果应用到当前场景
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/UUID'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Scenario'
+components:
+  schemas:
+    AgentEachDay:
+      required:
+      - id
+      type: object
+      properties:
+        start_loc:
+          description: 开始位置。可传 plan.pois 中 POI 的 ID 字符串，或直接传 POI 对象。
+          example: B0G2X7N5D2
+          oneOf:
+          - type: string
+          - $ref: '#/components/schemas/POI'
+        name:
+          type: string
+        depo_id:
+          description: 网点ID
+          type: string
+        skills:
+          description: 服务技能
+          type: array
+          items:
+            type: string
+        qualification_levels:
+          description: 工程师资质等级
+          type: object
+          additionalProperties:
+            format: double
+            type: number
+        vehicle_type:
+          description: 出行方式
+          type: string
+          allOf:
+          - $ref: '#/components/schemas/VehicleType'
+        fuel_type:
+          description: 燃料类型
+          type: string
+          allOf:
+          - $ref: '#/components/schemas/FuelType'
+        fuel_consumption:
+          format: double
+          description: 每百公里燃油/电能消耗：GAS_92 为 L/100km，ELEC 为 kWh/100km
+          type: number
+        rented:
+          description: 是否租借
+          type: boolean
+        fix_cost_daily:
+          format: double
+          description: 每日固定成本，单位元/日
+          type: number
+        size:
+          format: int32
+          description: 车辆大小
+          type: integer
+        height:
+          format: double
+          description: 车辆高度
+          type: number
+        width:
+          format: double
+          description: 车辆宽度
+          type: number
+        weight:
+          format: double
+          description: 核定载重，单位吨
+          type: number
+        vol:
+          format: double
+          description: 核定体积，单位立方米
+          type: number
+        routes:
+          description: 路线
+          type: array
+          items:
+            $ref: '#/components/schemas/Route'
+        matrix:
+          description: 在途矩阵句柄
+          type: object
+          allOf:
+          - $ref: '#/components/schemas/TransitMatrix'
+        cost_parameter:
+          description: 成本参数
+          type: object
+          allOf:
+          - $ref: '#/components/schemas/CostParameter'
+        virtual:
+          description: 是否虚拟工程师
+          type: boolean
+        date:
+          description: 日期
+          type: string
+          allOf:
+          - $ref: '#/components/schemas/LocalDate'
+        restrict:
+          description: 是否当日限行
+          type: boolean
+        max_ticket_num:
+          format: int32
+          description: 当日最大接单量
+          type: integer
+        shift_start_time:
+          description: 最早指派时间
+          type: string
+          allOf:
+          - $ref: '#/components/schemas/LocalDateTime'
+        shift_off_time:
+          description: 最晚完成时间
+          type: string
+          allOf:
+          - $ref: '#/components/schemas/LocalDateTime'
+        tickets:
+          description: 分配工单ID列表
+          type: array
+          items:
+            type: string
+          example:
+          - ticket-1
+          - ticket-2
+        id:
+          type: string
+        transit_weight:
+          format: double
+          type: number
+          readOnly: true
+        transit_vol:
+          format: double
+          type: number
+          readOnly: true
+        transit_loading:
+          type: object
+          allOf:
+          - $ref: '#/components/schemas/Capacity'
+          readOnly: true
+        total_driving_time_seconds:
+          format: int64
+          type: integer
+          readOnly: true
+        total_driving_distance_meters:
+          format: int64
+          type: integer
+          readOnly: true
+        tickets_done_time:
+          type: string
+          allOf:
+          - $ref: '#/components/schemas/LocalDateTime'
+          readOnly: true
+    AvailableAgentWindow:
+      type: object
+      properties:
+        start_time:
+          $ref: '#/components/schemas/LocalDateTime'
+        end_time:
+          $ref: '#/components/schemas/LocalDateTime'
+        available_agents:
+          format: int32
+          type: integer
+    Capacity:
+      type: object
+      properties:
+        weight:
+          format: double
+          type: number
+        vol:
+          format: double
+          type: number
+    Conf:
+      type: object
+      properties:
+        key:
+          type: string
+        qps:
+          format: int32
+          type: integer
+        quota:
+          format: int64
+          type: integer
+        interval:
+          $ref: '#/components/schemas/Duration'
+        wait_timeout:
+          $ref: '#/components/schemas/Duration'
+        geocode_provider:
+          $ref: '#/components/schemas/GeocodeProvider'
+        address_resolver_url:
+          type: string
+        address_resolver_fallback_to_amap:
+          type: boolean
+    CostParameter:
+      type: object
+      properties:
+        start_price:
+          format: double
+          description: 起步价
+          type: number
+        node_fee:
+          format: double
+          description: 节点费
+          type: number
+        max_overload_ratio:
+          format: double
+          description: 最大超载比例
+          type: number
+        overload_fee:
+          format: double
+          description: 超载费
+          type: number
+        cross_region_threshold:
+          format: double
+          description: 跨区阈值 (米)
+          type: number
+        cross_region_fee:
+          format: double
+          description: 跨区费
+          type: number
+        guaranteed_income:
+          format: double
+          description: 保底费，单位元/车次
+          type: number
+        time_restricted_traffic_charge:
+          format: double
+          description: 限行时段内行驶的额外费用
+          type: number
+        elec_price:
+          format: double
+          description: 电费
+          type: number
+        gas_92_price:
+          format: double
+          description: 92油费
+          type: number
+    Depo:
+      required:
+      - id
+      type: object
+      properties:
+        loc:
+          description: 位置。可传 plan.pois 中 POI 的 ID 字符串，或直接传 POI 对象。
+          example: B0G2X7N5D2
+          oneOf:
+          - type: string
+          - $ref: '#/components/schemas/POI'
+        id:
+          description: 仓库id
+          type: string
+        name:
+          description: 仓库名称
+          type: string
+    Duration:
+      format: duration
+      type: string
+      example: P1D
+    ErrorInfo:
+      description: 统一 REST 错误响应。网页客户端使用 error_code 和 error_params 本地化展示，message 仅保留给兼容客户端和诊断。
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/UUID'
+        error_code:
+          description: 稳定、面向机器的错误码
+          type: string
+        error_params:
+          description: 错误码插值所需的非敏感参数
+          type: object
+          additionalProperties:
+            type: string
+        message:
+          description: 向后兼容的服务端诊断消息；网页不得直接展示
+          type: string
+    ExtendedClassInfo:
+      type: object
+      properties:
+        exact:
+          type: boolean
+        location:
+          type: string
+        version:
+          type: string
+    ExtendedStackTraceElement:
+      type: object
+      properties:
+        extraClassInfo:
+          $ref: '#/components/schemas/ExtendedClassInfo'
+        stackTraceElement:
+          type: object
+        className:
+          type: string
+        exact:
+          type: boolean
+        fileName:
+          type: string
+        lineNumber:
+          format: int32
+          type: integer
+        location:
+          type: string
+        methodName:
+          type: string
+        version:
+          type: string
+        nativeMethod:
+          type: boolean
+    FuelType:
+      enum:
+      - GAS_92
+      - ELEC
+      type: string
+    GeocodeProvider:
+      enum:
+      - AMAP
+      - ADDR_RESOLVER
+      type: string
+    Item:
+      type: object
+      properties:
+        sku:
+          description: SKU ID
+          type: string
+          example: sku-1
+        value:
+          format: int64
+          type: integer
+    LOC:
+      type: object
+      properties:
+        lat:
+          format: double
+          type: number
+        lon:
+          format: double
+          type: number
+    LocalDate:
+      format: date
+      type: string
+      example: 2022-03-10
+    LocalDateTime:
+      format: date-time
+      type: string
+      example: 2022-03-10T12:15:50
+    MapContext:
+      description: 当前地图 SDK 上下文
+      type: object
+      properties:
+        provider:
+          type: string
+        enabled:
+          type: boolean
+        browser_key:
+          type: string
+        js_url:
+          type: string
+        css_url:
+          type: string
+        coordinate_system:
+          type: string
+        locale:
+          type: string
+    MapProvider:
+      description: 地图服务提供商
+      enum:
+      - AMAP
+      - HERE
+      type: string
+    MatrixMode:
+      enum:
+      - ROUTING
+      - MANHATTAN
+      - AMAP
+      type: string
+    McpMeta:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+        path:
+          type: string
+        allowed_origins:
+          type: array
+          items:
+            type: string
+        tools:
+          type: array
+          items:
+            type: string
+        transport:
+          type: string
+        auth_mode:
+          type: string
+    Metrics:
+      type: object
+      properties:
+        distance_total:
+          format: int64
+          type: integer
+        duration_total:
+          format: int64
+          type: integer
+        ton_total:
+          format: double
+          type: number
+        cost_total:
+          format: double
+          type: number
+        cost_per_ton_per_km:
+          format: double
+          type: number
+        score:
+          type: string
+          example: 0hard/-5medium/-79909soft
+    Msg:
+      type: object
+      properties:
+        code:
+          format: int32
+          type: integer
+        msg:
+          type: string
+    POI:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        location:
+          description: 经纬度
+          type: string
+        loc:
+          $ref: '#/components/schemas/LOC'
+        address:
+          description: 详细地址
+          type: string
+        pcode:
+          description: 所属省份编码
+          type: string
+        type:
+          description: 所属类型
+          type: string
+        photos:
+          description: ' poi 图片相关信息'
+          type: array
+          items:
+            $ref: '#/components/schemas/Photo'
+        gridcode:
+          description: ' poi 的地理格 id'
+          type: string
+        typecode:
+          description: 分类编码
+          type: string
+        citycode:
+          description: 所属城市编码
+          type: string
+        adname:
+          description: 所属区域名称
+          type: string
+        entr_location:
+          description: 入口经纬度坐标
+          type: string
+        entr_loc:
+          $ref: '#/components/schemas/LOC'
+        adcode:
+          description: 所属区域编码
+          type: string
+        pname:
+          description: 所属省份名称
+          type: string
+        cityname:
+          description: 所属城市名称
+          type: string
+    Photo:
+      type: object
+      properties:
+        title:
+          type: string
+        url:
+          type: string
+    RecordType:
+      enum:
+      - BEST_SOLUTION
+      - SEARCH_SAMPLE
+      - FINAL_SOLUTION
+      type: string
+    Route:
+      type: object
+      properties:
+        origin:
+          description: 路线起点
+          type: object
+          allOf:
+          - $ref: '#/components/schemas/LOC'
+        destination:
+          description: 路线终点
+          type: object
+          allOf:
+          - $ref: '#/components/schemas/LOC'
+        polyline:
+          description: 道路轨迹坐标；估算路线时为空
+          type: array
+          items:
+            $ref: '#/components/schemas/LOC'
+        transit:
+          description: 路线距离与时长
+          type: object
+          allOf:
+          - $ref: '#/components/schemas/Transit'
+        tolls:
+          format: int64
+          description: 通行费，单位元
+          type: integer
+        route_source:
+          description: 本段路线的最终来源
+          type: string
+          allOf:
+          - $ref: '#/components/schemas/RouteSource'
+        routing_failures:
+          description: 生成本段路线期间发生的路径服务失败记录
+          type: array
+          items:
+            $ref: '#/components/schemas/RoutingFailure'
+    RoutePlan:
+      required:
+      - depos
+      - agents
+      - tickets
+      type: object
+      properties:
+        skus:
+          type: array
+          items:
+            $ref: '#/components/schemas/SKU'
+        pois:
+          description: 地址信息
+          type: array
+          items:
+            $ref: '#/components/schemas/POI'
+        depos:
+          description: 仓库地址
+          type: array
+          items:
+            $ref: '#/components/schemas/Depo'
+        agents:
+          description: 工程师/车辆列表
+          type: array
+          items:
+            $ref: '#/components/schemas/AgentEachDay'
+        tickets:
+          description: 工单列表
+          type: array
+          items:
+            $ref: '#/components/schemas/Ticket'
+        matrix:
+          description: 迁移矩阵
+          type: object
+          allOf:
+          - $ref: '#/components/schemas/TransitMatrix'
+        constraint_configuration:
+          description: 约束配置项
+          type: object
+          allOf:
+          - $ref: '#/components/schemas/RoutePlanConstraintConfiguration'
+        cost_parameter:
+          description: 成本参数
+          type: object
+          allOf:
+          - $ref: '#/components/schemas/CostParameter'
+        score:
+          description: 规划评分
+          type: string
+          example: 0hard/-5medium/-79909soft
+        score_explanation:
+          description: 求解解释，内部字段，不需要传参
+          type: string
+        metrics:
+          type: object
+          allOf:
+          - $ref: '#/components/schemas/Metrics'
+          readOnly: true
+    RoutePlanConstraintConfiguration:
+      type: object
+      properties:
+        name:
+          type: string
+        车辆装载容量限制:
+          description: agent装载不能超过其设计上限，相关字段：agent.weight、agent.vol，默认惩罚：1 Hard
+          type: string
+        最大接单:
+          description: agent最大接单量不应大于设置值，相关字段：agent.max_ticket_num，默认惩罚：1 Hard
+          type: string
+        标签匹配:
+          description: 所指派agent的标签包含ticket标签，相关字段：agent.skills、ticket.skillsRequired，默认惩罚：1
+            Hard
+          type: string
+        需求技能等级匹配:
+          description: agent等级与ticket等级相匹配，相关字段：agent.qualificationLevels、ticket.qualificationLevelsRequired，默认惩罚：100
+            medium
+          type: string
+        工单时序因果依赖:
+          description: 下一级ticket的完成时间必须晚于上级ticket，相关字段：ticket.dep_tickets、ticket.ref_tickets，默认惩罚：0
+            Hard（未启用）
+          type: string
+        工单工程师依赖:
+          description: 下一级ticket与上级ticket必须分配给同一agent，相关字段：ticket.dep_tickets、ticket.ref_tickets、ticket.agent_id，默认惩罚：0
+            Hard（未启用）
+          type: string
+        工单截止时间:
+          description: ticket完成不能晚于最后截止时间，相关字段：ticket.max_end_time，默认惩罚：0 Hard（未启用）
+          type: string
+        时间窗约束:
+          description: ticket在客户预期时间上门，相关字段：ticket.min_start_time、ticket.max_end_time，默认惩罚：100
+            Soft（每分钟）
+          type: string
+        当日指派:
+          description: ticket必须在当日指派工程师，相关字段：ticket.create_time，默认惩罚：1 Hard
+          type: string
+        关联工单相同指派:
+          description: ticket与其关联ticket尽量派发给相同工程师，相关字段：ticket.relation_tickets，默认惩罚：50
+            Medium
+          type: string
+        最小行驶时间:
+          description: 所有agent的总在途时间尽可能小，默认惩罚：1 Soft（每分钟）
+          type: string
+        最化行驶距离:
+          description: 所有agent的总在途里程尽可能小，默认惩罚：0 Soft（每米）（未启用）
+          type: string
+        最小固定成本:
+          description: 总固定成本最小，默认惩罚：20 Soft（每元）
+          type: string
+        工单工程师同网点:
+          description: ticket只能指派给同网点的agent，相关字段：agent.depo_id、ticket.depo_id，默认惩罚：1
+            Hard
+          type: string
+        工单负载均衡:
+          description: 分配给每个agent的ticket应差异不大，相关字段：agent.tickets，默认惩罚：1 Medium
+          type: string
+        负载比例均衡:
+          description: 每个agent的有效载荷使用比例应该差异不大，默认惩罚：0 Medium（未启用）
+          type: string
+        工作时长负载均衡:
+          description: 每个agent的预期工作时长应该差异不大，默认惩罚：0 Medium（未启用）
+          type: string
+        最小工单变更:
+          description: 尽量不要改派已经分配的工单，默认惩罚：1000 Soft
+          type: string
+        虚拟工程师:
+          description: 超约束优化时使用，需要权衡业务场景和客户需求设计惩罚值。如果违背时间窗约束带来的惩罚大于虚拟工程师的惩罚，求解时倾向于虚拟工程师指派，也就是说该工单不进行配送，反之亦然。默认惩罚：1000
+            Medium
+          type: string
+    RouteSource:
+      description: 路线来源
+      enum:
+      - AMAP_TRUCK
+      - AMAP_DRIVING
+      - AMAP_BICYCLE
+      - HERE_TRUCK
+      - HERE_DRIVING
+      - HERE_BICYCLE
+      - CAR_FALLBACK
+      - ESTIMATED
+      - ZERO_DISTANCE
+      type: string
+    RoutingFailure:
+      description: 路径服务失败信息
+      type: object
+      properties:
+        vehicle_type:
+          description: 请求路径服务时使用的车辆类型
+          type: string
+        endpoint:
+          description: 不含查询参数和密钥的路径服务接口标识
+          type: string
+        code:
+          description: 路径服务或客户端的错误码
+          type: string
+        message:
+          description: 脱敏后的错误原因
+          type: string
+    SKU:
+      required:
+      - id
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        weight:
+          format: float
+          description: 重量
+          type: number
+        vol:
+          format: float
+          description: 体积
+          type: number
+    Scenario:
+      required:
+      - name
+      - planning_date
+      - start_time
+      - end_time
+      - plan
+      type: object
+      properties:
+        id:
+          type: string
+          allOf:
+          - $ref: '#/components/schemas/UUID'
+          writeOnly: true
+        name:
+          description: 场景名称
+          type: string
+        desc:
+          description: 场景描述
+          type: string
+        map_provider:
+          description: 场景坐标及地图能力使用的图商；缺省时由当前 MAP_PROVIDER 补齐
+          enum:
+          - AMAP
+          - HERE
+          type: string
+          allOf:
+          - $ref: '#/components/schemas/MapProvider'
+        planning_date:
+          description: 当前规划日期
+          type: string
+          allOf:
+          - $ref: '#/components/schemas/LocalDate'
+        start_time:
+          description: 规划开始日期
+          type: string
+          allOf:
+          - $ref: '#/components/schemas/LocalDateTime'
+        end_time:
+          description: 规划结束日期
+          type: string
+          allOf:
+          - $ref: '#/components/schemas/LocalDateTime'
+        plan:
+          description: 规划方案
+          type: object
+          allOf:
+          - $ref: '#/components/schemas/RoutePlan'
+        create_time:
+          description: 场景创建时间
+          type: string
+          allOf:
+          - $ref: '#/components/schemas/LocalDateTime'
+        update_time:
+          description: 场景更新时间
+          type: string
+          allOf:
+          - $ref: '#/components/schemas/LocalDateTime'
+        poi_build:
+          type: boolean
+          readOnly: true
+        matrix_build:
+          type: boolean
+          readOnly: true
+    SolutionMetrics:
+      description: 求解过程的真实 Best、搜索快照或最终解记录
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/UUID'
+        metrics:
+          $ref: '#/components/schemas/Metrics'
+        create_time:
+          $ref: '#/components/schemas/LocalDateTime'
+        recorded_at_millis:
+          format: int64
+          description: 记录产生时的 Unix 毫秒时间戳
+          type: integer
+        elapsed_millis:
+          format: int64
+          description: 从本次实际搜索开始到记录时刻的毫秒数
+          type: integer
+        search_progress:
+          description: 仅 record_type=SEARCH_SAMPLE 时存在的搜索快照
+          type: object
+          allOf:
+          - $ref: '#/components/schemas/SolverSearchProgress'
+        record_type:
+          description: BEST_SOLUTION 仅在得分严格改善时产生；SEARCH_SAMPLE 为至多每秒一次的搜索快照；FINAL_SOLUTION
+            使用搜索结束时刻
+          type: string
+          allOf:
+          - $ref: '#/components/schemas/RecordType'
+    SolverJob:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/UUID'
+        scenario_name:
+          description: 场景名称
+          type: string
+        name:
+          description: 路径规划方案名称
+          type: string
+        start_date_time:
+          description: 规划开始时间
+          type: string
+          allOf:
+          - $ref: '#/components/schemas/LocalDateTime'
+        end_date_time:
+          description: 规划结束时间
+          type: string
+          allOf:
+          - $ref: '#/components/schemas/LocalDateTime'
+        plan:
+          description: 规划方案
+          type: object
+          allOf:
+          - $ref: '#/components/schemas/RoutePlan'
+        solve_time:
+          description: 求解时长
+          type: string
+          allOf:
+          - $ref: '#/components/schemas/Duration'
+        matrix_mode:
+          description: 任务提交时记录的矩阵方式元数据；当前求解阶段不会据此重建输入矩阵
+          type: string
+        build_transit_matrix:
+          description: 任务提交时记录的矩阵构建选项元数据；当前求解阶段不会据此重建输入矩阵
+          type: boolean
+        draw_route:
+          description: 是否生成完整路线规划
+          type: boolean
+        status:
+          description: 求解状态
+          type: string
+          allOf:
+          - $ref: '#/components/schemas/Status1'
+        score_explanation:
+          description: 求解解释
+          type: string
+        exception:
+          description: 求解时发生的异常
+          type: object
+          allOf:
+          - $ref: '#/components/schemas/ThrowableProxy'
+        solution_metrics_list:
+          type: array
+          items:
+            $ref: '#/components/schemas/SolutionMetrics'
+        create_time:
+          $ref: '#/components/schemas/LocalDateTime'
+        update_time:
+          $ref: '#/components/schemas/LocalDateTime'
+        score:
+          description: "求解得分，其中分为三个部分[hard/medium/soft]，如果hard为负，则认为没有可行解"
+          type: string
+          readOnly: true
+          example: 0hard/-5medium/-79909soft
+        cc_name:
+          type: string
+          readOnly: true
+        constraint_configuration:
+          type: object
+          allOf:
+          - $ref: '#/components/schemas/RoutePlanConstraintConfiguration'
+          readOnly: true
+        cost_parameter:
+          type: object
+          allOf:
+          - $ref: '#/components/schemas/CostParameter'
+          readOnly: true
+        metrics:
+          $ref: '#/components/schemas/Metrics'
+    SolverJobSummary:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/UUID'
+        scenario_name:
+          type: string
+        name:
+          type: string
+        status:
+          $ref: '#/components/schemas/Status1'
+        solve_time:
+          $ref: '#/components/schemas/Duration'
+        matrix_mode:
+          type: string
+        build_transit_matrix:
+          type: boolean
+        draw_route:
+          type: boolean
+        score:
+          description: 当前最佳或最终求解得分，分为 hard/medium/soft 三部分
+          type: string
+          example: 0hard/-5medium/-79909soft
+        create_time:
+          $ref: '#/components/schemas/LocalDateTime'
+        update_time:
+          $ref: '#/components/schemas/LocalDateTime'
+    SolverSearchProgress:
+      description: 求解过程搜索快照
+      type: object
+      properties:
+        current_score:
+          description: 最近完成搜索步骤的得分
+          type: string
+          example: 0hard/-58medium/-4612soft
+        best_score:
+          description: 截至当前的历史最优得分
+          type: string
+          example: 0hard/-54medium/-4341soft
+    Status:
+      enum:
+      - New
+      - Assigned
+      - Accepted
+      - Transit
+      - Working
+      - Agent_Done
+      - Done
+      type: string
+    Status1:
+      enum:
+      - SOLVING_SCHEDULED
+      - SOLVING_ACTIVE
+      - NOT_SOLVING
+      - SOLVING_FINISHED
+      - ERROR
+      type: string
+    ThrowableProxy:
+      type: object
+      properties:
+        causeProxy:
+          $ref: '#/components/schemas/ThrowableProxy'
+        commonElementCount:
+          format: int32
+          type: integer
+        extendedStackTrace:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExtendedStackTraceElement'
+        localizedMessage:
+          type: string
+        message:
+          type: string
+        name:
+          type: string
+        suppressedProxies:
+          type: array
+          items:
+            $ref: '#/components/schemas/ThrowableProxy'
+        extendedStackTraceAsString:
+          type: string
+        stackTrace:
+          type: array
+          items:
+            type: object
+    Ticket:
+      required:
+      - id
+      type: object
+      properties:
+        loc:
+          description: 客户位置。可传 plan.pois 中 POI 的 ID 字符串，或直接传 POI 对象。
+          example: B0G2X7N5D2
+          oneOf:
+          - type: string
+          - $ref: '#/components/schemas/POI'
+        id:
+          type: string
+        pinned:
+          description: 是否固定，固定的工单在规划时不改变指派
+          type: boolean
+        depo_id:
+          description: 网点ID
+          type: string
+        type:
+          description: 工单类型
+          type: string
+          allOf:
+          - $ref: '#/components/schemas/Type'
+        qualification_levels_required:
+          description: 工单资质要求
+          type: object
+          additionalProperties:
+            format: double
+            type: number
+        status:
+          description: 工单状态
+          type: string
+          allOf:
+          - $ref: '#/components/schemas/Status'
+        skills_required:
+          description: 工单所需技能
+          type: array
+          items:
+            type: string
+        dep_tickets:
+          description: 上一级工单列表
+          type: array
+          items:
+            type: string
+          example:
+          - ticket-1
+          - ticket-2
+        ref_tickets:
+          description: 下一级工单列表
+          type: array
+          items:
+            type: string
+          example:
+          - ticket-1
+          - ticket-2
+        items:
+          description: 货物信息
+          type: array
+          items:
+            $ref: '#/components/schemas/Item'
+        weight:
+          format: float
+          description: 工单总重量
+          type: number
+        vol:
+          format: float
+          description: 工单总体积
+          type: number
+        matrix:
+          description: 在途矩阵句柄
+          type: object
+          allOf:
+          - $ref: '#/components/schemas/TransitMatrix'
+        create_time:
+          description: 工单创建时间
+          type: string
+          allOf:
+          - $ref: '#/components/schemas/LocalDateTime'
+        min_start_time:
+          description: 客户预期上门开始时间
+          type: string
+          allOf:
+          - $ref: '#/components/schemas/LocalDateTime'
+        max_end_time:
+          description: 客户预期上门结束时间
+          type: string
+          allOf:
+          - $ref: '#/components/schemas/LocalDateTime'
+        duration:
+          description: 完成时间，单位：分钟
+          type: string
+          allOf:
+          - $ref: '#/components/schemas/Duration'
+        agent:
+          description: 当前指派Agent ID
+          type: string
+          example: agent-1
+        original_agent:
+          description: 原指派Agent ID
+          type: string
+          example: agent-1
+        original_order:
+          format: int32
+          description: 原指派顺序
+          type: integer
+        previous_ticket:
+          description: Agent完成的上一个Ticket ID
+          type: string
+          example: ticket-1
+        next_ticket:
+          description: Agent完成的下一个Ticket ID
+          type: string
+          example: ticket-1
+        arrival_time:
+          description: 到达工单地点时间
+          type: string
+          allOf:
+          - $ref: '#/components/schemas/LocalDateTime'
+        reassign_time:
+          description: 预期改约时间
+          type: string
+          allOf:
+          - $ref: '#/components/schemas/LocalDateTime'
+        cancel_time:
+          description: 预期取消时间
+          type: string
+          allOf:
+          - $ref: '#/components/schemas/LocalDateTime'
+        start_service_time:
+          type: string
+          allOf:
+          - $ref: '#/components/schemas/LocalDateTime'
+          readOnly: true
+        departure_time:
+          type: string
+          allOf:
+          - $ref: '#/components/schemas/LocalDateTime'
+          readOnly: true
+        drivingTimeSecondsFromPreviousStandstill:
+          format: int64
+          type: integer
+          readOnly: true
+        moved:
+          type: boolean
+          readOnly: true
+    Transit:
+      type: object
+      properties:
+        distance:
+          format: int64
+          type: integer
+        duration:
+          format: int64
+          type: integer
+        create_time:
+          $ref: '#/components/schemas/LocalDateTime'
+    TransitMatrix:
+      type: object
+      properties:
+        data:
+          type: object
+          additionalProperties:
+            type: object
+            additionalProperties:
+              $ref: '#/components/schemas/Transit'
+    Type:
+      enum:
+      - Delv
+      - Delv_BH
+      - Inst
+      type: string
+    UUID:
+      format: uuid
+      pattern: "[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}"
+      type: string
+    VehicleType:
+      enum:
+      - TRUCK
+      - CAR
+      - E_BIKE
+      type: string

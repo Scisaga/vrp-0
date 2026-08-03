@@ -1,0 +1,4 @@
+interface:
+  display_name: "VRP0 Metadata"
+  short_description: "Generate VRP0 Gateway metadata files."
+  default_prompt: "Use $vrp0-metadata to create Gateway metadata files for a VRP0 solver release."

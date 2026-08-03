@@ -1,0 +1,26 @@
+{
+  "format": "component_v1",
+  "host_runtime": "scenario_host_runtime_v1",
+  "host_prerequisites": [
+    {
+      "id": "alpine",
+      "version": "3.15.3"
+    }
+  ],
+  "dependencies": {
+    "core": [
+      {
+        "id": "material_symbols_rounded",
+        "version": "2026-06-v1"
+      }
+    ],
+    "views": {
+      "result": [
+        {
+          "id": "plotly_basic",
+          "version": "3.3.1"
+        }
+      ]
+    }
+  }
+}

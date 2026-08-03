@@ -1,0 +1,4 @@
+interface:
+  display_name: "Static UI Skill"
+  short_description: "Maintain static Tailwind + Alpine UI"
+  default_prompt: "Use $static-ui to maintain or extend the static/ UI and return a concise change summary."

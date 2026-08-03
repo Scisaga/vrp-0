@@ -1,0 +1,31 @@
+[
+  {
+    "id": "fixture-poi-1",
+    "name": "Fixture POI 1",
+    "location": "116.421616,39.764968",
+    "entr_location": "116.421700,39.765000",
+    "address": "北京市朝阳区测试地址1号",
+    "pcode": "110000",
+    "type": "商务住宅;住宅区;住宅小区",
+    "typecode": "120000",
+    "citycode": "010",
+    "adname": "朝阳区",
+    "adcode": "110105",
+    "pname": "北京市",
+    "cityname": "北京市"
+  },
+  {
+    "id": "fixture-poi-2",
+    "name": "Fixture POI 2",
+    "location": "116.439156,39.949916",
+    "address": "北京市海淀区测试地址2号",
+    "pcode": "110000",
+    "type": "商务住宅;住宅区;住宅小区",
+    "typecode": "120000",
+    "citycode": "010",
+    "adname": "海淀区",
+    "adcode": "110108",
+    "pname": "北京市",
+    "cityname": "北京市"
+  }
+]

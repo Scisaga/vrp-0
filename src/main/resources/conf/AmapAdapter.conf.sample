@@ -1,0 +1,12 @@
+{
+    "default" : {
+        "app_key": "XXX",
+        "qps": 10,
+        "quota": 1000,
+        "interval": 86400,
+        "wait_timeout": 10,
+        "geocode_provider": "AMAP",
+        "address_resolver_url": "http://127.0.0.1:5000/api/resolve",
+        "address_resolver_fallback_to_amap": false
+    }
+}

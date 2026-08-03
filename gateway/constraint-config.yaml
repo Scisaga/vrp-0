@@ -1,0 +1,149 @@
+{
+  "defaults": {
+    "name": "default",
+    "agent_capacity": "1hard/0medium/0soft",
+    "agent_max_ticket": "1hard/0medium/0soft",
+    "agent_skills_accord_with_ticket_skills": "1hard/0medium/0soft",
+    "agent_qualification_levels_match_ticket": "0hard/100medium/0soft",
+    "ref_ticket_after_dep_ticket": "0hard/0medium/0soft",
+    "ref_ticket_same_agent_with_dep_ticket": "0hard/0medium/0soft",
+    "service_finished_after_max_end_time": "0hard/0medium/0soft",
+    "ticket_start_service_time_match_expected": "0hard/0medium/100soft",
+    "ticket_arrival_time_same_date_with_plan_time": "1hard/0medium/0soft",
+    "relation_tickets_same_agent": "0hard/50medium/0soft",
+    "minimize_travel_time": "0hard/0medium/1soft",
+    "minimize_travel_distance": "0hard/0medium/0soft",
+    "minimize_agent_fixed_cost": "0hard/0medium/20soft",
+    "same_depo": "1hard/0medium/0soft",
+    "balance_agent_loading": "0hard/1medium/0soft",
+    "balance_agent_loading_ratio": "0hard/0medium/0soft",
+    "balance_agent_working_time": "0hard/0medium/0soft",
+    "minimize_ticket_changing": "0hard/0medium/1000soft",
+    "agent_is_virtual": "0hard/1000medium/0soft"
+  },
+  "overridable": {
+    "agent_capacity": {
+      "type": "string",
+      "title": "车辆装载容量限制",
+      "description": "agent装载不能超过其设计上限，相关字段：agent.weight、agent.vol，默认惩罚：1 Hard",
+      "pattern": "^-?\\d+hard/-?\\d+medium/-?\\d+soft$"
+    },
+    "agent_max_ticket": {
+      "type": "string",
+      "title": "最大接单",
+      "description": "agent最大接单量不应大于设置值，相关字段：agent.max_ticket_num，默认惩罚：1 Hard",
+      "pattern": "^-?\\d+hard/-?\\d+medium/-?\\d+soft$"
+    },
+    "agent_skills_accord_with_ticket_skills": {
+      "type": "string",
+      "title": "标签匹配",
+      "description": "所指派agent的标签包含ticket标签，相关字段：agent.skills、ticket.skillsRequired，默认惩罚：1 Hard",
+      "pattern": "^-?\\d+hard/-?\\d+medium/-?\\d+soft$"
+    },
+    "agent_qualification_levels_match_ticket": {
+      "type": "string",
+      "title": "需求技能等级匹配",
+      "description": "agent等级与ticket等级相匹配，相关字段：agent.qualificationLevels、ticket.qualificationLevelsRequired，默认惩罚：100 medium",
+      "pattern": "^-?\\d+hard/-?\\d+medium/-?\\d+soft$"
+    },
+    "ref_ticket_after_dep_ticket": {
+      "type": "string",
+      "title": "工单时序因果依赖",
+      "description": "下一级ticket的完成时间必须晚于上级ticket，相关字段：ticket.dep_tickets、ticket.ref_tickets，默认惩罚：0 Hard（未启用）",
+      "pattern": "^-?\\d+hard/-?\\d+medium/-?\\d+soft$"
+    },
+    "ref_ticket_same_agent_with_dep_ticket": {
+      "type": "string",
+      "title": "工单工程师依赖",
+      "description": "下一级ticket与上级ticket必须分配给同一agent，相关字段：ticket.dep_tickets、ticket.ref_tickets、ticket.agent_id，默认惩罚：0 Hard（未启用）",
+      "pattern": "^-?\\d+hard/-?\\d+medium/-?\\d+soft$"
+    },
+    "service_finished_after_max_end_time": {
+      "type": "string",
+      "title": "工单截止时间",
+      "description": "ticket完成不能晚于最后截止时间，相关字段：ticket.max_end_time，默认惩罚：0 Hard（未启用）",
+      "pattern": "^-?\\d+hard/-?\\d+medium/-?\\d+soft$"
+    },
+    "ticket_start_service_time_match_expected": {
+      "type": "string",
+      "title": "时间窗约束",
+      "description": "ticket在客户预期时间上门，相关字段：ticket.min_start_time、ticket.max_end_time，默认惩罚：100 Soft（每分钟）",
+      "pattern": "^-?\\d+hard/-?\\d+medium/-?\\d+soft$"
+    },
+    "ticket_arrival_time_same_date_with_plan_time": {
+      "type": "string",
+      "title": "当日指派",
+      "description": "ticket必须在当日指派工程师，相关字段：ticket.create_time，默认惩罚：1 Hard",
+      "pattern": "^-?\\d+hard/-?\\d+medium/-?\\d+soft$"
+    },
+    "relation_tickets_same_agent": {
+      "type": "string",
+      "title": "关联工单相同指派",
+      "description": "ticket与其关联ticket尽量派发给相同工程师，相关字段：ticket.relation_tickets，默认惩罚：50 Medium",
+      "pattern": "^-?\\d+hard/-?\\d+medium/-?\\d+soft$"
+    },
+    "minimize_travel_time": {
+      "type": "string",
+      "title": "最小行驶时间",
+      "description": "所有agent的总在途时间尽可能小，默认惩罚：1 Soft（每分钟）",
+      "pattern": "^-?\\d+hard/-?\\d+medium/-?\\d+soft$"
+    },
+    "minimize_travel_distance": {
+      "type": "string",
+      "title": "最化行驶距离",
+      "description": "所有agent的总在途里程尽可能小，默认惩罚：0 Soft（每米）（未启用）",
+      "pattern": "^-?\\d+hard/-?\\d+medium/-?\\d+soft$"
+    },
+    "minimize_agent_fixed_cost": {
+      "type": "string",
+      "title": "最小固定成本",
+      "description": "总固定成本最小，默认惩罚：20 Soft（每元）",
+      "pattern": "^-?\\d+hard/-?\\d+medium/-?\\d+soft$"
+    },
+    "same_depo": {
+      "type": "string",
+      "title": "工单工程师同网点",
+      "description": "ticket只能指派给同网点的agent，相关字段：agent.depo_id、ticket.depo_id，默认惩罚：1 Hard",
+      "pattern": "^-?\\d+hard/-?\\d+medium/-?\\d+soft$"
+    },
+    "balance_agent_loading": {
+      "type": "string",
+      "title": "工单负载均衡",
+      "description": "分配给每个agent的ticket应差异不大，相关字段：agent.tickets，默认惩罚：1 Medium",
+      "pattern": "^-?\\d+hard/-?\\d+medium/-?\\d+soft$"
+    },
+    "balance_agent_loading_ratio": {
+      "type": "string",
+      "title": "负载比例均衡",
+      "description": "每个agent的有效载荷使用比例应该差异不大，默认惩罚：0 Medium（未启用）",
+      "pattern": "^-?\\d+hard/-?\\d+medium/-?\\d+soft$"
+    },
+    "balance_agent_working_time": {
+      "type": "string",
+      "title": "工作时长负载均衡",
+      "description": "每个agent的预期工作时长应该差异不大，默认惩罚：0 Medium（未启用）",
+      "pattern": "^-?\\d+hard/-?\\d+medium/-?\\d+soft$"
+    },
+    "minimize_ticket_changing": {
+      "type": "string",
+      "title": "最小工单变更",
+      "description": "尽量不要改派已经分配的工单，默认惩罚：1000 Soft",
+      "pattern": "^-?\\d+hard/-?\\d+medium/-?\\d+soft$"
+    },
+    "agent_is_virtual": {
+      "type": "string",
+      "title": "虚拟工程师",
+      "description": "超约束优化时使用，需要权衡业务场景和客户需求设计惩罚值。如果违背时间窗约束带来的惩罚大于虚拟工程师的惩罚，求解时倾向于虚拟工程师指派，也就是说该工单不进行配送，反之亦然。默认惩罚：1000 Medium",
+      "pattern": "^-?\\d+hard/-?\\d+medium/-?\\d+soft$"
+    }
+  },
+  "score_format": {
+    "type": "hard_medium_soft_long",
+    "pattern": "Nhard/Nmedium/Nsoft",
+    "example": "0hard/100medium/0soft"
+  },
+  "platform_limits": {
+    "max_orders": 1000,
+    "max_vehicles": 200
+  }
+}

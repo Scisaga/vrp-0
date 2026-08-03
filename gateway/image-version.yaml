@@ -1,0 +1,16 @@
+image:
+  name: x-force/vrp-0
+  version: 1.0.4-alpha-SNAPSHOT
+display_name: VRP0 Solver（AMAP / HERE）
+description: 支持 AMAP 和 HERE 图商的 VRP0 车辆路径求解；地图图商由请求中的 map_provider 选择。
+supported_map_providers:
+  - AMAP
+  - HERE
+base_credit_cost: 10.0000
+duration_credit_per_10s: 2.5000
+limits_json: '{"platform_max_orders":1000,"platform_max_vehicles":200}'
+request_schema_source:
+  type: openapi
+  file: docs/openapi.yaml
+  operation_id: putScenario
+  request_content_type: application/json

@@ -1,0 +1,135 @@
+<div x-data="solverJobListPage" x-init="init()" class="responsive-page-root">
+  <section class="shrink-0 border-b-[1.25px] border-slate-200 bg-white px-[0.9375rem] py-[0.625rem] min-[800px]:px-[1.25rem]">
+    <form class="job-list-filter-form" @submit.prevent="search()">
+      <label class="job-list-filter-field">
+        <span class="field-label" x-text="t('jobs.filter.status')"></span>
+        <select class="field-input field-input-enum job-list-filter-enum" x-model="filters.status">
+          <option value="" x-text="t('common.all')"></option>
+          <option value="SOLVING_SCHEDULED" x-text="t('status.starting')"></option>
+          <option value="SOLVING_ACTIVE" x-text="t('status.solving')"></option>
+          <option value="SOLVING_FINISHED" x-text="t('status.completed')"></option>
+          <option value="ERROR" x-text="t('status.failed')"></option>
+          <option value="NOT_SOLVING" x-text="t('status.notStarted')"></option>
+        </select>
+      </label>
+      <label class="job-list-filter-field job-list-filter-field-date">
+        <span class="field-label" x-text="t('jobs.filter.createdFrom')"></span>
+        <vrp-date-time-24 seconds class="datetime24-input field-input" x-model="filters.createTimeFrom" :aria-label="t('jobs.filter.createdFrom')"></vrp-date-time-24>
+      </label>
+      <label class="job-list-filter-field job-list-filter-field-date">
+        <span class="field-label" x-text="t('jobs.filter.createdTo')"></span>
+        <vrp-date-time-24 seconds class="datetime24-input field-input" x-model="filters.createTimeTo" :aria-label="t('jobs.filter.createdTo')"></vrp-date-time-24>
+      </label>
+      <label class="job-list-filter-field">
+        <span class="field-label" x-text="t('jobs.filter.buildMatrix')"></span>
+        <select class="field-input field-input-enum job-list-filter-enum" x-model="filters.buildTransitMatrix">
+          <option value="" x-text="t('common.all')"></option>
+          <option value="true" x-text="t('boolean.yes')"></option>
+          <option value="false" x-text="t('boolean.no')"></option>
+        </select>
+      </label>
+      <label class="job-list-filter-field">
+        <span class="field-label" x-text="t('jobs.filter.matrixMode')"></span>
+        <select class="field-input field-input-enum job-list-filter-enum job-list-filter-matrix-mode" x-model="filters.matrixMode">
+          <option value="" x-text="t('common.all')"></option>
+          <option value="ROUTING">routing</option>
+          <option value="MANHATTAN">manhattan</option>
+        </select>
+      </label>
+      <label class="job-list-filter-field">
+        <span class="field-label" x-text="t('jobs.filter.drawRoutes')"></span>
+        <select class="field-input field-input-enum job-list-filter-enum" x-model="filters.drawRoute">
+          <option value="" x-text="t('common.all')"></option>
+          <option value="true" x-text="t('boolean.yes')"></option>
+          <option value="false" x-text="t('boolean.no')"></option>
+        </select>
+      </label>
+      <div class="job-list-filter-actions">
+        <button type="submit" class="action-primary job-list-filter-action" :disabled="loading">
+          <span class="material-symbols-rounded text-[22.5px]">search</span>
+          <span x-text="t('common.search')"></span>
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <section class="flex min-h-[30rem] shrink-0 flex-col overflow-hidden min-[1600px]:min-h-0 min-[1600px]:flex-1">
+    <div class="panel-scroll">
+      <template x-if="error">
+        <div class="mx-[1.25rem] mt-[1.25rem] rounded-[0.46875rem] border-[1.25px] border-rose-500/25 bg-rose-500/10 px-[1.25rem] py-[0.9375rem] text-[1.09375rem]/[1.5625rem] text-rose-700" x-text="error"></div>
+      </template>
+      <template x-if="initialLoading">
+        <div class="empty-state min-h-full">
+          <span class="material-symbols-rounded text-[2.8125rem]/[3.125rem] text-slate-500">hourglass_top</span>
+          <div class="text-[1.25rem]/[1.875rem] font-semibold text-slate-900" x-text="t('jobs.loading')"></div>
+        </div>
+      </template>
+      <template x-if="!initialLoading && !jobs.length && !error">
+        <div class="empty-state min-h-full">
+          <span class="material-symbols-rounded text-[2.8125rem]/[3.125rem] text-slate-500">work_history</span>
+          <div class="text-[1.25rem]/[1.875rem] font-semibold text-slate-900" x-text="t('jobs.empty')"></div>
+          <div class="max-w-[45rem] text-[1.09375rem]/[1.5625rem] text-slate-600" x-text="t('jobs.emptyHint')"></div>
+        </div>
+      </template>
+      <template x-if="!initialLoading && jobs.length">
+        <div class="overflow-x-auto">
+          <div class="min-w-[79.6875rem] overflow-hidden bg-white">
+            <div class="solver-job-list-grid grid h-[2.8125rem] items-center border-b-[1.25px] border-slate-200 bg-slate-50 px-[0.625rem] py-[0.46875rem] text-[16.25px] font-medium leading-[1.25rem] text-slate-600">
+              <div class="truncate pr-[0.3125rem]" x-text="t('jobs.column.job')"></div>
+              <div class="truncate pr-[0.3125rem]" x-text="t('jobs.column.status')"></div>
+              <div class="truncate pr-[0.3125rem]" x-text="t('jobs.column.solveDuration')"></div>
+              <div class="truncate pr-[0.3125rem]" x-text="t('jobs.column.matrixMode')"></div>
+              <div class="truncate pr-[0.3125rem]" x-text="t('jobs.column.buildMatrix')"></div>
+              <div class="truncate pr-[0.3125rem]" x-text="t('jobs.column.drawRoutes')"></div>
+              <div class="truncate pr-[0.3125rem]" x-text="t('jobs.column.score')"></div>
+              <div class="truncate pr-[0.3125rem]" x-text="t('jobs.column.createdAt')"></div>
+              <div class="truncate pr-[0.3125rem]" x-text="t('jobs.column.solveFinishedAt')"></div>
+              <div class="truncate text-right" x-text="t('jobs.column.actions')"></div>
+            </div>
+            <template x-for="job in jobs" :key="job.id">
+              <article
+                class="solver-job-list-grid grid h-[3.4375rem] items-center whitespace-nowrap border-b-[1.25px] border-slate-100 px-[0.625rem] py-[0.3125rem] text-[16.25px] last:border-b-0 transition-colors hover:bg-emerald-50 focus:bg-emerald-50 focus:outline-none focus:ring-[2.5px] focus:ring-inset focus:ring-emerald-500/20"
+                role="link"
+                tabindex="0"
+                @click="openDetail(job.id)"
+                @keydown.enter.self="openDetail(job.id)"
+              >
+                <div class="ui-tooltip min-w-0 truncate font-semibold text-slate-950" :data-tooltip="job.name || '--'" data-tooltip-overflow="self" x-text="job.name || '--'"></div>
+                <span class="status-pill justify-self-start" :class="statusInfo(job.status, locale).className" x-text="statusInfo(job.status, locale).text"></span>
+                <div class="font-medium text-slate-900" x-text="displaySolveTime(job.solve_time)"></div>
+                <div class="truncate font-medium text-slate-900" x-text="displayMatrixMode(job.matrix_mode)"></div>
+                <div class="font-medium text-slate-900" x-text="displayBoolean(job.build_transit_matrix, locale)"></div>
+                <div class="font-medium text-slate-900" x-text="displayBoolean(job.draw_route, locale)"></div>
+                <div class="ui-tooltip truncate font-mono text-[13.75px] tabular-nums text-slate-700" :data-tooltip="displayScore(job.score)" data-tooltip-overflow="self">
+                  <template x-if="scoreSegments(job.score).length">
+                    <span class="inline-flex items-center">
+                      <template x-for="segment in scoreSegments(job.score)" :key="segment.key">
+                        <span class="inline-flex items-center">
+                          <span x-show="segment.separator" class="text-slate-400">/</span>
+                          <span :class="segment.colorClass" x-text="segment.text"></span>
+                        </span>
+                      </template>
+                    </span>
+                  </template>
+                  <template x-if="!scoreSegments(job.score).length">
+                    <span x-text="displayScore(job.score)"></span>
+                  </template>
+                </div>
+                <div class="ui-tooltip truncate font-mono text-[13.75px] tabular-nums text-slate-700" :data-tooltip="displayDateTime(job.create_time)" data-tooltip-overflow="self" x-text="displayDateTime(job.create_time)"></div>
+                <div class="ui-tooltip truncate font-mono text-[13.75px] tabular-nums text-slate-700" :data-tooltip="displaySolveFinishTime(job)" data-tooltip-overflow="self" x-text="displaySolveFinishTime(job)"></div>
+                <div class="flex items-center justify-end gap-[0.625rem]">
+                  <button type="button" class="compact-icon-action ui-tooltip" @click.stop="openDetail(job.id)" :data-tooltip="t('jobs.openDetails')" :aria-label="t('jobs.openDetails')">
+                    <span class="material-symbols-rounded text-[22.5px] leading-none">visibility</span>
+                  </button>
+                  <button type="button" class="compact-icon-action ui-tooltip" @click.stop="openMap(job.id)" :data-tooltip="t('jobs.openMap')" :aria-label="t('jobs.openMap')">
+                    <span class="material-symbols-rounded text-[22.5px] leading-none">route</span>
+                  </button>
+                </div>
+              </article>
+            </template>
+          </div>
+        </div>
+      </template>
+    </div>
+  </section>
+</div>

@@ -1,0 +1,864 @@
+<div x-data="scenarioDetailPage" x-init="init()" class="responsive-page-root">
+  <div
+    x-show="flash.message"
+    x-transition.opacity.duration.200ms
+    x-cloak
+    class="pointer-events-none absolute inset-x-0 top-[1.25rem] z-50 flex justify-center px-[1.25rem]"
+  >
+    <div
+      class="pointer-events-auto inline-flex max-w-[35rem] rounded-[0.46875rem] border-[1.25px] px-[1.25rem] py-[0.9375rem] text-[1.09375rem]/[1.5625rem] shadow-[0_31.25px_62.5px_-15px_rgba(0,0,0,0.25)]"
+      :class="flash.tone === 'danger' ? 'border-rose-500/30 bg-white text-rose-700' : 'border-emerald-500/30 bg-white text-emerald-700'"
+    >
+      <div class="flex items-center justify-between gap-[0.9375rem]">
+        <span x-text="flash.message"></span>
+        <button type="button" class="shrink-0 text-slate-700 hover:text-slate-900" @click="clearFlash()" aria-label="关闭提示">
+          <span class="material-symbols-rounded text-[22.5px]">close</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div
+    x-show="hoveredJobId"
+    x-cloak
+    class="fixed z-50 inline-block rounded-[0.46875rem] border-[1.25px] border-slate-300 bg-white px-[0.9375rem] py-[0.625rem] shadow-[0_25px_31.25px_-6.25px_rgba(0,0,0,0.1),0_10px_12.5px_-7.5px_rgba(0,0,0,0.1)]"
+    :style="`left:${hoveredJobTooltip.left}px;top:${hoveredJobTooltip.top}px;max-width:calc(100vw - 40px);`"
+    @mouseenter="clearJobIdHideTimer()"
+    @mouseleave="hideJobIdTooltip(hoveredJobId)"
+  >
+    <button type="button" class="block text-left" @click="copyJobId(hoveredJobId)">
+      <div class="font-mono text-[0.9375rem]/[1.25rem] text-slate-700 whitespace-nowrap" x-text="hoveredJobId"></div>
+    </button>
+  </div>
+
+  <dialog
+    x-ref="skillsDialog"
+    class="overflow-hidden rounded-[0.9375rem] border-[1.25px] border-slate-300 bg-white p-0 text-slate-900 shadow-[0_31.25px_62.5px_-15px_rgba(0,0,0,0.25)] backdrop:bg-white/85"
+    style="width: min(88vw, 45rem); max-height: min(78vh, 37.5rem); margin: auto; inset: 0;"
+    @close="skillsEditor.open = false"
+    @click.self="closeSkillsEditor()"
+  >
+    <div class="flex items-center justify-between border-b-[1.25px] border-slate-200 px-[1.5625rem] py-[1.25rem]">
+      <div>
+        <div class="field-label">技能编辑</div>
+        <div class="mt-[0.3125rem] text-[1.09375rem]/[1.5625rem] font-medium text-slate-900" x-text="skillsEditor.title"></div>
+        <div class="mt-[0.3125rem] text-[0.9375rem]/[1.25rem] text-slate-500">多技能用,分隔</div>
+      </div>
+    </div>
+    <div class="p-[1.5625rem]">
+      <textarea
+        class="field-textarea"
+        style="min-height: 13.75rem;"
+        x-model="skillsEditor.value"
+        placeholder="每行一个技能，或使用逗号分隔"
+      ></textarea>
+      <div class="mt-[1.25rem] flex w-full pr-[0.625rem]">
+        <div class="ml-auto flex items-center gap-[0.625rem]">
+          <button type="button" class="action-secondary" @click="closeSkillsEditor()">取消</button>
+          <button type="button" class="action-primary" @click="applySkillsEditor()">应用</button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog
+    x-ref="descriptionDialog"
+    class="overflow-hidden rounded-[0.9375rem] border-[1.25px] border-slate-300 bg-white p-0 text-slate-900 shadow-[0_31.25px_62.5px_-15px_rgba(0,0,0,0.25)] backdrop:bg-white/85"
+    style="width: min(88vw, 45rem); max-height: min(78vh, 37.5rem); margin: auto; inset: 0;"
+    @close="descriptionEditor.open = false"
+    @click.self="closeDescriptionEditor()"
+  >
+    <div class="flex items-center justify-between border-b-[1.25px] border-slate-200 px-[1.5625rem] py-[1.25rem]">
+      <div class="field-label">编辑场景描述</div>
+      <button type="button" class="compact-icon-action ui-tooltip" @click="closeDescriptionEditor()" aria-label="取消" data-tooltip="取消">
+        <span class="material-symbols-rounded text-[22.5px]">close</span>
+      </button>
+    </div>
+    <div class="p-[1.5625rem]">
+      <textarea
+        x-ref="descriptionEditorInput"
+        rows="6"
+        class="field-textarea h-[10rem] min-h-0 resize-y"
+        x-model="descriptionEditor.value"
+        placeholder="描述当前业务场景、约束来源或调度目标。"
+      ></textarea>
+      <div class="mt-[1.25rem] flex justify-end gap-[0.625rem]">
+        <button type="button" class="action-secondary" @click="closeDescriptionEditor()">取消</button>
+        <button type="button" class="action-primary" @click="applyDescriptionEditor()">应用</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog
+    x-ref="planningDialog"
+    class="scenario-planning-drawer overflow-hidden border-0 border-l-[1.25px] border-slate-200 bg-white p-0 text-slate-900 shadow-[0_31.25px_62.5px_-15px_rgba(0,0,0,0.25)] backdrop:bg-slate-950/20"
+    @close="planningDrawer.open = false"
+    @click.self="closePlanningDrawer()"
+  >
+    <div class="flex h-full min-h-0 flex-col">
+      <div class="flex items-start justify-between gap-[1.25rem] border-b-[1.25px] border-slate-200 px-[1.5625rem] py-[1.25rem]">
+        <div>
+          <div class="text-[1.25rem]/[1.875rem] font-semibold text-slate-950" x-text="t('scenario.solveDrawer.title')"></div>
+          <div class="mt-[0.3125rem] text-[1.09375rem]/[1.5625rem] text-slate-500" x-text="t('scenario.solveDrawer.description')"></div>
+        </div>
+        <button type="button" class="compact-icon-action" @click="closePlanningDrawer()" :aria-label="t('scenario.solveDrawer.close')">
+          <span class="material-symbols-rounded text-[22.5px]">close</span>
+        </button>
+      </div>
+      <div class="panel-scroll space-y-[1.5625rem] px-[1.5625rem] py-[1.5625rem]">
+        <section>
+          <div class="field-label" x-text="t('scenario.solveDrawer.currentScenario')"></div>
+          <div class="mt-[0.625rem] break-words text-[1.25rem]/[1.875rem] font-medium text-slate-900" x-text="scenario.name || t('scenario.untitled')"></div>
+        </section>
+        <section class="border-t-[1.25px] border-slate-200 pt-[1.5625rem]">
+          <label class="block">
+            <div class="field-label" x-text="t('scenario.solveDrawer.solveDuration')"></div>
+            <div class="mt-[0.15625rem] flex w-full items-stretch">
+              <input type="number" min="1" class="field-input min-w-0 flex-1 rounded-r-none border-r-0" x-model="solveTimeValue">
+              <select class="field-input w-[6.25rem] shrink-0 rounded-l-none" x-model="solveTimeUnit">
+                <option value="S" x-text="t('scenario.solveDrawer.seconds')"></option>
+                <option value="M" x-text="t('scenario.solveDrawer.minutes')"></option>
+                <option value="H" x-text="t('scenario.solveDrawer.hours')"></option>
+              </select>
+            </div>
+          </label>
+        </section>
+        <section class="space-y-[1.25rem]">
+          <label class="block">
+            <div class="field-label" x-text="t('scenario.solveDrawer.matrixGenerationMode')"></div>
+            <select class="field-input mt-[0.15625rem]" x-model="matrixMode" :disabled="!buildTransitMatrix">
+              <option value="ROUTING" x-text="routingMatrixModeLabel()"></option>
+              <option value="MANHATTAN">manhattan</option>
+            </select>
+          </label>
+          <label class="field-switch ui-tooltip" :data-tooltip="t('scenario.solveDrawer.buildMatrixHelp')">
+            <span class="field-switch-copy">
+              <span class="field-switch-title" x-text="t('scenario.solveDrawer.buildMatrix')"></span>
+              <span class="field-switch-note" x-text="t(buildTransitMatrix ? 'scenario.enabled' : 'scenario.disabled')"></span>
+            </span>
+            <span class="shrink-0">
+              <input type="checkbox" class="field-switch-input" x-model="buildTransitMatrix">
+              <span class="field-switch-control" aria-hidden="true"></span>
+            </span>
+          </label>
+          <label class="field-switch ui-tooltip" :data-tooltip="t('scenario.solveDrawer.drawRoutesHelp')">
+            <span class="field-switch-copy">
+              <span class="field-switch-title" x-text="t('scenario.solveDrawer.drawRoutes')"></span>
+              <span class="field-switch-note" x-text="t(drawRoute ? 'scenario.enabled' : 'scenario.disabled')"></span>
+            </span>
+            <span class="shrink-0">
+              <input type="checkbox" class="field-switch-input" x-model="drawRoute">
+              <span class="field-switch-control" aria-hidden="true"></span>
+            </span>
+          </label>
+        </section>
+      </div>
+      <div class="flex items-center justify-end gap-[0.625rem] border-t-[1.25px] border-slate-200 px-[1.5625rem] py-[1.25rem]">
+        <button type="button" class="action-secondary" @click="closePlanningDrawer()" :disabled="saving">取消</button>
+        <button type="button" class="action-primary" @click="solveScenario()" :disabled="saving">
+          <span class="material-symbols-rounded text-[22.5px]">play_arrow</span>
+          <span x-text="t(saving ? 'scenario.submitting' : 'scenario.planAndSolve')"></span>
+        </button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog
+    x-ref="importSolveRequestDialog"
+    class="overflow-hidden rounded-[0.9375rem] border-[1.25px] border-slate-300 bg-white p-0 text-slate-900 shadow-[0_31.25px_62.5px_-15px_rgba(0,0,0,0.25)] backdrop:bg-white/85"
+    style="width: min(88vw, 55rem); max-height: min(82vh, 42.5rem); margin: auto; inset: 0;"
+    @close="importRequestDialog.open = false"
+    @click.self="closeImportSolveRequestDialog()"
+  >
+    <div class="flex items-center justify-between border-b-[1.25px] border-slate-200 px-[1.5625rem] py-[1.25rem]">
+      <div>
+        <div class="field-label">导入求解请求</div>
+        <div class="mt-[0.3125rem] text-[1.09375rem]/[1.5625rem] font-medium text-slate-900">粘贴包含 scenario 的请求 JSON</div>
+        <div class="mt-[0.3125rem] text-[0.9375rem]/[1.25rem] text-slate-600">导入后只回填当前页面配置，不会自动保存或求解；普通保存或求解不会按替换语义清理历史任务。</div>
+      </div>
+      <div class="flex items-center gap-[0.625rem]">
+        <button type="button" class="action-secondary" @click="formatImportRequestJson()">格式化</button>
+        <button type="button" class="action-secondary" @click="toggleImportRequestFold()" x-text="t(importRequestDialog.folded ? 'common.expandAll' : 'common.collapseAll')"></button>
+      </div>
+    </div>
+    <div class="p-[1.5625rem]">
+      <div x-ref="importSolveRequestEditor"></div>
+      <template x-if="importRequestDialog.error">
+        <div class="mt-[0.9375rem] rounded-[0.46875rem] border-[1.25px] border-rose-500/20 bg-rose-500/10 px-[0.9375rem] py-[0.9375rem] text-[1.09375rem]/[1.5625rem] text-rose-700" x-text="importRequestDialog.error"></div>
+      </template>
+      <div class="mt-[1.25rem] flex w-full pr-[0.625rem]">
+        <div class="ml-auto flex items-center gap-[0.625rem]">
+          <button type="button" class="action-secondary" @click="closeImportSolveRequestDialog()">取消</button>
+          <button type="button" class="action-primary" @click="applyImportedSolveRequest()">导入</button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <div class="scenario-console-toolbar shrink-0 flex flex-wrap items-center justify-between gap-[0.46875rem] border-b-[1.25px] border-slate-200 px-[0.9375rem] py-[0.46875rem]">
+    <div class="flex flex-wrap items-center gap-[0.625rem]">
+      <span class="tab-button tab-button-active">
+        <span class="material-symbols-rounded text-[22.5px]">tune</span>
+        <span>场景配置</span>
+      </span>
+      <span class="status-pill">
+        <span class="material-symbols-rounded text-[20px]">pin_drop</span>
+        <span x-text="scenarioCity()"></span>
+      </span>
+    </div>
+    <div class="flex flex-wrap items-center gap-[0.625rem]">
+      <button type="button" class="action-primary" data-engine-local-control @click="saveScenario(false)" :disabled="saving">
+        <span class="material-symbols-rounded text-[22.5px]">save</span>
+        <span>保存场景</span>
+      </button>
+      <button type="button" class="action-secondary" data-engine-local-control @click="generateMatrix()" :disabled="saving">
+        <span class="material-symbols-rounded text-[22.5px]">hub</span>
+        <span>生成在途矩阵</span>
+      </button>
+      <button type="button" class="action-secondary" @click="copySolveRequestPayload()">
+        <span class="material-symbols-rounded text-[22.5px]">content_copy</span>
+        <span>复制请求参数</span>
+      </button>
+      <button type="button" class="action-secondary" @click="openImportSolveRequestDialog()">
+        <span class="material-symbols-rounded text-[22.5px]">input</span>
+        <span>粘贴请求参数并更新</span>
+      </button>
+      <button type="button" class="action-danger" data-engine-local-control @click="deleteScenario()">
+        <span class="material-symbols-rounded text-[22.5px]">delete</span>
+        <span>删除</span>
+      </button>
+      <slot name="engine-create-actions"></slot>
+    </div>
+  </div>
+
+  <div class="flex-1 min-h-0 min-[1600px]:overflow-hidden">
+    <div class="scenario-main-grid responsive-workspace min-[1600px]:grid-cols-[minmax(0,1fr)_400px]">
+      <div class="responsive-workspace-main flex flex-col min-[1600px]:overflow-hidden">
+          <section class="flex flex-1 min-h-0 flex-col divide-y-[1.25px] divide-slate-200 min-[1600px]:overflow-hidden">
+            <div class="p-[0.625rem]">
+              <div class="grid gap-[0.625rem] min-[800px]:grid-cols-2 min-[1600px]:grid-cols-4">
+                <label class="block">
+                  <div class="field-label">场景名称</div>
+                  <input class="field-input mt-[0.15625rem]" :class="validationInputClass('request_payload.name')" x-model="scenario.name" placeholder="例如：华北晨配场景">
+                </label>
+                <label class="block">
+                  <div class="field-label">规划日期</div>
+                  <input type="date" class="field-input mt-[0.15625rem]" :class="validationInputClass('request_payload.planning_date')" x-model="scenario.planning_date">
+                </label>
+                <label class="block">
+                  <div class="field-label">开始时间</div>
+                  <vrp-date-time-24 class="datetime24-input scenario-schedule-input field-input mt-[0.15625rem]" :class="validationInputClass('request_payload.start_time')" x-model="scenario.start_time_input" aria-label="开始时间"></vrp-date-time-24>
+                </label>
+                <label class="block">
+                  <div class="field-label">结束时间</div>
+                  <vrp-date-time-24 class="datetime24-input scenario-schedule-input field-input mt-[0.15625rem]" :class="validationInputClass('request_payload.end_time')" x-model="scenario.end_time_input" aria-label="结束时间"></vrp-date-time-24>
+                </label>
+                <label class="block min-[800px]:col-span-2 min-[1600px]:col-span-4">
+                  <div class="field-label">场景描述</div>
+                  <button type="button" class="scenario-description-preview ui-tooltip mt-[0.15625rem]" :data-tooltip="scenario.desc || ''" data-tooltip-overflow=".scenario-description-preview-text" aria-label="编辑场景描述" @click="openDescriptionEditor()">
+                    <span class="scenario-description-preview-text" :class="!hasDisplayValue(scenario.desc) ? 'text-slate-400' : ''" x-text="scenario.desc || ''"></span>
+                  </button>
+                </label>
+              </div>
+            </div>
+
+            <div class="scenario-config-tabs pl-[0.9375rem] pr-[1.25rem] py-[0.3125rem]">
+              <div class="flex flex-nowrap items-center gap-[0.625rem] overflow-x-auto pb-[0.3125rem] min-[800px]:flex-wrap min-[800px]:overflow-visible min-[800px]:pb-0">
+                <template x-for="tab in [['depos','scenario.tabs.depots','warehouse'],['agents','scenario.tabs.agents','engineering'],['tickets','scenario.tabs.tickets','assignment'],['skus','scenario.tabs.skus','inventory_2'],['cost_parameter','scenario.tabs.costParameters','payments'],['constraints','scenario.tabs.constraints','rule']]" :key="tab[0]">
+                  <button
+                    type="button"
+                    class="scenario-config-tab"
+                    :class="configTab === tab[0] ? 'scenario-config-tab-active' : ''"
+                    :data-tooltip="t({ depos: 'scenario.tabHelp.depots', agents: 'scenario.tabHelp.agents', tickets: 'scenario.tabHelp.tickets', skus: 'scenario.tabHelp.skus', cost_parameter: 'scenario.tabHelp.costParameters', constraints: 'scenario.tabHelp.constraints' }[tab[0]])"
+                    :aria-description="t({ depos: 'scenario.tabHelp.depots', agents: 'scenario.tabHelp.agents', tickets: 'scenario.tabHelp.tickets', skus: 'scenario.tabHelp.skus', cost_parameter: 'scenario.tabHelp.costParameters', constraints: 'scenario.tabHelp.constraints' }[tab[0]])"
+                    @click="setConfigTab(tab[0])"
+                  >
+                    <span class="material-symbols-rounded text-[22.5px]" aria-hidden="true" x-text="tab[2]"></span>
+                    <span x-text="t(tab[1])"></span>
+                  </button>
+                </template>
+                <div class="ml-auto flex flex-wrap items-center gap-[0.625rem]">
+                  <template x-if="configTab !== 'cost_parameter' && configTab !== 'constraints'">
+                    <button type="button" class="action-secondary" @click="addRow(configTab)">
+                      <span class="text-[1.25rem]/[1.875rem] leading-none">+</span>
+                      <span x-text="t('scenario.addRow')"></span>
+                    </button>
+                  </template>
+                </div>
+              </div>
+              <div
+                class="mt-[0.625rem] text-[0.9375rem]/[1.25rem] leading-[1.5625rem] text-slate-600 min-[800px]:hidden"
+                x-text="t({ depos: 'scenario.tabHelp.depots', agents: 'scenario.tabHelp.agents', tickets: 'scenario.tabHelp.tickets', skus: 'scenario.tabHelp.skus', cost_parameter: 'scenario.tabHelp.costParameters', constraints: 'scenario.tabHelp.constraints' }[configTab])"
+              ></div>
+            </div>
+
+            <div class="panel-scroll">
+              <template x-if="validationErrors().length">
+                <div class="border-b-[1.25px] border-rose-200 bg-rose-50 px-[1.25rem] py-[0.9375rem] text-[1.09375rem]/[1.5625rem] text-rose-700">
+                  <div class="font-medium">校验失败</div>
+                  <ul class="mt-[0.625rem] list-disc space-y-[0.3125rem] pl-[1.5625rem]">
+                    <template x-for="(error, index) in validationErrors()" :key="validationErrorKey(error, index)">
+                      <li x-text="formatValidationError(error)"></li>
+                    </template>
+                  </ul>
+                </div>
+              </template>
+
+              <template x-if="configTab === 'depos'">
+                <div class="table-scroll-region h-full">
+                  <table class="data-table data-table-adaptive" data-adaptive-table="depos" x-init="$nextTick(() => fitAdaptiveTableColumns('depos'))">
+                    <colgroup>
+                      <col data-column-min="11.25rem" data-column-max="13.75rem" data-column-grow="1" style="width: 11.25rem;">
+                      <col data-column-min="10rem" data-column-max="15rem" data-column-grow="2" style="width: 10rem;">
+                      <col data-column-min="11.25rem" data-column-max="12.5rem" style="width: 11.25rem;">
+                      <col data-column-min="25rem" data-column-max="45rem" data-column-grow="4" style="width: 25rem;">
+                      <col data-column-min="6.25rem" data-column-max="8.75rem" data-column-grow="1" style="width: 6.25rem;">
+                      <col data-column-min="4.375rem" data-column-max="4.375rem" style="width: 4.375rem;">
+                    </colgroup>
+                    <thead><tr><th>ID</th><th>名称</th><th>坐标</th><th>地址</th><th>城市</th><th class="table-action-cell">操作</th></tr></thead>
+                    <tbody>
+                      <template x-for="(row, index) in scenario.plan.depos" :key="`depo-${index}`">
+                        <tr :data-validation-row="`depos:${index}`" :class="validationRowClass('depos', index)">
+                          <td>
+                            <template x-if="isEditingCell('depos', index, 'id')">
+                              <div class="table-cell-editor-shell" @focusout="handleCellEditorFocusOut($event, 'depos', index, 'id')">
+                                <input class="cell-input" x-model="editingCell.draftValue" placeholder="depo-1" :data-inline-editor="inlineEditorToken('depos', index, 'id')" @keydown.enter.prevent="commitEditingCell()" @keydown.tab="commitEditingCell()" @keydown.escape.prevent="cancelEditingCell()">
+                              </div>
+                            </template>
+                            <template x-if="!isEditingCell('depos', index, 'id')">
+                              <button type="button" class="table-cell-button identifier-trigger" @mouseenter="showJobIdTooltip(row.id, $event)" @mouseleave="hideJobIdTooltip(row.id)" @click="beginCellEdit('depos', index, 'id')">
+                                <span class="table-cell-main identifier-value font-mono tabular-nums" :class="!hasDisplayValue(row.id) ? 'table-cell-empty' : ''" x-text="row.id"></span>
+                              </button>
+                            </template>
+                          </td>
+                          <td>
+                            <template x-if="isEditingCell('depos', index, 'name')">
+                              <div class="table-cell-editor-shell" @focusout="handleCellEditorFocusOut($event, 'depos', index, 'name')">
+                                <input class="cell-input" x-model="editingCell.draftValue" placeholder="仓库名称" :data-inline-editor="inlineEditorToken('depos', index, 'name')" @keydown.enter.prevent="commitEditingCell()" @keydown.tab="commitEditingCell()" @keydown.escape.prevent="cancelEditingCell()">
+                              </div>
+                            </template>
+                            <template x-if="!isEditingCell('depos', index, 'name')">
+                              <button type="button" class="table-cell-button ui-tooltip" style="min-width: 10rem;" :data-tooltip="displayValue(row.name)" data-tooltip-overflow=".table-cell-main" @click="beginCellEdit('depos', index, 'name')">
+                                <span class="table-cell-main truncate" :class="!hasDisplayValue(row.name) ? 'table-cell-empty' : ''" x-text="displayValue(row.name)"></span>
+                              </button>
+                            </template>
+                          </td>
+                          <td>
+                            <template x-if="isEditingCell('depos', index, 'loc')">
+                              <div class="table-cell-editor-shell table-coordinate-editor" @focusout="handleCellEditorFocusOut($event, 'depos', index, 'loc')">
+                                <input class="cell-input font-mono tabular-nums" inputmode="decimal" x-model="editingCell.draftValue" :placeholder="t('scenario.coordinateInputPlaceholder')" :aria-label="t('scenario.coordinateInputPlaceholder')" :data-inline-editor="inlineEditorToken('depos', index, 'loc')" @keydown.enter.prevent="commitEditingCell()" @keydown.tab="commitEditingCell()" @keydown.escape.prevent="cancelEditingCell()">
+                              </div>
+                            </template>
+                            <template x-if="!isEditingCell('depos', index, 'loc')">
+                              <button type="button" class="table-cell-button table-coordinate-cell ui-tooltip" :data-tooltip="locationPreview(row, 'loc')" data-tooltip-overflow=".table-location-coordinate" @click="beginCoordinateEdit('depos', index, 'loc')">
+                                  <span class="table-cell-meta table-location-coordinate" :class="locationPreview(row, 'loc') === '--' ? 'table-cell-empty' : ''" x-text="locationPreview(row, 'loc')"></span>
+                                <span x-show="locationResolutionText(row)" class="table-cell-meta table-location-status" :class="locationResolutionClass(row)" x-text="locationResolutionText(row)"></span>
+                              </button>
+                            </template>
+                          </td>
+                          <td>
+                            <template x-if="isEditingCell('depos', index, 'address')">
+                              <div class="table-cell-editor-shell table-location-cell" @focusout="handleCellEditorFocusOut($event, 'depos', index, 'address')">
+                                <input class="cell-input w-full" x-model="editingCell.draftValue" placeholder="详细地址" :data-inline-editor="inlineEditorToken('depos', index, 'address')" @keydown.enter.prevent="commitEditingCell()" @keydown.tab="commitEditingCell()" @keydown.escape.prevent="cancelEditingCell()">
+                                <div class="table-location-actions">
+                                  <button type="button" class="table-cell-link" @click="lookupPoiForCell('depos', index, row, 'address', 'city', 'loc')">地址解析</button>
+                                  <button type="button" class="table-cell-link" @click="openMapPickerForCell('depos', index, row, 'address', 'city', 'loc', '仓库位置选点')">地图选点</button>
+                                </div>
+                              </div>
+                            </template>
+                            <template x-if="!isEditingCell('depos', index, 'address')">
+                              <div class="table-location-cell">
+                                <button type="button" class="table-cell-button table-location-address-button ui-tooltip" :data-tooltip="displayValue(row.address)" data-tooltip-overflow=".table-location-address" @click="beginCellEdit('depos', index, 'address')">
+                                  <span class="table-cell-main table-location-address truncate" :class="!hasDisplayValue(row.address) ? 'table-cell-empty' : ''" x-text="displayValue(row.address)"></span>
+                                </button>
+                                <span class="table-location-actions">
+                                  <button type="button" class="table-cell-link" @click="lookupPoiForCell('depos', index, row, 'address', 'city', 'loc')">地址解析</button>
+                                  <button type="button" class="table-cell-link" @click="openMapPickerForCell('depos', index, row, 'address', 'city', 'loc', '仓库位置选点')">地图选点</button>
+                                </span>
+                              </div>
+                            </template>
+                          </td>
+                          <td>
+                            <template x-if="isEditingCell('depos', index, 'city')">
+                              <div class="table-cell-editor-shell" @focusout="handleCellEditorFocusOut($event, 'depos', index, 'city')">
+                                <input class="cell-input" style="width: 8.75rem; min-width: 8.75rem;" x-model="editingCell.draftValue" placeholder="城市" :data-inline-editor="inlineEditorToken('depos', index, 'city')" @keydown.enter.prevent="commitEditingCell()" @keydown.tab="commitEditingCell()" @keydown.escape.prevent="cancelEditingCell()">
+                              </div>
+                            </template>
+                            <template x-if="!isEditingCell('depos', index, 'city')">
+                              <button type="button" class="table-cell-button city-trigger" @click="beginCellEdit('depos', index, 'city')">
+                                <span class="table-cell-main" :class="!hasDisplayValue(row.city) ? 'table-cell-empty' : ''" x-text="displayValue(row.city)"></span>
+                              </button>
+                            </template>
+                          </td>
+                          <td class="table-action-cell">
+                            <button type="button" class="text-[0.9375rem]/[1.25rem] font-medium text-rose-600 transition hover:text-rose-700" @click="removeRow('depos', index)">删除</button>
+                          </td>
+                        </tr>
+                      </template>
+                    </tbody>
+                  </table>
+                  <template x-if="!scenario.plan.depos.length"><div class="table-empty-state">暂无仓库，点击“新增行”开始维护。</div></template>
+                </div>
+              </template>
+
+              <template x-if="configTab === 'agents'">
+                <div class="table-scroll-region h-full">
+                  <table class="data-table data-table-adaptive" data-adaptive-table="agents" x-init="$nextTick(() => fitAdaptiveTableColumns('agents'))">
+                    <colgroup>
+                      <col data-column-min="11.25rem" data-column-max="13.75rem" data-column-grow="1" style="width: 11.25rem;">
+                      <col data-column-min="8.75rem" data-column-max="8.75rem" style="width: 8.75rem;">
+                      <col data-column-min="10rem" data-column-max="15rem" data-column-grow="2" style="width: 10rem;">
+                      <col data-column-min="12.5rem" data-column-max="12.5rem" style="width: 12.5rem;">
+                      <col data-column-min="25rem" data-column-max="32.5rem" data-column-grow="4" style="width: 25rem;">
+                      <col data-column-min="6.25rem" data-column-max="8.75rem" data-column-grow="1" style="width: 6.25rem;">
+                      <col data-column-min="15rem" data-column-max="20rem" data-column-grow="2" style="width: 15rem;">
+                      <col data-column-min="5.625rem" data-column-max="7.5rem" style="width: 5.625rem;">
+                      <col data-column-min="5.625rem" data-column-max="9.375rem" style="width: 5.625rem;">
+                      <col data-column-min="7.5rem" data-column-max="7.5rem" style="width: 7.5rem;">
+                      <col data-column-min="7.5rem" data-column-max="7.5rem" style="width: 7.5rem;">
+                      <col data-column-min="5.9375rem" data-column-max="10rem" style="width: 5.9375rem;">
+                      <col data-column-min="6.5625rem" data-column-max="6.5625rem" style="width: 6.5625rem;">
+                      <col data-column-min="6.5625rem" data-column-max="10rem" style="width: 6.5625rem;">
+                      <col data-column-min="11.5625rem" data-column-max="11.5625rem" style="width: 11.5625rem;">
+                      <col data-column-min="11.5625rem" data-column-max="11.5625rem" style="width: 11.5625rem;">
+                      <col data-column-min="12.5rem" data-column-max="17.5rem" data-column-grow="2" style="width: 12.5rem;">
+                      <col data-column-min="4.375rem" data-column-max="4.375rem" style="width: 4.375rem;">
+                    </colgroup>
+                    <thead><tr><th>ID</th><th>日期</th><th>名称</th><th>坐标</th><th>初始地址</th><th>城市</th><th>技能</th><th x-text="t('scenario.field.loadWeightWithUnit')"></th><th x-text="t('scenario.field.volumeCapacityWithUnit')"></th><th>车辆类型</th><th>燃料类型</th><th>油耗/电耗</th><th>租用</th><th>每日出车费</th><th>开始时间</th><th>结束时间</th><th>已分配工单</th><th class="table-action-cell">操作</th></tr></thead>
+                    <tbody>
+                      <template x-for="(row, index) in scenario.plan.agents" :key="`agent-${index}`">
+                        <tr :data-validation-row="`agents:${index}`" :class="validationRowClass('agents', index)">
+                          <td><template x-if="isEditingCell('agents', index, 'id')"><div class="table-cell-editor-shell" @focusout="handleCellEditorFocusOut($event, 'agents', index, 'id')"><input class="cell-input" style="min-width: 13.75rem;" x-model="editingCell.draftValue" placeholder="agent-1" :data-inline-editor="inlineEditorToken('agents', index, 'id')" @keydown.enter.prevent="commitEditingCell()" @keydown.tab="commitEditingCell()" @keydown.escape.prevent="cancelEditingCell()"></div></template><template x-if="!isEditingCell('agents', index, 'id')"><button type="button" class="table-cell-button identifier-trigger" @mouseenter="showJobIdTooltip(row.id, $event)" @mouseleave="hideJobIdTooltip(row.id)" @click="beginCellEdit('agents', index, 'id')"><span class="table-cell-main identifier-value font-mono tabular-nums" :class="!hasDisplayValue(row.id) ? 'table-cell-empty' : ''" x-text="row.id"></span></button></template></td>
+                          <td><template x-if="isEditingCell('agents', index, 'date')"><div class="table-cell-editor-shell" @focusout="handleCellEditorFocusOut($event, 'agents', index, 'date')"><input type="date" class="cell-input" x-model="editingCell.draftValue" :data-inline-editor="inlineEditorToken('agents', index, 'date')" @keydown.enter.prevent="commitEditingCell()" @keydown.tab="commitEditingCell()" @keydown.escape.prevent="cancelEditingCell()"></div></template><template x-if="!isEditingCell('agents', index, 'date')"><button type="button" class="table-cell-button" @click="beginCellEdit('agents', index, 'date')"><span class="table-cell-main font-mono tabular-nums" :class="!hasDisplayValue(row.date) ? 'table-cell-empty' : ''" x-text="displayValue(row.date)"></span></button></template></td>
+                          <td><template x-if="isEditingCell('agents', index, 'name')"><div class="table-cell-editor-shell" @focusout="handleCellEditorFocusOut($event, 'agents', index, 'name')"><input class="cell-input" style="min-width: 11.25rem;" x-model="editingCell.draftValue" placeholder="工程师名称" :data-inline-editor="inlineEditorToken('agents', index, 'name')" @keydown.enter.prevent="commitEditingCell()" @keydown.tab="commitEditingCell()" @keydown.escape.prevent="cancelEditingCell()"></div></template><template x-if="!isEditingCell('agents', index, 'name')"><button type="button" class="table-cell-button" @click="beginCellEdit('agents', index, 'name')"><span class="table-cell-main" :class="!hasDisplayValue(row.name) ? 'table-cell-empty' : ''" x-text="displayValue(row.name)"></span></button></template></td>
+                          <td><template x-if="isEditingCell('agents', index, 'start_loc')"><div class="table-cell-editor-shell table-coordinate-editor" @focusout="handleCellEditorFocusOut($event, 'agents', index, 'start_loc')"><input class="cell-input font-mono tabular-nums" inputmode="decimal" x-model="editingCell.draftValue" :placeholder="t('scenario.coordinateInputPlaceholder')" :aria-label="t('scenario.coordinateInputPlaceholder')" :data-inline-editor="inlineEditorToken('agents', index, 'start_loc')" @keydown.enter.prevent="commitEditingCell()" @keydown.tab="commitEditingCell()" @keydown.escape.prevent="cancelEditingCell()"></div></template><template x-if="!isEditingCell('agents', index, 'start_loc')"><button type="button" class="table-cell-button table-coordinate-cell ui-tooltip" :data-tooltip="locationPreview(row, 'start_loc')" data-tooltip-overflow=".table-location-coordinate" @click="beginCoordinateEdit('agents', index, 'start_loc')"><span class="table-cell-meta table-location-coordinate" :class="locationPreview(row, 'start_loc') === '--' ? 'table-cell-empty' : ''" x-text="locationPreview(row, 'start_loc')"></span><span x-show="locationResolutionText(row)" class="table-cell-meta table-location-status" :class="locationResolutionClass(row)" x-text="locationResolutionText(row)"></span></button></template></td><td><template x-if="isEditingCell('agents', index, 'start_address')"><div class="table-cell-editor-shell table-location-cell" @focusout="handleCellEditorFocusOut($event, 'agents', index, 'start_address')"><input class="cell-input w-full" x-model="editingCell.draftValue" placeholder="初始地址" :data-inline-editor="inlineEditorToken('agents', index, 'start_address')" @keydown.enter.prevent="commitEditingCell()" @keydown.tab="commitEditingCell()" @keydown.escape.prevent="cancelEditingCell()"><div class="table-location-actions"><button type="button" class="table-cell-link" @click="lookupPoiForCell('agents', index, row, 'start_address', 'start_city', 'start_loc')">解析</button><button type="button" class="table-cell-link" @click="openMapPickerForCell('agents', index, row, 'start_address', 'start_city', 'start_loc', '工程师初始位置选点')">地图选点</button></div></div></template><template x-if="!isEditingCell('agents', index, 'start_address')"><div class="table-location-cell"><button type="button" class="table-cell-button table-location-address-button ui-tooltip" :data-tooltip="displayValue(row.start_address)" data-tooltip-overflow=".table-location-address" @click="beginCellEdit('agents', index, 'start_address')"><span class="table-cell-main table-location-address truncate" :class="!hasDisplayValue(row.start_address) ? 'table-cell-empty' : ''" x-text="displayValue(row.start_address)"></span></button><span class="table-location-actions"><button type="button" class="table-cell-link" @click="lookupPoiForCell('agents', index, row, 'start_address', 'start_city', 'start_loc')">解析</button><button type="button" class="table-cell-link" @click="openMapPickerForCell('agents', index, row, 'start_address', 'start_city', 'start_loc', '工程师初始位置选点')">地图选点</button></span></div></template></td>
+                          <td><template x-if="isEditingCell('agents', index, 'start_city')"><div class="table-cell-editor-shell" @focusout="handleCellEditorFocusOut($event, 'agents', index, 'start_city')"><input class="cell-input" style="width: 8.75rem; min-width: 8.75rem;" x-model="editingCell.draftValue" placeholder="城市" :data-inline-editor="inlineEditorToken('agents', index, 'start_city')" @keydown.enter.prevent="commitEditingCell()" @keydown.tab="commitEditingCell()" @keydown.escape.prevent="cancelEditingCell()"></div></template><template x-if="!isEditingCell('agents', index, 'start_city')"><button type="button" class="table-cell-button city-trigger" @click="beginCellEdit('agents', index, 'start_city')"><span class="table-cell-main" :class="!hasDisplayValue(row.start_city) ? 'table-cell-empty' : ''" x-text="displayValue(row.start_city)"></span></button></template></td>
+                          <td><button type="button" class="table-cell-button gap-[0.3125rem] ui-tooltip" :data-tooltip="skillsFromText(row.skills_text).length > 2 ? skillsFromText(row.skills_text).map(formatSkillTag).join(', ') : ''" @click="openSkillsEditorForCell(row, '编辑车辆/工程师技能')"><span class="table-cell-main" :class="!skillsFromText(row.skills_text).length ? 'table-cell-empty' : ''" x-text="skillsFromText(row.skills_text).length ? '' : '--'"></span><span class="flex min-w-0 flex-nowrap gap-[0.3125rem] overflow-hidden" x-show="skillsFromText(row.skills_text).length"><template x-for="(tag, tagIndex) in skillsFromText(row.skills_text).slice(0, 2)" :key="`${row.id || 'agent'}-${tagIndex}-${tag}`"><span class="table-cell-chip table-skill-chip max-w-[7.5rem] truncate" :class="skillTagToneClass(tag)" x-text="formatSkillTag(tag)"></span></template><span x-show="skillsFromText(row.skills_text).length > 2" class="table-cell-chip" x-text="`+${skillsFromText(row.skills_text).length - 2}`"></span></span></button></td>
+                          <td><template x-if="isEditingCell('agents', index, 'weight')"><div class="table-cell-editor-shell" @focusout="handleCellEditorFocusOut($event, 'agents', index, 'weight')"><input type="number" class="cell-input" x-model="editingCell.draftValue" placeholder="核定载重" :data-inline-editor="inlineEditorToken('agents', index, 'weight')" @keydown.enter.prevent="commitEditingCell()" @keydown.tab="commitEditingCell()" @keydown.escape.prevent="cancelEditingCell()"></div></template><template x-if="!isEditingCell('agents', index, 'weight')"><button type="button" class="table-cell-button" @click="beginCellEdit('agents', index, 'weight', 'number')"><span class="table-cell-main font-mono tabular-nums" x-text="displayValue(row.weight)"></span></button></template></td>
+                          <td><template x-if="isEditingCell('agents', index, 'vol')"><div class="table-cell-editor-shell" @focusout="handleCellEditorFocusOut($event, 'agents', index, 'vol')"><input type="number" class="cell-input" x-model="editingCell.draftValue" placeholder="核定容积" :data-inline-editor="inlineEditorToken('agents', index, 'vol')" @keydown.enter.prevent="commitEditingCell()" @keydown.tab="commitEditingCell()" @keydown.escape.prevent="cancelEditingCell()"></div></template><template x-if="!isEditingCell('agents', index, 'vol')"><button type="button" class="table-cell-button" @click="beginCellEdit('agents', index, 'vol', 'number')"><span class="table-cell-main font-mono tabular-nums" x-text="displayValue(row.vol)"></span></button></template></td>
+                          <td><template x-if="isEditingCell('agents', index, 'vehicle_type')"><div class="table-cell-editor-shell" @focusout="handleCellEditorFocusOut($event, 'agents', index, 'vehicle_type')"><select class="cell-select" x-model="editingCell.draftValue" :data-inline-editor="inlineEditorToken('agents', index, 'vehicle_type')" @change="commitEditingCell()" @keydown.escape.prevent="cancelEditingCell()"><option value="CAR">CAR</option><option value="TRUCK">TRUCK</option><option value="E_BIKE">E_BIKE</option></select></div></template><template x-if="!isEditingCell('agents', index, 'vehicle_type')"><button type="button" class="table-cell-button" @click="beginCellEdit('agents', index, 'vehicle_type')"><span class="table-cell-main" x-text="displayValue(row.vehicle_type)"></span></button></template></td>
+                          <td><template x-if="isEditingCell('agents', index, 'fuel_type')"><div class="table-cell-editor-shell" @focusout="handleCellEditorFocusOut($event, 'agents', index, 'fuel_type')"><select class="cell-select" x-model="editingCell.draftValue" :data-inline-editor="inlineEditorToken('agents', index, 'fuel_type')" @change="commitEditingCell()" @keydown.escape.prevent="cancelEditingCell()"><option value="GAS_92">GAS_92</option><option value="ELEC">ELEC</option></select></div></template><template x-if="!isEditingCell('agents', index, 'fuel_type')"><button type="button" class="table-cell-button" @click="beginCellEdit('agents', index, 'fuel_type')"><span class="table-cell-main" x-text="displayValue(row.fuel_type)"></span></button></template></td>
+                          <td><template x-if="isEditingCell('agents', index, 'fuel_consumption')"><div class="table-cell-editor-shell" @focusout="handleCellEditorFocusOut($event, 'agents', index, 'fuel_consumption')"><input type="number" class="cell-input" x-model="editingCell.draftValue" placeholder="油耗/电耗" :data-inline-editor="inlineEditorToken('agents', index, 'fuel_consumption')" @keydown.enter.prevent="commitEditingCell()" @keydown.tab="commitEditingCell()" @keydown.escape.prevent="cancelEditingCell()"></div></template><template x-if="!isEditingCell('agents', index, 'fuel_consumption')"><button type="button" class="table-cell-button" @click="beginCellEdit('agents', index, 'fuel_consumption', 'number')"><span class="table-cell-main font-mono tabular-nums" x-text="displayValue(row.fuel_consumption)"></span></button></template></td>
+                          <td><template x-if="isEditingCell('agents', index, 'rented')"><div class="table-cell-editor-shell" @focusout="handleCellEditorFocusOut($event, 'agents', index, 'rented')"><select class="cell-select" x-model="editingCell.draftValue" :data-inline-editor="inlineEditorToken('agents', index, 'rented')" @change="commitEditingCell()" @keydown.escape.prevent="cancelEditingCell()"><option :value="false" x-text="t('scenario.owned')"></option><option :value="true" x-text="t('scenario.rented')"></option></select></div></template><template x-if="!isEditingCell('agents', index, 'rented')"><button type="button" class="table-cell-button" @click="beginCellEdit('agents', index, 'rented', 'checkbox')"><span class="table-cell-chip" :class="row.rented ? 'border-amber-500/25 bg-amber-500/10 text-amber-700' : 'border-slate-200 bg-slate-50 text-slate-600'" x-text="displayBoolean(row.rented, '租用', '自有')"></span></button></template></td>
+                          <td><template x-if="isEditingCell('agents', index, 'fix_cost_daily')"><div class="table-cell-editor-shell" @focusout="handleCellEditorFocusOut($event, 'agents', index, 'fix_cost_daily')"><input type="number" class="cell-input" x-model="editingCell.draftValue" placeholder="每日出车费" :data-inline-editor="inlineEditorToken('agents', index, 'fix_cost_daily')" @keydown.enter.prevent="commitEditingCell()" @keydown.tab="commitEditingCell()" @keydown.escape.prevent="cancelEditingCell()"></div></template><template x-if="!isEditingCell('agents', index, 'fix_cost_daily')"><button type="button" class="table-cell-button" @click="beginCellEdit('agents', index, 'fix_cost_daily', 'number')"><span class="table-cell-main font-mono tabular-nums" x-text="displayValue(row.fix_cost_daily)"></span></button></template></td>
+                          <td><template x-if="isEditingCell('agents', index, 'shift_start_time_input')"><div class="table-cell-editor-shell" @focusout="handleCellEditorFocusOut($event, 'agents', index, 'shift_start_time_input')"><vrp-date-time-24 class="datetime24-input cell-input" x-model="editingCell.draftValue" :data-inline-editor="inlineEditorToken('agents', index, 'shift_start_time_input')" @keydown.enter.prevent="commitEditingCell()" @keydown.escape.prevent="cancelEditingCell()" aria-label="班次开始时间"></vrp-date-time-24></div></template><template x-if="!isEditingCell('agents', index, 'shift_start_time_input')"><button type="button" class="table-cell-button" @click="beginCellEdit('agents', index, 'shift_start_time_input')"><span class="table-cell-main font-mono tabular-nums" :class="!hasDisplayValue(row.shift_start_time_input) ? 'table-cell-empty' : ''" x-text="displayDateTime(row.shift_start_time_input)"></span></button></template></td>
+                          <td><template x-if="isEditingCell('agents', index, 'shift_off_time_input')"><div class="table-cell-editor-shell" @focusout="handleCellEditorFocusOut($event, 'agents', index, 'shift_off_time_input')"><vrp-date-time-24 class="datetime24-input cell-input" x-model="editingCell.draftValue" :data-inline-editor="inlineEditorToken('agents', index, 'shift_off_time_input')" @keydown.enter.prevent="commitEditingCell()" @keydown.escape.prevent="cancelEditingCell()" aria-label="班次结束时间"></vrp-date-time-24></div></template><template x-if="!isEditingCell('agents', index, 'shift_off_time_input')"><button type="button" class="table-cell-button" @click="beginCellEdit('agents', index, 'shift_off_time_input')"><span class="table-cell-main font-mono tabular-nums" :class="!hasDisplayValue(row.shift_off_time_input) ? 'table-cell-empty' : ''" x-text="displayDateTime(row.shift_off_time_input)"></span></button></template></td>
+                          <td><div class="flex min-w-0 flex-nowrap items-center gap-[0.3125rem] overflow-hidden"><template x-if="!assignedTicketsForAgent(row.id).length"><span class="table-cell-main table-cell-empty">--</span></template><template x-for="ticket in assignedTicketsForAgent(row.id).slice(0, 2)" :key="ticket.id"><button type="button" class="table-cell-chip identifier-trigger max-w-[7.5rem] cursor-pointer truncate font-mono tabular-nums" @mouseenter="showJobIdTooltip(ticket.id, $event)" @mouseleave="hideJobIdTooltip(ticket.id)" @click="jumpToTicket(ticket.id)"><span x-text="ticket.id"></span></button></template><span x-show="assignedTicketsForAgent(row.id).length > 2" class="table-cell-chip" x-text="`+${assignedTicketsForAgent(row.id).length - 2}`"></span></div></td>
+                          <td class="table-action-cell"><button type="button" class="text-[0.9375rem]/[1.25rem] font-medium text-rose-600 transition hover:text-rose-700" @click="removeRow('agents', index)">删除</button></td>
+                        </tr>
+                      </template>
+                    </tbody>
+                  </table>
+                  <template x-if="!scenario.plan.agents.length"><div class="table-empty-state">暂无车辆/工程师，点击“新增行”开始维护。</div></template>
+                </div>
+              </template>
+
+              <template x-if="configTab === 'tickets'">
+                <div class="table-scroll-region h-full">
+                  <table class="data-table data-table-adaptive" data-adaptive-table="tickets" x-init="$nextTick(() => fitAdaptiveTableColumns('tickets'))">
+                    <colgroup>
+                      <col data-column-min="11.25rem" data-column-max="13.75rem" data-column-grow="1" style="width: 11.25rem;">
+                      <col data-column-min="7.1875rem" data-column-max="7.1875rem" style="width: 7.1875rem;">
+                      <col data-column-min="12.5rem" data-column-max="12.5rem" style="width: 12.5rem;">
+                      <col data-column-min="25rem" data-column-max="32.5rem" data-column-grow="4" style="width: 25rem;">
+                      <col data-column-min="6.25rem" data-column-max="8.75rem" data-column-grow="1" style="width: 6.25rem;">
+                      <col data-column-min="12.5rem" data-column-max="17.5rem" data-column-grow="2" style="width: 12.5rem;">
+                      <col data-column-min="8.75rem" data-column-max="12.5rem" data-column-grow="2" style="width: 8.75rem;">
+                      <col data-column-min="8.75rem" data-column-max="12.5rem" data-column-grow="2" style="width: 8.75rem;">
+                      <col data-column-min="5.625rem" data-column-max="7.5rem" style="width: 5.625rem;">
+                      <col data-column-min="5.625rem" data-column-max="7.5rem" style="width: 5.625rem;">
+                      <col data-column-min="11.5625rem" data-column-max="11.5625rem" style="width: 11.5625rem;">
+                      <col data-column-min="11.5625rem" data-column-max="11.5625rem" style="width: 11.5625rem;">
+                      <col data-column-min="5.625rem" data-column-max="9.375rem" style="width: 5.625rem;">
+                      <col data-column-min="10rem" data-column-max="15rem" data-column-grow="2" style="width: 10rem;">
+                      <col data-column-min="11.5625rem" data-column-max="11.5625rem" style="width: 11.5625rem;">
+                      <col data-column-min="4.375rem" data-column-max="4.375rem" style="width: 4.375rem;">
+                    </colgroup>
+                    <thead><tr><th>ID</th><th>类型</th><th>坐标</th><th>客户地址</th><th>城市</th><th>技能</th><th>上一级工单</th><th>下一级工单</th><th x-text="t('scenario.field.weightWithUnit')"></th><th x-text="t('scenario.field.volumeWithUnit')"></th><th>最早开始</th><th>最晚结束</th><th>服务时长</th><th>分配工程师</th><th>到达时间</th><th class="table-action-cell">操作</th></tr></thead>
+                    <tbody>
+                      <template x-for="(row, index) in scenario.plan.tickets" :key="`ticket-${index}`">
+                        <tr :data-ticket-row="row.id || ''" :data-validation-row="`tickets:${index}`" :class="validationRowClass('tickets', index, highlightedTicketId === row.id ? 'table-ticket-row-selected' : '')">
+                          <td><template x-if="isEditingCell('tickets', index, 'id')"><div class="table-cell-editor-shell" @focusout="handleCellEditorFocusOut($event, 'tickets', index, 'id')"><input class="cell-input" style="min-width: 11.25rem;" x-model="editingCell.draftValue" placeholder="ticket-1" :data-inline-editor="inlineEditorToken('tickets', index, 'id')" @keydown.enter.prevent="commitEditingCell()" @keydown.tab="commitEditingCell()" @keydown.escape.prevent="cancelEditingCell()"></div></template><template x-if="!isEditingCell('tickets', index, 'id')"><button type="button" class="table-cell-button identifier-trigger" @mouseenter="showJobIdTooltip(row.id, $event)" @mouseleave="hideJobIdTooltip(row.id)" @click="beginCellEdit('tickets', index, 'id')"><span class="table-cell-main identifier-value font-mono tabular-nums" :class="!hasDisplayValue(row.id) ? 'table-cell-empty' : ''" x-text="row.id"></span></button></template></td>
+                          <td><template x-if="isEditingCell('tickets', index, 'type')"><div class="table-cell-editor-shell" @focusout="handleCellEditorFocusOut($event, 'tickets', index, 'type')"><select class="cell-select" x-model="editingCell.draftValue" :data-inline-editor="inlineEditorToken('tickets', index, 'type')" @change="commitEditingCell()" @keydown.escape.prevent="cancelEditingCell()"><option value="Delv">Delv</option><option value="Delv_BH">Delv_BH</option><option value="Inst">Inst</option></select></div></template><template x-if="!isEditingCell('tickets', index, 'type')"><button type="button" class="table-cell-button" @click="beginCellEdit('tickets', index, 'type')"><span class="table-cell-main" x-text="displayValue(row.type)"></span></button></template></td>
+                          <td><template x-if="isEditingCell('tickets', index, 'loc')"><div class="table-cell-editor-shell table-coordinate-editor" @focusout="handleCellEditorFocusOut($event, 'tickets', index, 'loc')"><input class="cell-input font-mono tabular-nums" inputmode="decimal" x-model="editingCell.draftValue" :placeholder="t('scenario.coordinateInputPlaceholder')" :aria-label="t('scenario.coordinateInputPlaceholder')" :data-inline-editor="inlineEditorToken('tickets', index, 'loc')" @keydown.enter.prevent="commitEditingCell()" @keydown.tab="commitEditingCell()" @keydown.escape.prevent="cancelEditingCell()"></div></template><template x-if="!isEditingCell('tickets', index, 'loc')"><button type="button" class="table-cell-button table-coordinate-cell ui-tooltip" :data-tooltip="locationPreview(row, 'loc')" data-tooltip-overflow=".table-location-coordinate" @click="beginCoordinateEdit('tickets', index, 'loc')"><span class="table-cell-meta table-location-coordinate" :class="locationPreview(row, 'loc') === '--' ? 'table-cell-empty' : ''" x-text="locationPreview(row, 'loc')"></span><span x-show="locationResolutionText(row)" class="table-cell-meta table-location-status" :class="locationResolutionClass(row)" x-text="locationResolutionText(row)"></span></button></template></td><td><template x-if="isEditingCell('tickets', index, 'address')"><div class="table-cell-editor-shell table-location-cell" @focusout="handleCellEditorFocusOut($event, 'tickets', index, 'address')"><input class="cell-input w-full" x-model="editingCell.draftValue" placeholder="客户地址" :data-inline-editor="inlineEditorToken('tickets', index, 'address')" @keydown.enter.prevent="commitEditingCell()" @keydown.tab="commitEditingCell()" @keydown.escape.prevent="cancelEditingCell()"><div class="table-location-actions"><button type="button" class="table-cell-link" @click="lookupPoiForCell('tickets', index, row, 'address', 'city', 'loc')">解析</button><button type="button" class="table-cell-link" @click="openMapPickerForCell('tickets', index, row, 'address', 'city', 'loc', '工单客户位置选点')">地图选点</button></div></div></template><template x-if="!isEditingCell('tickets', index, 'address')"><div class="table-location-cell"><button type="button" class="table-cell-button table-location-address-button ui-tooltip" :data-tooltip="displayValue(row.address)" data-tooltip-overflow=".table-location-address" @click="beginCellEdit('tickets', index, 'address')"><span class="table-cell-main table-location-address truncate" :class="!hasDisplayValue(row.address) ? 'table-cell-empty' : ''" x-text="displayValue(row.address)"></span></button><span class="table-location-actions"><button type="button" class="table-cell-link" @click="lookupPoiForCell('tickets', index, row, 'address', 'city', 'loc')">解析</button><button type="button" class="table-cell-link" @click="openMapPickerForCell('tickets', index, row, 'address', 'city', 'loc', '工单客户位置选点')">地图选点</button></span></div></template></td>
+                          <td><template x-if="isEditingCell('tickets', index, 'city')"><div class="table-cell-editor-shell" @focusout="handleCellEditorFocusOut($event, 'tickets', index, 'city')"><input class="cell-input" style="width: 6.25rem; min-width: 6.25rem;" x-model="editingCell.draftValue" placeholder="城市" :data-inline-editor="inlineEditorToken('tickets', index, 'city')" @keydown.enter.prevent="commitEditingCell()" @keydown.tab="commitEditingCell()" @keydown.escape.prevent="cancelEditingCell()"></div></template><template x-if="!isEditingCell('tickets', index, 'city')"><button type="button" class="table-cell-button city-trigger" @click="beginCellEdit('tickets', index, 'city')"><span class="table-cell-main" :class="!hasDisplayValue(row.city) ? 'table-cell-empty' : ''" x-text="displayValue(row.city)"></span></button></template></td>
+                          <td><button type="button" class="table-cell-button gap-[0.3125rem] ui-tooltip" :data-tooltip="skillsFromText(row.skills_text).length > 2 ? skillsFromText(row.skills_text).map(formatSkillTag).join(', ') : ''" @click="openSkillsEditorForCell(row, '编辑工单技能')"><span class="table-cell-main" :class="!skillsFromText(row.skills_text).length ? 'table-cell-empty' : ''" x-text="skillsFromText(row.skills_text).length ? '' : '--'"></span><span class="flex min-w-0 flex-nowrap gap-[0.3125rem] overflow-hidden" x-show="skillsFromText(row.skills_text).length"><template x-for="(tag, tagIndex) in skillsFromText(row.skills_text).slice(0, 2)" :key="`${row.id || 'ticket'}-${tagIndex}-${tag}`"><span class="table-cell-chip table-skill-chip max-w-[6.25rem] truncate" :class="skillTagToneClass(tag)" x-text="formatSkillTag(tag)"></span></template><span x-show="skillsFromText(row.skills_text).length > 2" class="table-cell-chip" x-text="`+${skillsFromText(row.skills_text).length - 2}`"></span></span></button></td>
+                          <td>
+                            <template x-if="isEditingCell('tickets', index, 'dep_ticket_ids_text')"><div class="table-cell-editor-shell" @focusout="handleCellEditorFocusOut($event, 'tickets', index, 'dep_ticket_ids_text')"><input class="cell-input" style="min-width: 10rem;" x-model="editingCell.draftValue" placeholder="ticket-a, ticket-b" :data-inline-editor="inlineEditorToken('tickets', index, 'dep_ticket_ids_text')" @keydown.enter.prevent="commitEditingCell()" @keydown.tab="commitEditingCell()" @keydown.escape.prevent="cancelEditingCell()"></div></template>
+                            <template x-if="!isEditingCell('tickets', index, 'dep_ticket_ids_text')">
+                              <div class="table-ticket-relations">
+                                <span class="table-ticket-relation-list">
+                                  <template x-if="!ticketIdsFromText(row.dep_ticket_ids_text).length"><span class="table-cell-main table-cell-empty">--</span></template>
+                                  <template x-for="ticketId in ticketIdsFromText(row.dep_ticket_ids_text)" :key="`${row.id || 'ticket'}-previous-${ticketId}`"><button type="button" class="table-ticket-relation-link" @click="jumpToTicket(ticketId)" x-text="ticketId"></button></template>
+                                </span>
+                                <button type="button" class="compact-icon-action ui-tooltip" :aria-label="t('scenario.editTicketRelations')" :data-tooltip="t('scenario.editTicketRelations')" @click="beginCellEdit('tickets', index, 'dep_ticket_ids_text')"><span class="material-symbols-rounded text-[18.75px]" aria-hidden="true">edit</span></button>
+                              </div>
+                            </template>
+                          </td>
+                          <td>
+                            <template x-if="isEditingCell('tickets', index, 'ref_ticket_ids_text')"><div class="table-cell-editor-shell" @focusout="handleCellEditorFocusOut($event, 'tickets', index, 'ref_ticket_ids_text')"><input class="cell-input" style="min-width: 10rem;" x-model="editingCell.draftValue" placeholder="ticket-c" :data-inline-editor="inlineEditorToken('tickets', index, 'ref_ticket_ids_text')" @keydown.enter.prevent="commitEditingCell()" @keydown.tab="commitEditingCell()" @keydown.escape.prevent="cancelEditingCell()"></div></template>
+                            <template x-if="!isEditingCell('tickets', index, 'ref_ticket_ids_text')">
+                              <div class="table-ticket-relations">
+                                <span class="table-ticket-relation-list">
+                                  <template x-if="!ticketIdsFromText(row.ref_ticket_ids_text).length"><span class="table-cell-main table-cell-empty">--</span></template>
+                                  <template x-for="ticketId in ticketIdsFromText(row.ref_ticket_ids_text)" :key="`${row.id || 'ticket'}-next-${ticketId}`"><button type="button" class="table-ticket-relation-link" @click="jumpToTicket(ticketId)" x-text="ticketId"></button></template>
+                                </span>
+                                <button type="button" class="compact-icon-action ui-tooltip" :aria-label="t('scenario.editTicketRelations')" :data-tooltip="t('scenario.editTicketRelations')" @click="beginCellEdit('tickets', index, 'ref_ticket_ids_text')"><span class="material-symbols-rounded text-[18.75px]" aria-hidden="true">edit</span></button>
+                              </div>
+                            </template>
+                          </td>
+                          <td><template x-if="isEditingCell('tickets', index, 'weight')"><div class="table-cell-editor-shell" @focusout="handleCellEditorFocusOut($event, 'tickets', index, 'weight')"><input type="number" class="cell-input" x-model="editingCell.draftValue" placeholder="总重" :data-inline-editor="inlineEditorToken('tickets', index, 'weight')" @keydown.enter.prevent="commitEditingCell()" @keydown.tab="commitEditingCell()" @keydown.escape.prevent="cancelEditingCell()"></div></template><template x-if="!isEditingCell('tickets', index, 'weight')"><button type="button" class="table-cell-button" @click="beginCellEdit('tickets', index, 'weight', 'number')"><span class="table-cell-main font-mono tabular-nums" x-text="displayValue(row.weight)"></span></button></template></td>
+                          <td><template x-if="isEditingCell('tickets', index, 'vol')"><div class="table-cell-editor-shell" @focusout="handleCellEditorFocusOut($event, 'tickets', index, 'vol')"><input type="number" class="cell-input" x-model="editingCell.draftValue" placeholder="总体积" :data-inline-editor="inlineEditorToken('tickets', index, 'vol')" @keydown.enter.prevent="commitEditingCell()" @keydown.tab="commitEditingCell()" @keydown.escape.prevent="cancelEditingCell()"></div></template><template x-if="!isEditingCell('tickets', index, 'vol')"><button type="button" class="table-cell-button" @click="beginCellEdit('tickets', index, 'vol', 'number')"><span class="table-cell-main font-mono tabular-nums" x-text="displayValue(row.vol)"></span></button></template></td>
+                          <td><template x-if="isEditingCell('tickets', index, 'min_start_time_input')"><div class="table-cell-editor-shell" @focusout="handleCellEditorFocusOut($event, 'tickets', index, 'min_start_time_input')"><vrp-date-time-24 class="datetime24-input cell-input" x-model="editingCell.draftValue" :data-inline-editor="inlineEditorToken('tickets', index, 'min_start_time_input')" @keydown.enter.prevent="commitEditingCell()" @keydown.escape.prevent="cancelEditingCell()" aria-label="最早开始时间"></vrp-date-time-24></div></template><template x-if="!isEditingCell('tickets', index, 'min_start_time_input')"><button type="button" class="table-cell-button" @click="beginCellEdit('tickets', index, 'min_start_time_input')"><span class="table-cell-main font-mono tabular-nums" :class="!hasDisplayValue(row.min_start_time_input) ? 'table-cell-empty' : ''" x-text="displayDateTime(row.min_start_time_input)"></span></button></template></td>
+                          <td><template x-if="isEditingCell('tickets', index, 'max_end_time_input')"><div class="table-cell-editor-shell" @focusout="handleCellEditorFocusOut($event, 'tickets', index, 'max_end_time_input')"><vrp-date-time-24 class="datetime24-input cell-input" x-model="editingCell.draftValue" :data-inline-editor="inlineEditorToken('tickets', index, 'max_end_time_input')" @keydown.enter.prevent="commitEditingCell()" @keydown.escape.prevent="cancelEditingCell()" aria-label="最晚结束时间"></vrp-date-time-24></div></template><template x-if="!isEditingCell('tickets', index, 'max_end_time_input')"><button type="button" class="table-cell-button" @click="beginCellEdit('tickets', index, 'max_end_time_input')"><span class="table-cell-main font-mono tabular-nums" :class="!hasDisplayValue(row.max_end_time_input) ? 'table-cell-empty' : ''" x-text="displayDateTime(row.max_end_time_input)"></span></button></template></td>
+                          <td><template x-if="isEditingCell('tickets', index, 'duration_minutes')"><div class="table-cell-editor-shell" @focusout="handleCellEditorFocusOut($event, 'tickets', index, 'duration_minutes')"><input type="number" class="cell-input" x-model="editingCell.draftValue" placeholder="分钟" :data-inline-editor="inlineEditorToken('tickets', index, 'duration_minutes')" @keydown.enter.prevent="commitEditingCell()" @keydown.tab="commitEditingCell()" @keydown.escape.prevent="cancelEditingCell()"></div></template><template x-if="!isEditingCell('tickets', index, 'duration_minutes')"><button type="button" class="table-cell-button" @click="beginCellEdit('tickets', index, 'duration_minutes', 'number')"><span class="table-cell-main font-mono tabular-nums" x-text="displayValue(row.duration_minutes)"></span></button></template></td>
+                          <td><template x-if="isEditingCell('tickets', index, 'agent')"><div class="table-cell-editor-shell" @focusout="handleCellEditorFocusOut($event, 'tickets', index, 'agent')"><select class="cell-select" style="min-width: 10rem;" x-model="editingCell.draftValue" :data-inline-editor="inlineEditorToken('tickets', index, 'agent')" @change="commitEditingCell()" @keydown.escape.prevent="cancelEditingCell()"><option value="">未指定</option><template x-for="agent in scenario.plan.agents.filter(item => item.id)" :key="agent.id"><option :value="agent.id" x-text="agent.name || agent.id"></option></template></select></div></template><template x-if="!isEditingCell('tickets', index, 'agent')"><button type="button" class="table-cell-button ui-tooltip" :data-tooltip="agentDisplayTitle(row.agent)" data-tooltip-overflow=".table-cell-main" @click="beginCellEdit('tickets', index, 'agent')"><span class="table-cell-main truncate" :class="!hasDisplayValue(row.agent) ? 'table-cell-empty' : ''" x-text="agentDisplayText(row.agent)"></span></button></template></td>
+                          <td><span class="table-cell-main font-mono text-[13.75px] text-slate-500 tabular-nums" x-text="displayValue(row.arrival_time)"></span></td>
+                          <td class="table-action-cell"><button type="button" class="text-[0.9375rem]/[1.25rem] font-medium text-rose-600 transition hover:text-rose-700" @click="removeRow('tickets', index)">删除</button></td>
+                        </tr>
+                      </template>
+                    </tbody>
+                  </table>
+                  <template x-if="!scenario.plan.tickets.length"><div class="table-empty-state">暂无工单，点击“新增行”开始维护。</div></template>
+                </div>
+              </template>
+
+              <template x-if="configTab === 'skus'">
+                <div class="table-scroll-region h-full">
+                  <table class="data-table data-table-adaptive" data-adaptive-table="skus" x-init="$nextTick(() => fitAdaptiveTableColumns('skus'))">
+                    <colgroup>
+                      <col data-column-min="11.25rem" data-column-max="20rem" data-column-grow="1" style="width: 11.25rem;">
+                      <col data-column-min="10rem" data-column-max="35rem" data-column-grow="4" style="width: 10rem;">
+                      <col data-column-min="6.25rem" data-column-max="15rem" data-column-grow="1" style="width: 6.25rem;">
+                      <col data-column-min="6.25rem" data-column-max="15rem" data-column-grow="1" style="width: 6.25rem;">
+                      <col data-column-min="4.375rem" data-column-max="4.375rem" style="width: 4.375rem;">
+                    </colgroup>
+                    <thead><tr><th>ID</th><th>名称</th><th x-text="t('scenario.field.weightWithUnit')"></th><th x-text="t('scenario.field.volumeWithUnit')"></th><th class="table-action-cell">操作</th></tr></thead>
+                    <tbody>
+                      <template x-for="(row, index) in scenario.plan.skus" :key="`sku-${index}`">
+                        <tr :data-validation-row="`skus:${index}`" :class="validationRowClass('skus', index)">
+                          <td><template x-if="isEditingCell('skus', index, 'id')"><div class="table-cell-editor-shell" @focusout="handleCellEditorFocusOut($event, 'skus', index, 'id')"><input class="cell-input" x-model="editingCell.draftValue" placeholder="sku-1" :data-inline-editor="inlineEditorToken('skus', index, 'id')" @keydown.enter.prevent="commitEditingCell()" @keydown.tab="commitEditingCell()" @keydown.escape.prevent="cancelEditingCell()"></div></template><template x-if="!isEditingCell('skus', index, 'id')"><button type="button" class="table-cell-button identifier-trigger" @mouseenter="showJobIdTooltip(row.id, $event)" @mouseleave="hideJobIdTooltip(row.id)" @click="beginCellEdit('skus', index, 'id')"><span class="table-cell-main identifier-value font-mono tabular-nums" :class="!hasDisplayValue(row.id) ? 'table-cell-empty' : ''" x-text="row.id"></span></button></template></td>
+                          <td><template x-if="isEditingCell('skus', index, 'name')"><div class="table-cell-editor-shell" @focusout="handleCellEditorFocusOut($event, 'skus', index, 'name')"><input class="cell-input" x-model="editingCell.draftValue" placeholder="SKU 名称" :data-inline-editor="inlineEditorToken('skus', index, 'name')" @keydown.enter.prevent="commitEditingCell()" @keydown.tab="commitEditingCell()" @keydown.escape.prevent="cancelEditingCell()"></div></template><template x-if="!isEditingCell('skus', index, 'name')"><button type="button" class="table-cell-button ui-tooltip" :data-tooltip="displayValue(row.name)" data-tooltip-overflow=".table-cell-main" @click="beginCellEdit('skus', index, 'name')"><span class="table-cell-main truncate" :class="!hasDisplayValue(row.name) ? 'table-cell-empty' : ''" x-text="displayValue(row.name)"></span></button></template></td>
+                          <td><template x-if="isEditingCell('skus', index, 'weight')"><div class="table-cell-editor-shell" @focusout="handleCellEditorFocusOut($event, 'skus', index, 'weight')"><input type="number" class="cell-input" x-model="editingCell.draftValue" placeholder="重量" :data-inline-editor="inlineEditorToken('skus', index, 'weight')" @keydown.enter.prevent="commitEditingCell()" @keydown.tab="commitEditingCell()" @keydown.escape.prevent="cancelEditingCell()"></div></template><template x-if="!isEditingCell('skus', index, 'weight')"><button type="button" class="table-cell-button" @click="beginCellEdit('skus', index, 'weight', 'number')"><span class="table-cell-main font-mono tabular-nums" :class="!hasDisplayValue(row.weight) ? 'table-cell-empty' : ''" x-text="displayValue(row.weight)"></span></button></template></td>
+                          <td><template x-if="isEditingCell('skus', index, 'vol')"><div class="table-cell-editor-shell" @focusout="handleCellEditorFocusOut($event, 'skus', index, 'vol')"><input type="number" class="cell-input" x-model="editingCell.draftValue" placeholder="体积" :data-inline-editor="inlineEditorToken('skus', index, 'vol')" @keydown.enter.prevent="commitEditingCell()" @keydown.tab="commitEditingCell()" @keydown.escape.prevent="cancelEditingCell()"></div></template><template x-if="!isEditingCell('skus', index, 'vol')"><button type="button" class="table-cell-button" @click="beginCellEdit('skus', index, 'vol', 'number')"><span class="table-cell-main font-mono tabular-nums" :class="!hasDisplayValue(row.vol) ? 'table-cell-empty' : ''" x-text="displayValue(row.vol)"></span></button></template></td>
+                          <td class="table-action-cell"><button type="button" class="text-[0.9375rem]/[1.25rem] font-medium text-rose-600 transition hover:text-rose-700" @click="removeRow('skus', index)">删除</button></td>
+                        </tr>
+                      </template>
+                    </tbody>
+                  </table>
+                  <template x-if="!scenario.plan.skus.length"><div class="table-empty-state">暂无 SKU，点击“新增行”开始维护。</div></template>
+                </div>
+              </template>
+
+              <template x-if="configTab === 'cost_parameter'">
+                <div class="scenario-cost-parameters">
+                  <template x-for="[key, label, unit] in costFields" :key="key">
+                    <label class="scenario-cost-parameter-field">
+                      <span class="field-label" x-text="t(label)"></span>
+                      <span class="scenario-cost-parameter-control">
+                        <input type="number" class="field-input field-input-number" x-model="scenario.plan.cost_parameter[key]" :aria-describedby="unit ? 'cost-parameter-unit-' + key : null">
+                        <template x-if="unit">
+                          <span class="scenario-cost-parameter-unit" :id="'cost-parameter-unit-' + key" x-text="t(unit)"></span>
+                        </template>
+                      </span>
+                    </label>
+                  </template>
+                </div>
+              </template>
+
+              <template x-if="configTab === 'constraints'">
+                <div class="table-scroll-region h-full">
+                  <table class="data-table data-table-adaptive" data-adaptive-table="constraints" x-init="$nextTick(() => fitAdaptiveTableColumns('constraints'))">
+                    <colgroup>
+                      <col data-column-min="17.5rem" data-column-max="30rem" data-column-grow="2" style="width: 17.5rem;">
+                      <col data-column-min="20rem" data-column-max="30rem" data-column-grow="4" style="width: 20rem;">
+                      <col data-column-min="7.5rem" data-column-max="10rem" data-column-grow="1" style="width: 7.5rem;">
+                      <col data-column-min="7.5rem" data-column-max="10rem" data-column-grow="1" style="width: 7.5rem;">
+                      <col data-column-min="7.5rem" data-column-max="10rem" data-column-grow="1" style="width: 7.5rem;">
+                    </colgroup>
+                    <thead>
+                      <tr>
+                        <th>约束键</th>
+                        <th>说明</th>
+                        <th>Hard</th>
+                        <th>Medium</th>
+                        <th>Soft</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <template x-for="[key, value] in constraintEntries()" :key="key">
+                        <tr>
+                          <td>
+                            <div class="font-mono text-[13.75px] leading-[1.5625rem] text-slate-600 break-all" x-text="key"></div>
+                          </td>
+                          <td>
+                            <div class="text-[1.09375rem]/[1.5625rem] text-slate-800" x-text="humanConstraintLabel(key)"></div>
+                          </td>
+                          <td class="constraint-weight-cell">
+                            <template x-if="isConstraintWeightEntry(key)">
+                              <input class="cell-input constraint-weight-input font-mono tabular-nums" :value="constraintLevelValue(key, 'hard')" @input="updateConstraintLevel(key, 'hard', $event.target.value)">
+                            </template>
+                            <template x-if="!isConstraintWeightEntry(key)">
+                              <span class="text-[1.09375rem]/[1.5625rem] text-slate-400">--</span>
+                            </template>
+                          </td>
+                          <td class="constraint-weight-cell">
+                            <template x-if="isConstraintWeightEntry(key)">
+                              <input class="cell-input constraint-weight-input font-mono tabular-nums" :value="constraintLevelValue(key, 'medium')" @input="updateConstraintLevel(key, 'medium', $event.target.value)">
+                            </template>
+                            <template x-if="!isConstraintWeightEntry(key)">
+                              <span class="text-[1.09375rem]/[1.5625rem] text-slate-400">--</span>
+                            </template>
+                          </td>
+                          <td class="constraint-weight-cell">
+                            <template x-if="isConstraintWeightEntry(key)">
+                              <input class="cell-input constraint-weight-input font-mono tabular-nums" :value="constraintLevelValue(key, 'soft')" @input="updateConstraintLevel(key, 'soft', $event.target.value)">
+                            </template>
+                            <template x-if="!isConstraintWeightEntry(key)">
+                              <span class="text-[1.09375rem]/[1.5625rem] text-slate-400">--</span>
+                            </template>
+                          </td>
+                        </tr>
+                      </template>
+                    </tbody>
+                  </table>
+                </div>
+              </template>
+            </div>
+          </section>
+      </div>
+
+      <div class="scenario-sidebar-column responsive-workspace-aside relative overflow-visible">
+        <aside class="scenario-sidebar-panel panel-shell min-h-0 min-[1600px]:h-full">
+          <section class="min-h-0 flex flex-col shrink-0">
+            <button type="button" class="scenario-sidebar-section-trigger" @click="toggleSidebarPanel('overview')" :aria-expanded="isSidebarPanelOpen('overview')">
+              <div class="flex min-w-0 items-center gap-[0.625rem]">
+                <span class="scenario-sidebar-section-chevron material-symbols-rounded text-[22.5px]">chevron_right</span>
+                <div class="field-label">场景概览</div>
+              </div>
+            </button>
+            <div x-show="isSidebarPanelOpen('overview')" class="panel-scroll divide-y-[1.25px] divide-slate-200 border-t-[1.25px] border-slate-200">
+              <template x-for="item in currentScenarioStats()" :key="item[0]">
+                <div class="flex items-center justify-between px-[1.5625rem] py-[0.625rem]">
+                  <span class="text-[16.25px] text-slate-600" x-text="item[0]"></span>
+                  <span class="text-[1.09375rem]/[1.5625rem] font-[550] tabular-nums text-slate-900" x-text="item[1]"></span>
+                </div>
+              </template>
+            </div>
+          </section>
+
+          <section class="min-h-0 flex flex-col" :class="isSidebarPanelOpen('constraints') ? 'flex-1' : 'shrink-0'">
+            <button type="button" class="scenario-sidebar-section-trigger" @click="toggleSidebarPanel('constraints')" :aria-expanded="isSidebarPanelOpen('constraints')">
+              <div class="flex min-w-0 items-center gap-[0.625rem]">
+                <span class="scenario-sidebar-section-chevron material-symbols-rounded text-[22.5px]">chevron_right</span>
+                <div class="field-label">场景约束</div>
+              </div>
+              <div class="monospace-meta" x-text="`${constraintEntries().length} 项`"></div>
+            </button>
+            <div x-show="isSidebarPanelOpen('constraints')" class="panel-scroll divide-y-[1.25px] divide-slate-200">
+              <template x-for="[key, value] in constraintEntries()" :key="key">
+                <label class="block px-[1.25rem] py-[0.9375rem]">
+                  <div class="text-[1.09375rem]/[1.5625rem] text-slate-500" x-text="humanConstraintLabel(key)"></div>
+                  <template x-if="isConstraintWeightEntry(key)">
+                    <div class="mt-[0.625rem] grid grid-cols-3 gap-[0.625rem]">
+                      <div class="block">
+                        <div class="mb-[0.3125rem] text-[0.9375rem]/[1.25rem] font-medium text-slate-600">Hard</div>
+                        <input
+                          class="field-input"
+                          :value="constraintLevelValue(key, 'hard')"
+                          @input="updateConstraintLevel(key, 'hard', $event.target.value)"
+                        >
+                      </div>
+                      <div class="block">
+                        <div class="mb-[0.3125rem] text-[0.9375rem]/[1.25rem] font-medium text-slate-600">Medium</div>
+                        <input
+                          class="field-input"
+                          :value="constraintLevelValue(key, 'medium')"
+                          @input="updateConstraintLevel(key, 'medium', $event.target.value)"
+                        >
+                      </div>
+                      <div class="block">
+                        <div class="mb-[0.3125rem] text-[0.9375rem]/[1.25rem] font-medium text-slate-600">Soft</div>
+                        <input
+                          class="field-input"
+                          :value="constraintLevelValue(key, 'soft')"
+                          @input="updateConstraintLevel(key, 'soft', $event.target.value)"
+                        >
+                      </div>
+                    </div>
+                  </template>
+                  <template x-if="!isConstraintWeightEntry(key)">
+                    <input class="field-input mt-[0.15625rem]" x-model="scenario.plan.constraint_configuration[key]">
+                  </template>
+                </label>
+              </template>
+            </div>
+          </section>
+
+          <section class="min-h-0 flex flex-col" :class="isSidebarPanelOpen('availableAgents') ? 'flex-1' : 'shrink-0'">
+            <button type="button" class="scenario-sidebar-section-trigger" @click="toggleSidebarPanel('availableAgents')" :aria-expanded="isSidebarPanelOpen('availableAgents')">
+              <div class="flex min-w-0 items-center gap-[0.625rem]">
+                <span class="scenario-sidebar-section-chevron material-symbols-rounded text-[22.5px]">chevron_right</span>
+              <div class="field-label" x-text="t('scenario.availableAgentTrend')"></div>
+              </div>
+              <div class="monospace-meta" x-text="availableAgentWindows.length ? t('scenario.timeWindows', { count: availableAgentWindows.length }) : t('scenario.noData')"></div>
+            </button>
+            <div x-show="isSidebarPanelOpen('availableAgents')" class="panel-scroll divide-y-[1.25px] divide-slate-200">
+              <template x-if="availableAgentWindows.length">
+                <div class="divide-y-[1.25px] divide-slate-200">
+                  <template x-for="item in availableAgentWindows" :key="item.start_time">
+                    <div class="px-[1.25rem] py-[0.625rem]">
+                      <div class="monospace-meta" x-text="`${item.start_time} ~ ${item.end_time}`"></div>
+                      <div class="mt-[0.46875rem] flex items-center justify-between gap-[0.9375rem]">
+                        <span class="text-[1.09375rem]/[1.5625rem] text-slate-500" x-text="t('scenario.availableTechnicians')"></span>
+                        <span class="text-[1.5625rem]/[2.1875rem] font-semibold tabular-nums text-slate-950" x-text="item.available_agents"></span>
+                      </div>
+                    </div>
+                  </template>
+                </div>
+              </template>
+              <template x-if="!availableAgentWindows.length">
+                <div class="px-[1.25rem] py-[1.25rem] text-[1.09375rem]/[1.5625rem] text-slate-500" x-text="t('scenario.availableAgentTrendEmpty')"></div>
+              </template>
+            </div>
+          </section>
+        </aside>
+
+        <div
+          x-show="mapPicker.open"
+          x-transition.opacity
+          x-cloak
+          class="drawer-backdrop absolute inset-0 z-30"
+          @click="closeMapPicker()"
+        ></div>
+
+        <aside
+          x-show="mapPicker.open"
+          x-transition:enter="drawer-transition-enter"
+          x-transition:enter-start="drawer-transition-enter-start"
+          x-transition:enter-end="drawer-transition-enter-end"
+          x-transition:leave="drawer-transition-leave"
+          x-transition:leave-start="drawer-transition-leave-start"
+          x-transition:leave-end="drawer-transition-leave-end"
+          x-cloak
+          class="map-drawer absolute inset-y-0 right-0 z-40 flex h-full flex-col overflow-hidden border-[1.25px] border-slate-200 bg-white shadow-[0_31.25px_62.5px_-15px_rgba(0,0,0,0.25)]"
+        >
+          <div class="flex items-center justify-between border-b-[1.25px] border-slate-200 px-[1.5625rem] py-[0.78125rem]">
+            <div>
+              <div class="text-[1.09375rem]/[1.5625rem] font-medium text-slate-900" x-text="mapPicker.title"></div>
+            </div>
+            <button type="button" class="action-secondary" @click="closeMapPicker()">
+              <span class="material-symbols-rounded text-[22.5px]">close</span>
+              <span>关闭</span>
+            </button>
+          </div>
+
+          <div class="flex min-h-0 flex-1 flex-col">
+            <div class="flex-1 min-h-0 overflow-auto">
+              <section class="border-b-[1.25px] border-slate-200 px-[1.5625rem] py-[1.25rem]">
+                <div class="relative">
+                  <div class="flex gap-[0.625rem]">
+                    <input
+                      class="field-input min-w-0 flex-1"
+                      x-model="mapPicker.keyword"
+                      placeholder="输入地址、地标或坐标"
+                      @keydown.enter.prevent="searchMapPicker()"
+                    >
+                    <button type="button" class="action-primary shrink-0" @click="searchMapPicker()" :disabled="mapPicker.loading">
+                      <span class="material-symbols-rounded text-[22.5px]">search</span>
+                      <span>搜索</span>
+                    </button>
+                  </div>
+
+                  <template x-if="mapPicker.loading || mapPicker.searchResults.length">
+                    <div class="map-search-dropdown absolute inset-x-0 top-full z-10 mt-[0.625rem]">
+                      <template x-if="mapPicker.loading && !mapPicker.searchResults.length">
+                        <div class="rounded-[0.46875rem] border-[1.25px] border-slate-200 bg-white px-[0.9375rem] py-[0.9375rem] text-[1.09375rem]/[1.5625rem] text-slate-500 shadow-[0_1.25px_3.75px_0_rgba(0,0,0,0.1),0_1.25px_2.5px_-1.25px_rgba(0,0,0,0.1)]">正在加载地图或检索地址...</div>
+                      </template>
+
+                      <template x-if="mapPicker.searchResults.length">
+                        <div class="max-h-[17.5rem] space-y-[0.625rem] overflow-auto rounded-[0.46875rem] border-[1.25px] border-slate-200 bg-white p-[0.625rem] shadow-[0_12.5px_18.75px_-3.75px_rgba(0,0,0,0.1),0_5px_7.5px_-5px_rgba(0,0,0,0.1)]">
+                          <template x-for="(poi, index) in mapPicker.searchResults" :key="poi.id || poi.location || index">
+                            <button
+                              type="button"
+                              class="map-search-result w-full text-left"
+                              :class="isSelectedMapSearchResult(poi) ? 'map-search-result-active' : ''"
+                              @click="chooseMapSearchResult(poi)"
+                            >
+                              <div class="flex items-start justify-between gap-[0.9375rem]">
+                                <div class="min-w-0">
+                                  <div class="truncate text-[1.09375rem]/[1.5625rem] font-medium text-slate-900" x-text="poi.name || poi.address || `结果 ${index + 1}`"></div>
+                                  <div class="mt-[0.3125rem] text-[0.9375rem]/[1.25rem] leading-[1.5625rem] text-slate-500" x-text="poi.address || '--'"></div>
+                                </div>
+                                <span class="material-symbols-rounded shrink-0 text-[22.5px] text-slate-400">place</span>
+                              </div>
+                              <div class="mt-[0.625rem] flex items-center justify-between gap-[0.9375rem]">
+                                <span class="text-[0.9375rem]/[1.25rem] text-slate-500" x-text="poi.cityname || poi.adname || poi.pname || '--'"></span>
+                                <span class="monospace-meta" x-text="poi.location || '--'"></span>
+                              </div>
+                            </button>
+                          </template>
+                        </div>
+                      </template>
+                    </div>
+                  </template>
+                </div>
+                <div class="mt-[0.625rem] text-[0.9375rem]/[1.25rem] leading-[1.5625rem] text-slate-500">
+                  搜索结果可直接定位，未命中时也可以在地图中直接点击选点。
+                </div>
+                <template x-if="mapPicker.error">
+                  <div class="mt-[0.9375rem] rounded-[0.46875rem] border-[1.25px] border-rose-500/20 bg-rose-500/10 px-[0.9375rem] py-[0.9375rem] text-[1.09375rem]/[1.5625rem] text-rose-700" x-text="mapPicker.error"></div>
+                </template>
+              </section>
+
+              <section class="border-b-[1.25px] border-slate-200 px-[1.5625rem] py-[1.25rem]">
+                <div class="text-[0.9375rem]/[1.25rem] leading-[1.5625rem] text-slate-500">
+                  支持点击地图或拖动标记微调位置，选点后可只更新坐标或同时覆盖地址与城市。
+                </div>
+                <div class="mt-[1.25rem]">
+                  <div x-show="!mapPicker.mapUnavailable" class="h-[27.5rem] overflow-hidden bg-slate-50">
+                    <div x-ref="mapPickerCanvas" class="map-canvas-surface"></div>
+                  </div>
+                  <div x-show="mapPicker.mapUnavailable" class="flex h-[27.5rem] items-center justify-center rounded-[0.625rem] border-[1.25px] border-dashed border-slate-200 bg-slate-50/80 p-[1.875rem] text-center text-[1.09375rem]/[1.5625rem] text-slate-500">
+                    地图配置不可用，请先检查地图接口配置。
+                  </div>
+                </div>
+              </section>
+
+              <section class="px-[1.5625rem] py-[1.25rem]">
+                <div class="grid grid-cols-3 divide-x-[1.25px] divide-slate-200 border-y-[1.25px] border-slate-200 bg-slate-50/80">
+                  <div class="min-w-0 px-[0.9375rem] py-[0.9375rem]">
+                    <div class="field-label">当前坐标</div>
+                    <div class="mt-[0.625rem] break-all font-mono text-[0.9375rem]/[1.25rem] leading-[1.5625rem] text-slate-700" x-text="mapPicker.selectedPoi?.location || '--'"></div>
+                  </div>
+                  <div class="min-w-0 px-[0.9375rem] py-[0.9375rem]">
+                    <div class="field-label">解析地址</div>
+                    <div class="mt-[0.625rem] break-words text-[1.09375rem]/[1.5625rem] leading-[1.5625rem] text-slate-800" x-text="mapPicker.resolvedAddress || '--'"></div>
+                  </div>
+                  <div class="min-w-0 px-[0.9375rem] py-[0.9375rem]">
+                    <div class="field-label">城市</div>
+                    <div class="mt-[0.625rem] break-words text-[1.09375rem]/[1.5625rem] leading-[1.5625rem] text-slate-800" x-text="mapPicker.resolvedCity || mapPicker.targetCity || '--'"></div>
+                  </div>
+                </div>
+              </section>
+            </div>
+
+            <div class="border-t-[1.25px] border-slate-200 px-[1.5625rem] py-[1.25rem]">
+              <div class="flex flex-wrap justify-end gap-[0.625rem]">
+                <button type="button" class="action-secondary" @click="closeMapPicker()">取消</button>
+                <button type="button" class="action-secondary" @click="applyMapPickerSelection(false)" :disabled="!mapPicker.selectedPoi?.location">
+                  <span class="material-symbols-rounded text-[22.5px]">my_location</span>
+                  <span>仅更新坐标</span>
+                </button>
+                <button type="button" class="action-primary" @click="applyMapPickerSelection(true)" :disabled="!mapPicker.selectedPoi?.location">
+                  <span class="material-symbols-rounded text-[22.5px]">place_item</span>
+                  <span>覆盖地址并更新坐标</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+</div>
