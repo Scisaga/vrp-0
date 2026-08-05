@@ -4,6 +4,8 @@ import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.TestProfile;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.MediaType;
+import one.rewind.xforce.json.OM;
+import one.rewind.xforce.vehicle_routing.db.dto.Scenario;
 import one.rewind.xforce.vehicle_routing.db.dto.SolverJob;
 import one.rewind.xforce.vehicle_routing.db.repository.ScenarioRepository;
 import one.rewind.xforce.vehicle_routing.db.repository.SolverJobRepository;
@@ -291,5 +293,27 @@ public class ScenarioResourceTest {
                 .get("/scenario")
                 .then()
                 .statusCode(404);
+    }
+
+    @Test
+    @Order(22)
+    public void putScenarioRejectsTicketWithoutType() throws Exception {
+        Scenario scenario = OM.fromJson(
+                Files.readString(Path.of("src/test/resources/fixtures/scenarios/scen-3.json"), StandardCharsets.UTF_8),
+                Scenario.class
+        );
+        scenario.getPlan().getTickets().getFirst().setType(null);
+
+        given()
+                .body(OM.toJson(scenario))
+                .header("Content-Type", MediaType.APPLICATION_JSON)
+                .when()
+                .put("/scenario")
+                .then()
+                .statusCode(400)
+                .body("error_code", equalTo("invalid_argument"))
+                .body("error_params.field", equalTo("plan.tickets[0].type"))
+                .body("error_params.rule", equalTo("required"))
+                .body("message", equalTo("Ticket type is required: ticket-240407-0-d"));
     }
 }

@@ -556,6 +556,33 @@ public class SolverJobResourceTest {
                 .body("$", equalTo(List.of()));
     }
 
+    @Test
+    @Order(17)
+    public void ticketWithoutTypeIsRejectedBeforeSolving() throws IOException {
+        createScenario();
+        solverJobRepository.deleteAll();
+
+        Scenario scenario = scenarioRepository.getCurrent();
+        scenario.getPlan().getTickets().getFirst().setType(null);
+        scenarioRepository.saveCurrent(scenario);
+
+        given()
+                .when()
+                .post("/solver_job")
+                .then()
+                .statusCode(400)
+                .body("error_code", equalTo("invalid_argument"))
+                .body("error_params.field", equalTo("plan.tickets[0].type"))
+                .body("error_params.rule", equalTo("required"))
+                .body("message", equalTo("Ticket type is required: ticket-240407-0-d"));
+
+        given()
+                .when()
+                .get("/solver_job")
+                .then()
+                .statusCode(404);
+    }
+
     private void saveFinishedCurrentJob() throws IOException {
         solverJobRepository.deleteAll();
 

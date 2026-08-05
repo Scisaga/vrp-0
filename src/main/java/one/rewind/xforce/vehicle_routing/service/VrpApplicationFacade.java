@@ -19,6 +19,7 @@ import one.rewind.xforce.vehicle_routing.db.dto.SolverJobSummary;
 import one.rewind.xforce.vehicle_routing.db.repository.ScenarioRepository;
 import one.rewind.xforce.vehicle_routing.db.repository.SolverJobRepository;
 import one.rewind.xforce.vehicle_routing.domain.RoutePlan;
+import one.rewind.xforce.vehicle_routing.domain.ticket.Ticket;
 import one.rewind.xforce.vehicle_routing.exception.AgentOrTicketNotCompatible;
 import one.rewind.xforce.vehicle_routing.exception.POINoWhereException;
 import one.rewind.xforce.vehicle_routing.exception.POINotBuild;
@@ -288,9 +289,9 @@ public class VrpApplicationFacade {
             if (solverService.hasRunningJob()) {
                 throw new VrpApplicationException(Response.Status.CONFLICT, VrpErrorCode.SOLVER_JOB_ALREADY_RUNNING, RUNNING_JOB_ERROR);
             }
-            scenarioRepository.saveCurrent(scenario);
-
             Duration parsedSolveTime = parseSolveTime(solveTime);
+            validateRequiredTicketTypes(scenario);
+            scenarioRepository.saveCurrent(scenario);
 
             SolverJob job;
             try {
@@ -437,6 +438,7 @@ public class VrpApplicationFacade {
 
         normalizeMapProvider(scenario);
         ScenarioReferenceNormalizer.normalize(scenario);
+        validateRequiredTicketTypes(scenario);
         scenarioLocationEnricher.enrich(scenario);
         ScenarioReferenceNormalizer.normalize(scenario);
 
@@ -475,6 +477,34 @@ public class VrpApplicationFacade {
                     e.getMessage(),
                     e
             );
+        }
+    }
+
+    /**
+     * Ticket 类型直接参与服务时长和在途载荷计算，缺失时会在求解过程中触发空值错误。
+     */
+    private void validateRequiredTicketTypes(Scenario scenario) {
+        RoutePlan plan = scenario.getPlan();
+        if (plan == null || plan.getTickets() == null) {
+            return;
+        }
+
+        List<Ticket> tickets = plan.getTickets();
+        for (int index = 0; index < tickets.size(); index++) {
+            Ticket ticket = tickets.get(index);
+            if (ticket == null || ticket.getType() == null) {
+                String field = "plan.tickets[" + index + "].type";
+                String message = ticket == null || ticket.getId() == null
+                        ? "Ticket type is required"
+                        : "Ticket type is required: " + ticket.getId();
+                throw new VrpApplicationException(
+                        Response.Status.BAD_REQUEST,
+                        VrpErrorCode.INVALID_ARGUMENT,
+                        Map.of("field", field, "rule", "required"),
+                        message,
+                        false
+                );
+            }
         }
     }
 

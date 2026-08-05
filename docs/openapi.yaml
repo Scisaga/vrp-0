@@ -333,6 +333,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Scenario'
+        "400":
+          description: 场景字段不合法，例如工单缺少必填 type
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
         "409":
           description: 当前求解任务运行中，不允许修改场景
           content:
@@ -456,6 +462,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SolverJob'
+        "400":
+          description: 求解参数或场景求解前置数据不合法，例如工单缺少必填 type
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
         "404":
           description: 当前没有场景
           content:
@@ -1593,6 +1605,7 @@ components:
     Ticket:
       required:
       - id
+      - type
       type: object
       properties:
         loc:
@@ -1610,7 +1623,7 @@ components:
           description: 网点ID
           type: string
         type:
-          description: 工单类型
+          description: 工单类型；求解必填
           type: string
           allOf:
           - $ref: '#/components/schemas/Type'

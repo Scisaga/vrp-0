@@ -33,7 +33,7 @@ import java.util.*;
  * - 上一级工单完成后，当前工单才能执行
  */
 @Schema(
-        requiredProperties = {"id"},
+        requiredProperties = {"id", "type"},
         properties = {
                 @SchemaProperty(
                         name = "loc",
@@ -95,7 +95,7 @@ public class Ticket implements Serializable {
     private String depoId;
 
     @Schema(
-            description = "工单类型"
+            description = "工单类型；求解必填"
     )
     private Type type;
 

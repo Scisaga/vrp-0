@@ -76,6 +76,9 @@ public class ScenarioResource {
             @APIResponse(responseCode = "200", description = "已保存的当前场景",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON,
                             schema = @Schema(implementation = Scenario.class))),
+            @APIResponse(responseCode = "400", description = "场景字段不合法，例如工单缺少必填 type",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON,
+                            schema = @Schema(implementation = ErrorInfo.class))),
             @APIResponse(responseCode = "409", description = "当前求解任务运行中，不允许修改场景",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON,
                             schema = @Schema(implementation = ErrorInfo.class)))

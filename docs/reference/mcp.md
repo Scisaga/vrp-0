@@ -43,7 +43,7 @@
 | Tool | 输入 | 默认值与约束 | 成功返回 |
 | --- | --- | --- | --- |
 | `get_current_scenario` | `{}` | 当前场景必须存在 | `Scenario` |
-| `upsert_current_scenario` | `scenario`、`build?`、`matrix_mode?` | `scenario` 必填；`build=false`；`matrix_mode=ROUTING`，可选 `ROUTING`、`MANHATTAN` | 保存后的 `Scenario` |
+| `upsert_current_scenario` | `scenario`、`build?`、`matrix_mode?` | `scenario` 必填；其中 `plan.tickets` 每项的 `type` 必填；`build=false`；`matrix_mode=ROUTING`，可选 `ROUTING`、`MANHATTAN` | 保存后的 `Scenario` |
 | `delete_current_scenario` | `{}` | 当前场景必须存在；运行中任务会阻止删除 | `Msg` |
 | `get_available_agents` | `{}` | 当前场景及规划时间范围必须存在 | 2 小时粒度的可用 Agent 窗口数组 |
 
