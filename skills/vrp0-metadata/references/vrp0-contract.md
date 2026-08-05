@@ -96,6 +96,8 @@ Do not generate a schema whose root is `depos`, `agents`, `orders`, or `vehicles
 
 Date-time strings used by the engine are local date-time strings formatted as `yyyy-MM-dd HH:mm:ss`.
 
+枚举字段必须同时保留可直接提交给引擎的机器值，并在 Schema `description` 中逐项给出中文名称和简短业务说明。中文名称不能替代 `enum` 中的机器值；描述应说明该值对路径规划、载荷、能耗或业务状态的实际影响，而不是只重复机器值。
+
 `poi`:
 
 - `id`: string

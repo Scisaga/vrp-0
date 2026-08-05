@@ -62,7 +62,7 @@ public class Scenario implements Serializable {
     )
     private String desc;
 
-    @Schema(description = "场景坐标及地图能力使用的图商；缺省时由当前 MAP_PROVIDER 补齐", enumeration = {"AMAP", "HERE"})
+    @Schema(title = "地图服务提供商", description = "决定场景坐标及地图能力使用的图商；缺省时由当前 MAP_PROVIDER 补齐。", enumeration = {"AMAP", "HERE"})
     private MapProvider mapProvider;
 
     // 当前规划日期

@@ -29,7 +29,7 @@ public class Route implements Serializable {
     @Schema(description = "通行费，单位元")
     public long tolls;
 
-    @Schema(description = "本段路线的最终来源")
+    @Schema(title = "路线来源", description = "标识本段路线实际使用的图商、交通方式或降级结果。")
     public RouteSource routeSource;
 
     @Schema(description = "生成本段路线期间发生的路径服务失败记录")

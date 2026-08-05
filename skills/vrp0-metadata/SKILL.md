@@ -73,6 +73,7 @@ run the skill in that version's tag, release commit, or worktree so the generate
 - Model `plan` as the VRP0 engine `RoutePlan`: `depos`, `agents`, `tickets`, optional `skus`, `pois`, `matrix`, `constraint_configuration`, and `cost_parameter`.
 - Use `tickets`, not `orders`, inside `plan`. Do not generate top-level `depos`, `agents`, or `orders` unless Gateway gains an explicit adapter layer.
 - Keep POI references compatible with engine JSON identity handling: allow either a POI ID string or a POI object where engine fields can reference a POI.
+- For every enum field, keep engine-facing machine values in `enum` and document each value's Chinese name and short business meaning in `description`.
 - Put operational tuning in `constraint-config.yaml`, not in `request_payload`, unless it is true per-request input.
 - Expose only safe OptaPlanner score weights in `overridable`; never expose platform-owned fields such as raw engine config, scheduler config, archive refs, or credentials.
 - Keep overridable score values as `Nhard/Nmedium/Nsoft` strings because the VRP0 engine deserializes `HardMediumSoftLongScore` from strings.

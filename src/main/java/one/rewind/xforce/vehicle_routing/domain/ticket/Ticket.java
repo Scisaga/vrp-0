@@ -66,6 +66,10 @@ public class Ticket implements Serializable {
     }
 
     // 类型
+    @Schema(
+            title = "工单类型",
+            description = "可选值：Delv（配送），完成后减少车辆在途载荷；Delv_BH（返仓），完成后增加车辆在途载荷；Inst（安装），执行安装服务且不改变配送载荷。"
+    )
     public enum Type {
         Delv, // 配送
         Delv_BH, // 返仓
@@ -73,6 +77,10 @@ public class Ticket implements Serializable {
     }
 
     // 工单状态
+    @Schema(
+            title = "工单状态",
+            description = "可选值：New（新生成），尚未指派；Assigned（已指派），已分配工程师；Accepted（已接受），工程师已接单；Transit（在途），正在前往现场；Working（工作中），正在服务；Agent_Done（工程师完成），等待客户确认；Done（客户确认），工单已完成。"
+    )
     public enum Status {
         New,        // 新生成
         Assigned,   // 已指派
@@ -95,7 +103,8 @@ public class Ticket implements Serializable {
     private String depoId;
 
     @Schema(
-            description = "工单类型；求解必填"
+            title = "工单类型",
+            description = "决定工单的服务业务以及在途载荷变化；求解必填。"
     )
     private Type type;
 
@@ -105,7 +114,8 @@ public class Ticket implements Serializable {
     private Map<String, Double> qualificationLevelsRequired = new LinkedHashMap<>();
 
     @Schema(
-            description = "工单状态"
+            title = "工单状态",
+            description = "表示工单从生成、指派、执行到确认完成的当前业务阶段。"
     )
     private Status status = Status.New;
 

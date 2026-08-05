@@ -678,12 +678,14 @@ components:
             format: double
             type: number
         vehicle_type:
-          description: 出行方式
+          title: 车辆类型
+          description: 决定车辆执行工单时使用的道路路径规划方式。
           type: string
           allOf:
           - $ref: '#/components/schemas/VehicleType'
         fuel_type:
-          description: 燃料类型
+          title: 燃料类型
+          description: 决定车辆能耗及能源成本的核算口径。
           type: string
           allOf:
           - $ref: '#/components/schemas/FuelType'
@@ -950,6 +952,8 @@ components:
         nativeMethod:
           type: boolean
     FuelType:
+      title: 燃料类型
+      description: 可选值：GAS_92（92 号汽油），按升/百公里核算燃油消耗；ELEC（电力），按千瓦时/百公里核算电耗。
       enum:
       - GAS_92
       - ELEC
@@ -1008,7 +1012,8 @@ components:
         locale:
           type: string
     MapProvider:
-      description: 地图服务提供商
+      title: 地图服务提供商
+      description: 可选值：AMAP（高德地图），使用高德地图能力；HERE（HERE 地图），使用 HERE 地图能力。
       enum:
       - AMAP
       - HERE
@@ -1160,7 +1165,8 @@ components:
           description: 通行费，单位元
           type: integer
         route_source:
-          description: 本段路线的最终来源
+          title: 路线来源
+          description: 标识本段路线实际使用的图商、交通方式或降级结果。
           type: string
           allOf:
           - $ref: '#/components/schemas/RouteSource'
@@ -1298,7 +1304,8 @@ components:
             Medium
           type: string
     RouteSource:
-      description: 路线来源
+      title: 路线来源
+      description: 可选值：AMAP_TRUCK（高德货车路线）、AMAP_DRIVING（高德驾车路线）、AMAP_BICYCLE（高德骑行路线）、HERE_TRUCK（HERE 货车路线）、HERE_DRIVING（HERE 驾车路线）、HERE_BICYCLE（HERE 骑行路线）、CAR_FALLBACK（货车失败后的普通驾车降级路线）、ESTIMATED（无真实道路轨迹的估算路线）、ZERO_DISTANCE（起终点相同的零距离路线）。
       enum:
       - AMAP_TRUCK
       - AMAP_DRIVING
@@ -1364,7 +1371,8 @@ components:
           description: 场景描述
           type: string
         map_provider:
-          description: 场景坐标及地图能力使用的图商；缺省时由当前 MAP_PROVIDER 补齐
+          title: 地图服务提供商
+          description: 决定场景坐标及地图能力使用的图商；缺省时由当前 MAP_PROVIDER 补齐。
           enum:
           - AMAP
           - HERE
@@ -1557,6 +1565,8 @@ components:
           type: string
           example: 0hard/-54medium/-4341soft
     Status:
+      title: 工单状态
+      description: 可选值：New（新生成），尚未指派；Assigned（已指派），已分配工程师；Accepted（已接受），工程师已接单；Transit（在途），正在前往现场；Working（工作中），正在服务；Agent_Done（工程师完成），等待客户确认；Done（客户确认），工单已完成。
       enum:
       - New
       - Assigned
@@ -1623,7 +1633,8 @@ components:
           description: 网点ID
           type: string
         type:
-          description: 工单类型；求解必填
+          title: 工单类型
+          description: 决定工单的服务业务以及在途载荷变化；求解必填。
           type: string
           allOf:
           - $ref: '#/components/schemas/Type'
@@ -1634,7 +1645,8 @@ components:
             format: double
             type: number
         status:
-          description: 工单状态
+          title: 工单状态
+          description: 表示工单从生成、指派、执行到确认完成的当前业务阶段。
           type: string
           allOf:
           - $ref: '#/components/schemas/Status'
@@ -1770,6 +1782,8 @@ components:
             additionalProperties:
               $ref: '#/components/schemas/Transit'
     Type:
+      title: 工单类型
+      description: 可选值：Delv（配送），完成后减少车辆在途载荷；Delv_BH（返仓），完成后增加车辆在途载荷；Inst（安装），执行安装服务且不改变配送载荷。
       enum:
       - Delv
       - Delv_BH
@@ -1780,6 +1794,8 @@ components:
       pattern: "[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}"
       type: string
     VehicleType:
+      title: 车辆类型
+      description: 可选值：TRUCK（货车），按货车道路能力规划路线；CAR（汽车），按普通驾车能力规划路线；E_BIKE（电动自行车），按骑行能力规划路线。
       enum:
       - TRUCK
       - CAR

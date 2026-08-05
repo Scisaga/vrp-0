@@ -146,12 +146,14 @@ def agent_schema() -> dict:
             "vehicle_type": {
                 "type": "string",
                 "enum": ["TRUCK", "CAR", "E_BIKE"],
-                "title": "出行方式",
+                "title": "车辆类型",
+                "description": "TRUCK（货车）：按货车道路能力规划路线；CAR（汽车）：按普通驾车能力规划路线；E_BIKE（电动自行车）：按骑行能力规划路线。",
             },
             "fuel_type": {
                 "type": ["string", "null"],
                 "enum": ["GAS_92", "ELEC", None],
                 "title": "燃料类型",
+                "description": "GAS_92（92 号汽油）：按升/百公里核算燃油消耗；ELEC（电力）：按千瓦时/百公里核算电耗；null（未指定）：不声明能源类型。",
             },
             "weight": {**non_negative_number, "title": "核定载重"},
             "vol": {**non_negative_number, "title": "核定体积"},
@@ -183,12 +185,14 @@ def ticket_schema() -> dict:
                 "enum": ["Delv", "Delv_BH", "Inst"],
                 "default": "Delv",
                 "title": "工单类型",
+                "description": "Delv（配送）：完成后减少车辆在途载荷；Delv_BH（返仓）：完成后增加车辆在途载荷；Inst（安装）：执行安装服务且不改变配送载荷。",
             },
             "status": {
                 "type": "string",
                 "enum": ["New", "Assigned", "Accepted", "Transit", "Working", "Agent_Done", "Done"],
                 "default": "New",
                 "title": "工单状态",
+                "description": "New（新生成）：尚未指派；Assigned（已指派）：已分配工程师；Accepted（已接受）：工程师已接单；Transit（在途）：正在前往现场；Working（工作中）：正在服务；Agent_Done（工程师完成）：等待客户确认；Done（客户确认）：工单已完成。",
             },
             "loc": {"$ref": "#/$defs/poiRef"},
             "items": {
@@ -248,6 +252,7 @@ def options_schema() -> dict:
                 "enum": ["AMAP", "MANHATTAN"],
                 "default": "AMAP",
                 "title": "矩阵构建类型",
+                "description": "AMAP（道路路由矩阵）：通过地图路由能力计算在途数据；MANHATTAN（曼哈顿估算矩阵）：使用离线曼哈顿距离估算在途数据。",
             },
             "draw_route": {"type": "boolean", "default": False, "title": "是否构建路线"},
             "resource_spec": {"type": "string", "title": "求解资源规格"},
@@ -626,6 +631,34 @@ def write_json(path: Path, value: dict, force: bool) -> None:
     write_text(path, json.dumps(value, ensure_ascii=False, indent=2) + "\n", force)
 
 
+def validate_enum_metadata(value: object, path: str = "$") -> None:
+    if isinstance(value, list):
+        for index, item in enumerate(value):
+            validate_enum_metadata(item, f"{path}[{index}]")
+        return
+    if not isinstance(value, dict):
+        return
+
+    enum_values = value.get("enum")
+    if isinstance(enum_values, list):
+        title = value.get("title")
+        description = value.get("description")
+        if not isinstance(title, str) or not title.strip():
+            raise ValueError(f"{path} enum 缺少中文 title")
+        if not isinstance(description, str) or not description.strip():
+            raise ValueError(f"{path} enum 缺少中文名称和业务说明")
+        missing_values = [
+            "null" if item is None else str(item)
+            for item in enum_values
+            if ("null" if item is None else str(item)) not in description
+        ]
+        if missing_values:
+            raise ValueError(f"{path} enum description 未说明机器值: {', '.join(missing_values)}")
+
+    for key, item in value.items():
+        validate_enum_metadata(item, f"{path}.{key}")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -690,7 +723,9 @@ def main() -> None:
     if not constraints and args.require_engine_source:
         raise SystemExit(f"Unable to parse engine constraints from {constraint_source_path(args.engine_root)}")
 
-    write_json(output_dir / "request-schema.json", request_schema(), args.force)
+    generated_request_schema = request_schema()
+    validate_enum_metadata(generated_request_schema)
+    write_json(output_dir / "request-schema.json", generated_request_schema, args.force)
     write_json(output_dir / "result-summary-schema.json", result_summary_schema(), args.force)
     write_json(
         output_dir / "constraint-config.yaml",

@@ -136,7 +136,8 @@
             "MANHATTAN"
           ],
           "default": "AMAP",
-          "title": "矩阵构建类型"
+          "title": "矩阵构建类型",
+          "description": "AMAP（道路路由矩阵）：通过地图路由能力计算在途数据；MANHATTAN（曼哈顿估算矩阵）：使用离线曼哈顿距离估算在途数据。"
         },
         "draw_route": {
           "type": "boolean",
@@ -333,7 +334,8 @@
             "CAR",
             "E_BIKE"
           ],
-          "title": "出行方式"
+          "title": "车辆类型",
+          "description": "TRUCK（货车）：按货车道路能力规划路线；CAR（汽车）：按普通驾车能力规划路线；E_BIKE（电动自行车）：按骑行能力规划路线。"
         },
         "fuel_type": {
           "type": [
@@ -345,7 +347,8 @@
             "ELEC",
             null
           ],
-          "title": "燃料类型"
+          "title": "燃料类型",
+          "description": "GAS_92（92 号汽油）：按升/百公里核算燃油消耗；ELEC（电力）：按千瓦时/百公里核算电耗；null（未指定）：不声明能源类型。"
         },
         "weight": {
           "type": "number",
@@ -437,7 +440,8 @@
             "Inst"
           ],
           "default": "Delv",
-          "title": "工单类型"
+          "title": "工单类型",
+          "description": "Delv（配送）：完成后减少车辆在途载荷；Delv_BH（返仓）：完成后增加车辆在途载荷；Inst（安装）：执行安装服务且不改变配送载荷。"
         },
         "status": {
           "type": "string",
@@ -451,7 +455,8 @@
             "Done"
           ],
           "default": "New",
-          "title": "工单状态"
+          "title": "工单状态",
+          "description": "New（新生成）：尚未指派；Assigned（已指派）：已分配工程师；Accepted（已接受）：工程师已接单；Transit（在途）：正在前往现场；Working（工作中）：正在服务；Agent_Done（工程师完成）：等待客户确认；Done（客户确认）：工单已完成。"
         },
         "loc": {
           "$ref": "#/$defs/poiRef"

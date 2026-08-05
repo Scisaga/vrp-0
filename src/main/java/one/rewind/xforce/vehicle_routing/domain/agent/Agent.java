@@ -21,11 +21,19 @@ import java.util.*;
 @RegisterForReflection(serialization = true)
 public class Agent implements Serializable {
 
+    @Schema(
+            title = "燃料类型",
+            description = "可选值：GAS_92（92 号汽油），按升/百公里核算燃油消耗；ELEC（电力），按千瓦时/百公里核算电耗。"
+    )
     public enum FuelType {
         GAS_92,
         ELEC
     }
 
+    @Schema(
+            title = "车辆类型",
+            description = "可选值：TRUCK（货车），按货车道路能力规划路线；CAR（汽车），按普通驾车能力规划路线；E_BIKE（电动自行车），按骑行能力规划路线。"
+    )
     public enum VehicleType {
         TRUCK,
         CAR,
@@ -51,10 +59,10 @@ public class Agent implements Serializable {
     @Schema(name = "qualification_levels", description = "工程师资质等级")
     private Map<String, Double> qualificationLevels = new LinkedHashMap<>();
 
-    @Schema(name = "vehicle_type", description = "出行方式")
+    @Schema(name = "vehicle_type", title = "车辆类型", description = "决定车辆执行工单时使用的道路路径规划方式。")
     private VehicleType vehicleType;
 
-    @Schema(name = "fuel_type", description = "燃料类型")
+    @Schema(name = "fuel_type", title = "燃料类型", description = "决定车辆能耗及能源成本的核算口径。")
     private FuelType fuelType;
 
     @Schema(name = "fuel_consumption", description = "每百公里燃油/电能消耗：GAS_92 为 L/100km，ELEC 为 kWh/100km")
