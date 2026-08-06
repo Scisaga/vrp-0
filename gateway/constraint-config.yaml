@@ -21,6 +21,86 @@
     "minimize_ticket_changing": "0hard/0medium/1000soft",
     "agent_is_virtual": "0hard/1000medium/0soft"
   },
+  "presets": [
+    {
+      "id": "balanced",
+      "title": "标准均衡",
+      "description": "保持镜像默认约束层级，先满足容量、接单量、技能、当日指派和同网点等 Hard 约束，再综合权衡资格匹配、关联工单同人、工单负载均衡、虚拟工程师、时间窗、行驶时间、固定成本和工单改派，整体目标较均衡。适用于没有单一目标明显优先的常规综合规划。",
+      "scores": {
+        "agent_capacity": "1hard/0medium/0soft",
+        "agent_max_ticket": "1hard/0medium/0soft",
+        "agent_skills_accord_with_ticket_skills": "1hard/0medium/0soft",
+        "agent_qualification_levels_match_ticket": "0hard/100medium/0soft",
+        "ref_ticket_after_dep_ticket": "0hard/0medium/0soft",
+        "ref_ticket_same_agent_with_dep_ticket": "0hard/0medium/0soft",
+        "service_finished_after_max_end_time": "0hard/0medium/0soft",
+        "ticket_start_service_time_match_expected": "0hard/0medium/100soft",
+        "ticket_arrival_time_same_date_with_plan_time": "1hard/0medium/0soft",
+        "relation_tickets_same_agent": "0hard/50medium/0soft",
+        "minimize_travel_time": "0hard/0medium/1soft",
+        "minimize_travel_distance": "0hard/0medium/0soft",
+        "minimize_agent_fixed_cost": "0hard/0medium/20soft",
+        "same_depo": "1hard/0medium/0soft",
+        "balance_agent_loading": "0hard/1medium/0soft",
+        "balance_agent_loading_ratio": "0hard/0medium/0soft",
+        "balance_agent_working_time": "0hard/0medium/0soft",
+        "minimize_ticket_changing": "0hard/0medium/1000soft",
+        "agent_is_virtual": "0hard/1000medium/0soft"
+      }
+    },
+    {
+      "id": "fulfillment_first",
+      "title": "履约优先",
+      "description": "保持基础 Hard 约束不变，提高时间窗、工单改派和虚拟工程师惩罚，更倾向于少迟到、少改派并由真实工程师完成；可能接受更长的行驶时间或更不均衡的工作分配。适用于强调准时履约、计划稳定、减少改派或尽量避免虚拟工程师的场景。",
+      "scores": {
+        "agent_capacity": "1hard/0medium/0soft",
+        "agent_max_ticket": "1hard/0medium/0soft",
+        "agent_skills_accord_with_ticket_skills": "1hard/0medium/0soft",
+        "agent_qualification_levels_match_ticket": "0hard/100medium/0soft",
+        "ref_ticket_after_dep_ticket": "0hard/0medium/0soft",
+        "ref_ticket_same_agent_with_dep_ticket": "0hard/0medium/0soft",
+        "service_finished_after_max_end_time": "0hard/0medium/0soft",
+        "ticket_start_service_time_match_expected": "0hard/0medium/300soft",
+        "ticket_arrival_time_same_date_with_plan_time": "1hard/0medium/0soft",
+        "relation_tickets_same_agent": "0hard/50medium/0soft",
+        "minimize_travel_time": "0hard/0medium/1soft",
+        "minimize_travel_distance": "0hard/0medium/0soft",
+        "minimize_agent_fixed_cost": "0hard/0medium/20soft",
+        "same_depo": "1hard/0medium/0soft",
+        "balance_agent_loading": "0hard/1medium/0soft",
+        "balance_agent_loading_ratio": "0hard/0medium/0soft",
+        "balance_agent_working_time": "0hard/0medium/0soft",
+        "minimize_ticket_changing": "0hard/0medium/2000soft",
+        "agent_is_virtual": "0hard/2000medium/0soft"
+      }
+    },
+    {
+      "id": "efficiency_first",
+      "title": "效率优先",
+      "description": "保持基础 Hard 约束不变，将关联工单同人和工单负载均衡降为 Soft，降低时间窗和改派权重，并提高行驶时间权重，更倾向于缩短总体行驶时间；可能出现更多改派、负载差异、关联工单拆分或少量迟到。适用于强调总体行驶效率且可接受这些取舍的场景。",
+      "scores": {
+        "agent_capacity": "1hard/0medium/0soft",
+        "agent_max_ticket": "1hard/0medium/0soft",
+        "agent_skills_accord_with_ticket_skills": "1hard/0medium/0soft",
+        "agent_qualification_levels_match_ticket": "0hard/100medium/0soft",
+        "ref_ticket_after_dep_ticket": "0hard/0medium/0soft",
+        "ref_ticket_same_agent_with_dep_ticket": "0hard/0medium/0soft",
+        "service_finished_after_max_end_time": "0hard/0medium/0soft",
+        "ticket_start_service_time_match_expected": "0hard/0medium/50soft",
+        "ticket_arrival_time_same_date_with_plan_time": "1hard/0medium/0soft",
+        "relation_tickets_same_agent": "0hard/0medium/50soft",
+        "minimize_travel_time": "0hard/0medium/3soft",
+        "minimize_travel_distance": "0hard/0medium/0soft",
+        "minimize_agent_fixed_cost": "0hard/0medium/20soft",
+        "same_depo": "1hard/0medium/0soft",
+        "balance_agent_loading": "0hard/0medium/1soft",
+        "balance_agent_loading_ratio": "0hard/0medium/0soft",
+        "balance_agent_working_time": "0hard/0medium/0soft",
+        "minimize_ticket_changing": "0hard/0medium/200soft",
+        "agent_is_virtual": "0hard/1000medium/0soft"
+      }
+    }
+  ],
   "overridable": {
     "agent_capacity": {
       "type": "string",

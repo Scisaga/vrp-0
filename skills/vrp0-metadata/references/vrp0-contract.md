@@ -171,7 +171,24 @@ POI references may be either a POI ID string or a POI object because the engine 
 Use `constraint-config.yaml` as JSON-compatible YAML with:
 
 - `defaults`: effective default VRP0 OptaPlanner constraint weights.
+- `presets`: ImageVersion-owned constraint shortcuts. Each preset contains a stable `id`, Chinese `title`,
+  a `description` of its solve characteristics, and a complete `scores` object.
 - `overridable`: allowlist of score weight fields users may override through Gateway `constraint_overrides`.
+
+The current presets are:
+
+- `balanced`: keeps the engine defaults and balances fulfillment, workload, route efficiency, fixed cost, and reassignment stability.
+- `fulfillment_first`: increases time-window, reassignment, and virtual-agent penalties; it favors fewer late, reassigned, or virtually assigned tickets, potentially at the cost of travel efficiency or workload balance.
+- `efficiency_first`: lowers related-ticket and workload-balance priorities to Soft, lowers time-window and reassignment weights, and increases travel-time weight; it favors shorter total travel time while accepting more reassignment, workload variance, split related tickets, or limited lateness.
+
+Presets are metadata only. They do not add a preset identifier to the solver request or change the engine's
+constraint configuration contract. Every `scores` object must list every score field declared by the target
+engine version so a selected preset can be used directly without inheriting missing values from `defaults`.
+
+Preset guidance belongs with `constraint-config.yaml`, not with the general `image-version.yaml` description.
+Each preset `description` concisely explains that score set's solve characteristics, material tradeoffs, and
+suitable usage context. Do not add a separate Agent selection-condition field, and do not imply that Gateway or
+the engine accepts a preset ID.
 
 Generate these fields from the target engine version's `RoutePlanConstraintConfiguration` source whenever possible. Different engine versions may intentionally have different constraint fields or default values; do not copy defaults from another version by hand.
 

@@ -67,6 +67,14 @@ The generator defaults to both providers. For an image restricted to one provide
 If the engine adds, removes, renames, or changes default constraint weights in a future version,
 run the skill in that version's tag, release commit, or worktree so the generated defaults and overridable fields follow that code.
 
+The generated constraint metadata also contains three complete ImageVersion presets: `balanced`,
+`fulfillment_first`, and `efficiency_first`. Each preset includes a Chinese title, a description of its
+solve characteristics, and a complete `scores` object. Presets are metadata shortcuts only; selecting one
+expands its scores into the existing constraint configuration flow and does not introduce a new solver contract.
+Keep preset guidance with the constraint metadata, not in `image-version.yaml`. Every preset `description`
+must concisely explain the score set's solve characteristics, material tradeoffs, and suitable usage context.
+Do not add a separate Agent selection-condition field or instruct callers to submit a preset identifier.
+
 ## Edit Rules
 
 - Preserve the engine-facing top-level request shape: `Scenario` fields (`name`, `planning_date`, `start_time`, `end_time`, `plan`) plus optional Gateway `options`.
@@ -77,6 +85,7 @@ run the skill in that version's tag, release commit, or worktree so the generate
 - Put operational tuning in `constraint-config.yaml`, not in `request_payload`, unless it is true per-request input.
 - Expose only safe OptaPlanner score weights in `overridable`; never expose platform-owned fields such as raw engine config, scheduler config, archive refs, or credentials.
 - Keep overridable score values as `Nhard/Nmedium/Nsoft` strings because the VRP0 engine deserializes `HardMediumSoftLongScore` from strings.
+- Keep every preset's `scores` complete and aligned with the target engine constraint fields. Do not encode presets as partial overrides in generated metadata.
 - Keep `limits_json` in `image-version.yaml` consistent with request schema bounds when both express the same hard limit.
 - After generation, compare `request-schema.json` against the current Gateway scheduler and VRP0 engine code. If the generated request cannot be submitted by Gateway as-is to engine `PUT /scenario`, fix this skill and regenerate.
 - Do not use the Gateway repository as the generation target. Gateway imports the files from the engine repository Git tag selected by `GATEWAY_CODE_REPOSITORY_TAG_PATTERN`.

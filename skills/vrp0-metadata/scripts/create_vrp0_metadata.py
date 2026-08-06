@@ -9,6 +9,11 @@ import re
 from pathlib import Path
 
 
+DEFAULT_IMAGE_VERSION_DESCRIPTION = (
+    "支持 AMAP 和 HERE 图商的 VRP0 车辆路径求解；地图图商由请求中的 map_provider 选择。"
+)
+
+
 def date_time_schema() -> dict:
     return {
         "description": "Local date time formatted as yyyy-MM-dd HH:mm:ss",
@@ -566,9 +571,73 @@ def constraint_config(max_orders: int, max_vehicles: int) -> dict:
     return constraint_config_from_constraints(fallback_constraints(), max_orders, max_vehicles)
 
 
+def constraint_presets(constraints: list[dict]) -> list[dict]:
+    defaults = {item["key"]: item["default"] for item in constraints}
+    definitions = [
+        {
+            "id": "balanced",
+            "title": "标准均衡",
+            "description": (
+                "保持镜像默认约束层级，先满足容量、接单量、技能、当日指派和同网点等 Hard 约束，"
+                "再综合权衡资格匹配、关联工单同人、工单负载均衡、虚拟工程师、时间窗、行驶时间、"
+                "固定成本和工单改派，整体目标较均衡。适用于没有单一目标明显优先的常规综合规划。"
+            ),
+            "overrides": {},
+        },
+        {
+            "id": "fulfillment_first",
+            "title": "履约优先",
+            "description": (
+                "保持基础 Hard 约束不变，提高时间窗、工单改派和虚拟工程师惩罚，更倾向于少迟到、"
+                "少改派并由真实工程师完成；可能接受更长的行驶时间或更不均衡的工作分配。适用于强调"
+                "准时履约、计划稳定、减少改派或尽量避免虚拟工程师的场景。"
+            ),
+            "overrides": {
+                "ticket_start_service_time_match_expected": "0hard/0medium/300soft",
+                "minimize_ticket_changing": "0hard/0medium/2000soft",
+                "agent_is_virtual": "0hard/2000medium/0soft",
+            },
+        },
+        {
+            "id": "efficiency_first",
+            "title": "效率优先",
+            "description": (
+                "保持基础 Hard 约束不变，将关联工单同人和工单负载均衡降为 Soft，降低时间窗和改派权重，"
+                "并提高行驶时间权重，更倾向于缩短总体行驶时间；可能出现更多改派、负载差异、关联工单"
+                "拆分或少量迟到。适用于强调总体行驶效率且可接受这些取舍的场景。"
+            ),
+            "overrides": {
+                "ticket_start_service_time_match_expected": "0hard/0medium/50soft",
+                "relation_tickets_same_agent": "0hard/0medium/50soft",
+                "minimize_travel_time": "0hard/0medium/3soft",
+                "balance_agent_loading": "0hard/0medium/1soft",
+                "minimize_ticket_changing": "0hard/0medium/200soft",
+            },
+        },
+    ]
+
+    presets = []
+    for definition in definitions:
+        unknown_keys = sorted(set(definition["overrides"]) - set(defaults))
+        if unknown_keys:
+            raise ValueError(
+                f"Constraint preset {definition['id']} references unknown constraints: {', '.join(unknown_keys)}"
+            )
+        presets.append(
+            {
+                "id": definition["id"],
+                "title": definition["title"],
+                "description": definition["description"],
+                "scores": {**defaults, **definition["overrides"]},
+            }
+        )
+    return presets
+
+
 def constraint_config_from_constraints(constraints: list[dict], max_orders: int, max_vehicles: int) -> dict:
     return {
         "defaults": {"name": "default", **{item["key"]: item["default"] for item in constraints}},
+        "presets": constraint_presets(constraints),
         "overridable": {
             item["key"]: score_rule(item["title"], item["description"] or item["key"])
             for item in constraints
@@ -668,8 +737,11 @@ def main() -> None:
     )
     parser.add_argument("--version", required=True, help="Image version, e.g. 1.0.0")
     parser.add_argument("--output-dir", default="gateway", help="Metadata output directory")
-    parser.add_argument("--display-name", default="VRP0 Solver")
-    parser.add_argument("--description", default="Vehicle routing solver metadata for VRP0")
+    parser.add_argument("--display-name", default="VRP0 Solver（AMAP / HERE）")
+    parser.add_argument(
+        "--description",
+        default=DEFAULT_IMAGE_VERSION_DESCRIPTION,
+    )
     parser.add_argument("--max-orders", type=int, default=1000)
     parser.add_argument("--max-vehicles", type=int, default=200)
     parser.add_argument(
