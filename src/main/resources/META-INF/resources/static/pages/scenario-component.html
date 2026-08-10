@@ -28,15 +28,11 @@
     @close="importRequestDialog.open = false"
     @click.self="closeImportSolveRequestDialog()"
   >
-    <div class="flex items-center justify-between border-b-[1.25px] border-slate-200 px-[1.5625rem] py-[1.25rem]">
+    <div class="border-b-[1.25px] border-slate-200 px-[1.5625rem] py-[1.25rem]">
       <div>
         <div class="field-label" x-text="t('scenario.host.importSolveRequest')"></div>
         <div class="mt-[0.3125rem] text-[1.09375rem]/[1.5625rem] font-medium text-slate-900" x-text="t('scenario.host.pasteSolveRequest')"></div>
         <div class="mt-[0.3125rem] text-[0.9375rem]/[1.25rem] text-slate-500" x-text="t('scenario.host.importHint')"></div>
-      </div>
-      <div class="flex items-center gap-[0.625rem]">
-        <button type="button" class="action-secondary" @click="formatImportRequestJson()" x-text="t('common.format')"></button>
-        <button type="button" class="action-secondary" @click="toggleImportRequestFold()" x-text="t(importRequestDialog.folded ? 'common.expandAll' : 'common.collapseAll')"></button>
       </div>
     </div>
     <div class="p-[1.5625rem]">
@@ -82,36 +78,15 @@
 
       <span class="hidden h-[1.875rem] w-[1.25px] bg-slate-200 min-[800px]:block" aria-hidden="true"></span>
 
-      <div data-scenario-toolbar-section="import-export" class="relative" @keydown.escape="toolbarImportMenuOpen = false">
-        <button
-          type="button"
-          class="action-secondary"
-          :aria-expanded="String(toolbarImportMenuOpen)"
-          aria-controls="scenario-import-export-menu"
-          @click="toolbarImportMenuOpen = !toolbarImportMenuOpen"
-        >
-          <span class="material-symbols-rounded text-[22.5px]">swap_horiz</span>
-          <span x-text="t('scenario.host.importExport')"></span>
-          <span class="material-symbols-rounded text-[22.5px]" x-text="toolbarImportMenuOpen ? 'expand_less' : 'expand_more'"></span>
+      <div data-scenario-toolbar-section="import-export" class="flex items-center gap-[0.625rem]">
+        <button type="button" class="action-secondary" @click="openImportSolveRequestDialog()">
+          <span class="material-symbols-rounded text-[22.5px]">file_upload</span>
+          <span x-text="t('common.import')"></span>
         </button>
-        <div
-          id="scenario-import-export-menu"
-          x-cloak
-          x-show="toolbarImportMenuOpen"
-          x-transition.opacity.duration.150ms
-          @click.outside="toolbarImportMenuOpen = false"
-          class="absolute right-0 top-full z-30 mt-[0.625rem] min-w-[16.25rem] overflow-hidden rounded-[0.46875rem] border-[1.25px] border-slate-200 bg-white py-[0.3125rem] shadow-[0_12.5px_18.75px_-3.75px_rgba(0,0,0,0.1),0_5px_7.5px_-5px_rgba(0,0,0,0.1)]"
-          role="menu"
-        >
-          <button type="button" class="flex w-full items-center gap-[0.625rem] px-[0.9375rem] py-[0.625rem] text-left text-[1.09375rem]/[1.5625rem] text-slate-700 transition hover:bg-slate-50" role="menuitem" @click="copySolveRequestPayload(); toolbarImportMenuOpen = false">
-            <span class="material-symbols-rounded text-[22.5px] text-slate-500">content_copy</span>
-            <span x-text="t('scenario.host.copyRequest')"></span>
-          </button>
-          <button type="button" class="flex w-full items-center gap-[0.625rem] px-[0.9375rem] py-[0.625rem] text-left text-[1.09375rem]/[1.5625rem] text-slate-700 transition hover:bg-slate-50" role="menuitem" @click="openImportSolveRequestDialog(); toolbarImportMenuOpen = false">
-            <span class="material-symbols-rounded text-[22.5px] text-slate-500">input</span>
-            <span x-text="t('scenario.host.pasteAndUpdate')"></span>
-          </button>
-        </div>
+        <button type="button" class="action-secondary" @click="copySolveRequestPayload()">
+          <span class="material-symbols-rounded text-[22.5px]">file_download</span>
+          <span x-text="t('common.export')"></span>
+        </button>
       </div>
 
       <span class="hidden h-[1.875rem] w-[1.25px] bg-slate-200 min-[800px]:block" aria-hidden="true"></span>

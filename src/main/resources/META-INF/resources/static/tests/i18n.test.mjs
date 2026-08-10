@@ -221,7 +221,7 @@ test("场景描述默认显示两行摘要，并通过弹框编辑", () => {
   assert.match(businessCss, /-webkit-line-clamp: 2;/);
 });
 
-test("场景顶部工具栏左侧保留矩阵与求解，右侧将保存、导入导出和删除分组", () => {
+test("场景顶部工具栏左侧保留矩阵与求解，右侧将保存、独立导入导出和删除分组", () => {
   const host = fs.readFileSync(path.resolve(staticRoot, "pages/scenario-component.html"), "utf8");
   const businessCss = fs.readFileSync(path.resolve(staticRoot, "assets/css/scenario-business.source.css"), "utf8");
   const workflowStart = host.indexOf('data-scenario-toolbar-group="workflow"');
@@ -233,7 +233,8 @@ test("场景顶部工具栏左侧保留矩阵与求解，右侧将保存、导�
   const saveGroupIndex = management.indexOf('data-scenario-toolbar-section="save"');
   const saveIndex = management.indexOf('@click="saveScenario()"');
   const importGroupIndex = management.indexOf('data-scenario-toolbar-section="import-export"');
-  const importIndex = management.indexOf('aria-controls="scenario-import-export-menu"');
+  const importIndex = management.indexOf('@click="openImportSolveRequestDialog()"');
+  const exportIndex = management.indexOf('@click="copySolveRequestPayload()"');
   const dangerGroupIndex = management.indexOf('data-scenario-toolbar-section="danger"');
   const deleteIndex = management.indexOf('@click="deleteScenario()"');
 
@@ -241,9 +242,11 @@ test("场景顶部工具栏左侧保留矩阵与求解，右侧将保存、导�
   assert.ok(matrixIndex >= 0 && solveIndex > matrixIndex);
   assert.ok(saveGroupIndex >= 0 && saveIndex > saveGroupIndex);
   assert.ok(importGroupIndex > saveIndex && importIndex > importGroupIndex);
-  assert.ok(dangerGroupIndex > importIndex && deleteIndex > dangerGroupIndex);
+  assert.ok(exportIndex > importIndex);
+  assert.ok(dangerGroupIndex > exportIndex && deleteIndex > dangerGroupIndex);
   assert.equal((management.match(/aria-hidden="true"/g) || []).length, 2);
-  assert.match(management, /class="absolute right-0 top-full/);
+  assert.doesNotMatch(management, /scenario-import-export-menu|toolbarImportMenuOpen|role="menuitem"/);
+  assert.doesNotMatch(host, /formatImportRequestJson|toggleImportRequestFold|common\.format|common\.collapseAll/);
   assert.match(businessCss, /\.scenario-description-preview-text \{\s*@apply min-w-0 flex-1 break-words text-\[16\.25px\] leading-\[1\.5625rem\] text-slate-500;/);
 });
 

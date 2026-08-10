@@ -1,6 +1,5 @@
 import { basicSetup, EditorView } from "../../vendor/codemirror/codemirror/dist/index.js";
 import { EditorState } from "../../vendor/codemirror/@codemirror/state/dist/index.js";
-import { foldAll, unfoldAll } from "../../vendor/codemirror/@codemirror/language/dist/index.js";
 import { linter } from "../../vendor/codemirror/@codemirror/lint/dist/index.js";
 import { json, jsonParseLinter } from "../../vendor/codemirror/@codemirror/lang-json/dist/index.js";
 import { mountScenarioComponent } from "../utils/scenario-component-runtime.js";
@@ -77,7 +76,6 @@ export function scenarioComponentPage() {
     element: null,
     scenarioPersisted: false,
     scenarioProviderMismatch: false,
-    toolbarImportMenuOpen: false,
     pendingTicketFocusId: "",
     componentContext: null,
     localeChangeHandler: null,
@@ -89,7 +87,6 @@ export function scenarioComponentPage() {
       text: "",
       error: "",
       editor: null,
-      folded: false,
       pendingPasteFormat: false
     },
     async init() {
@@ -381,7 +378,6 @@ export function scenarioComponentPage() {
       this.importRequestDialog.editor?.destroy();
       this.importRequestDialog.editor = null;
       this.importRequestDialog.pendingPasteFormat = false;
-      this.importRequestDialog.folded = false;
     },
     getImportRequestEditorText() {
       return this.importRequestDialog.editor?.state.doc.toString() || this.importRequestDialog.text || "";
@@ -389,7 +385,6 @@ export function scenarioComponentPage() {
     setImportRequestEditorText(value) {
       const text = String(value ?? "");
       this.importRequestDialog.text = text;
-      this.importRequestDialog.folded = false;
       const editor = this.importRequestDialog.editor;
       if (!editor || editor.state.doc.toString() === text) {
         return;
@@ -409,24 +404,6 @@ export function scenarioComponentPage() {
         return true;
       } catch (_error) {
         return false;
-      }
-    },
-    formatImportRequestJson() {
-      if (!this.tryFormatImportRequestJson()) {
-        this.importRequestDialog.error = this.t("scenario.host.invalidJson");
-      }
-    },
-    toggleImportRequestFold() {
-      const editor = this.importRequestDialog.editor;
-      if (!editor) {
-        return;
-      }
-      if (this.importRequestDialog.folded) {
-        unfoldAll(editor);
-        this.importRequestDialog.folded = false;
-      } else {
-        foldAll(editor);
-        this.importRequestDialog.folded = true;
       }
     },
     applyImportedSolveRequest() {

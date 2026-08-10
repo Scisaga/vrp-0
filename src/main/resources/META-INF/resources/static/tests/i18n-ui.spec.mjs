@@ -204,20 +204,16 @@ test("scenario toolbar orders workflow actions and keeps descriptions subdued", 
 
   const toolbar = page.locator(".scenario-console-toolbar");
   await expect(toolbar).toBeVisible();
-  const actionLabels = await toolbar.evaluate((element) => [...element.querySelectorAll("[data-scenario-toolbar-group]")].flatMap((group) => [...group.children]
-    .map((child) => {
-      const button = child.tagName === "BUTTON" ? child : child.firstElementChild;
-      if (button?.tagName !== "BUTTON") return null;
+  const actionLabels = await toolbar.evaluate((element) => [...element.querySelectorAll("[data-scenario-toolbar-group]")].flatMap((group) => [...group.querySelectorAll(":scope > button, :scope > [data-scenario-toolbar-section] > button")]
+    .map((button) => {
       return [...button.children]
         .find((node) => !node.classList.contains("material-symbols-rounded"))
         ?.textContent.trim() || null;
     })
     .filter(Boolean)));
-  expect(actionLabels).toEqual(["Build transit matrix", "Plan and solve", "Save scenario", "Import / export", "Delete"]);
-  const actionGroups = await toolbar.evaluate((element) => [...element.querySelectorAll("[data-scenario-toolbar-group]")].map((group) => [...group.children]
-    .map((child) => {
-      const button = child.tagName === "BUTTON" ? child : child.firstElementChild;
-      if (button?.tagName !== "BUTTON") return null;
+  expect(actionLabels).toEqual(["Build transit matrix", "Plan and solve", "Save scenario", "Import", "Export", "Delete"]);
+  const actionGroups = await toolbar.evaluate((element) => [...element.querySelectorAll("[data-scenario-toolbar-group]")].map((group) => [...group.querySelectorAll(":scope > button, :scope > [data-scenario-toolbar-section] > button")]
+    .map((button) => {
       return [...button.children]
         .find((node) => !node.classList.contains("material-symbols-rounded"))
         ?.textContent.trim() || null;
@@ -225,7 +221,7 @@ test("scenario toolbar orders workflow actions and keeps descriptions subdued", 
     .filter(Boolean)));
   expect(actionGroups).toEqual([
     ["Build transit matrix", "Plan and solve"],
-    ["Save scenario", "Import / export", "Delete"]
+    ["Save scenario", "Import", "Export", "Delete"]
   ]);
   const managementSections = await toolbar.locator('[data-scenario-toolbar-group="scenario-management"] [data-scenario-toolbar-section]').evaluateAll((sections) => sections.map((section) => section.getAttribute("data-scenario-toolbar-section")));
   expect(managementSections).toEqual(["save", "import-export", "danger"]);
@@ -263,12 +259,13 @@ test("large pasted request JSON remains responsive without a legacy DOM translat
 
   const toolbar = page.locator(".scenario-console-toolbar");
   await expect(toolbar).toBeVisible();
-  await toolbar.getByRole("button", { name: "导入 / 导出" }).click();
-  await page.getByRole("menuitem", { name: "粘贴请求参数并更新" }).click();
+  await toolbar.getByRole("button", { name: "导入" }).click();
 
   const dialog = page.locator("dialog[open]");
   const editor = dialog.locator(".cm-content");
   await expect(editor).toBeVisible();
+  await expect(dialog.getByRole("button", { name: "格式化", exact: true })).toHaveCount(0);
+  await expect(dialog.getByRole("button", { name: "全部折叠", exact: true })).toHaveCount(0);
   await page.evaluate((text) => navigator.clipboard.writeText(text), largeHereSolveRequest);
   await editor.click();
   await page.keyboard.press("Control+V");
