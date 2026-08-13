@@ -105,7 +105,7 @@ scripts/devctl.sh restart
 scripts/devctl.sh stop
 ```
 
-The script records its PID and log in `build/local/quarkusRunDebug.pid` and `build/local/quarkusRunDebug.log`. It only manages processes started by this script.
+The script records its PID and log in `build/local/quarkusRunDebug.pid` and `build/local/quarkusRunDebug.log`. Stop and restart also scan for `quarkusRunDebug` and Quarkus Dev JVMs whose command lines contain this checkout's absolute build paths, so a process remains manageable if `gradle clean` removes the PID file.
 
 ### Build Runnable Artifact
 

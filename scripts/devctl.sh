@@ -61,82 +61,180 @@ read_pid() {
   echo "$pid"
 }
 
-is_running() {
-  local pid
-  pid="$(read_pid)" || return 1
-  if is_process_tree_running "$pid"; then
-    return 0
-  fi
-  local -a quarkus_pids=()
-  mapfile -t quarkus_pids < <(find_quarkus_dev_pids)
-  ((${#quarkus_pids[@]} > 0))
+process_is_running() {
+  local pid="$1"
+  local process_stat
+  local stat_tail
+  local state
+  [[ -r "/proc/$pid/stat" ]] || return 1
+  IFS= read -r process_stat <"/proc/$pid/stat" || return 1
+  stat_tail="${process_stat##*) }"
+  state="${stat_tail%% *}"
+  [[ "$state" != "Z" ]]
 }
 
-is_process_tree_running() {
+read_process_cmdline() {
   local pid="$1"
-  kill -0 -- "-$pid" >/dev/null 2>&1 || kill -0 "$pid" >/dev/null 2>&1
+  local -n result="$2"
+  local -a arguments=()
+  [[ -r "/proc/$pid/cmdline" ]] || return 1
+  mapfile -d '' -t arguments <"/proc/$pid/cmdline" || return 1
+  ((${#arguments[@]} > 0)) || return 1
+  printf -v result '%s ' "${arguments[@]}"
+}
+
+is_quarkus_dev_cmdline() {
+  local cmdline="$1"
+  [[ "$cmdline" == *"-Dquarkus-internal.serialized-app-model.path=$ROOT_DIR/build/"* ]] &&
+    [[ "$cmdline" == *"-jar $ROOT_DIR/build/"*"-dev.jar"* ]]
 }
 
 is_quarkus_dev_process() {
   local pid="$1"
   local cmdline
-  [[ -r "/proc/$pid/cmdline" ]] || return 1
-  cmdline="$(tr '\0' ' ' 2>/dev/null <"/proc/$pid/cmdline")" || return 1
-  [[ "$cmdline" == *"-Dquarkus-internal.serialized-app-model.path=$ROOT_DIR/build/"* ]] &&
-    [[ "$cmdline" == *"-jar $ROOT_DIR/build/"*"-dev.jar"* ]]
+  read_process_cmdline "$pid" cmdline || return 1
+  is_quarkus_dev_cmdline "$cmdline"
 }
 
-find_quarkus_dev_pids() {
+is_gradle_launcher_cmdline() {
+  local pid="$1"
+  local cmdline="$2"
+  local cwd
+  [[ "$cmdline" == *"quarkusRunDebug"* ]] || return 1
+
+  if [[ "$cmdline" == *"-classpath $ROOT_DIR/gradle/wrapper/gradle-wrapper.jar"* ]] &&
+    [[ "$cmdline" == *"org.gradle.wrapper.GradleWrapperMain"* ]]; then
+    return 0
+  fi
+
+  cwd="$(readlink "/proc/$pid/cwd" 2>/dev/null)" || return 1
+  [[ "$cwd" == "$ROOT_DIR" ]] &&
+    [[ "$cmdline" == *"./gradlew"* || "$cmdline" == *"$ROOT_DIR/gradlew"* ]]
+}
+
+is_gradle_launcher_process() {
+  local pid="$1"
+  local cmdline
+  read_process_cmdline "$pid" cmdline || return 1
+  is_gradle_launcher_cmdline "$pid" "$cmdline"
+}
+
+is_managed_process() {
+  local pid="$1"
+  local cmdline
+  read_process_cmdline "$pid" cmdline || return 1
+  is_quarkus_dev_cmdline "$cmdline" || is_gradle_launcher_cmdline "$pid" "$cmdline"
+}
+
+find_direct_managed_pids() {
   local proc
   local pid
+  local cmdline
   for proc in /proc/[0-9]*; do
     pid="${proc##*/}"
-    if is_quarkus_dev_process "$pid"; then
+    if read_process_cmdline "$pid" cmdline &&
+      { is_quarkus_dev_cmdline "$cmdline" || is_gradle_launcher_cmdline "$pid" "$cmdline"; }; then
       echo "$pid"
     fi
   done
 }
 
-stop_targets_running() {
-  local launcher_pid="$1"
-  shift
-  local pid
-  if is_process_tree_running "$launcher_pid"; then
-    return 0
+read_process_parent_pid() {
+  local pid="$1"
+  local -n result="$2"
+  local process_stat
+  local stat_tail
+  local state
+  [[ -r "/proc/$pid/stat" ]] || return 1
+  IFS= read -r process_stat <"/proc/$pid/stat" || return 1
+  stat_tail="${process_stat##*) }"
+  read -r state result _ <<<"$stat_tail"
+  [[ "$result" =~ ^[0-9]+$ ]]
+}
+
+find_related_ancestor_pids() {
+  local app_pid="$1"
+  local current_pid="$app_pid"
+  local parent_pid
+  local found_launcher=false
+  local -a chain=("$app_pid")
+
+  for _ in {1..16}; do
+    read_process_parent_pid "$current_pid" parent_pid || break
+    ((parent_pid > 1)) || break
+    chain+=("$parent_pid")
+    if is_gradle_launcher_process "$parent_pid"; then
+      found_launcher=true
+      break
+    fi
+    current_pid="$parent_pid"
+  done
+
+  if [[ "$found_launcher" == true ]]; then
+    printf '%s\n' "${chain[@]}"
+  else
+    echo "$app_pid"
   fi
-  for pid in "$@"; do
+}
+
+find_managed_pids() {
+  local pid
+  local recorded_pid
+  local -a direct_pids=()
+
+  if recorded_pid="$(read_pid 2>/dev/null)" && is_managed_process "$recorded_pid"; then
+    echo "$recorded_pid"
+  fi
+
+  mapfile -t direct_pids < <(find_direct_managed_pids)
+  for pid in "${direct_pids[@]}"; do
     if is_quarkus_dev_process "$pid"; then
+      find_related_ancestor_pids "$pid"
+    else
+      echo "$pid"
+    fi
+  done
+
+  return 0
+}
+
+collect_managed_pids() {
+  find_managed_pids | sort -un
+}
+
+is_running() {
+  local -a managed_pids=()
+  mapfile -t managed_pids < <(collect_managed_pids)
+  ((${#managed_pids[@]} > 0))
+}
+
+any_process_running() {
+  local pid
+  for pid in "$@"; do
+    if process_is_running "$pid"; then
       return 0
     fi
   done
   return 1
 }
 
-signal_quarkus_dev_processes() {
+signal_processes() {
   local signal="$1"
   shift
   local pid
   for pid in "$@"; do
-    if is_quarkus_dev_process "$pid"; then
+    if process_is_running "$pid"; then
       kill "-$signal" "$pid" 2>/dev/null || true
     fi
   done
 }
 
-kill_process_tree() {
-  local pid="$1"
-  local signal="$2"
-  if kill -0 -- "-$pid" >/dev/null 2>&1; then
-    kill "-$signal" -- "-$pid"
-  else
-    kill "-$signal" "$pid"
-  fi
-}
-
 start() {
   mkdir -p "$RUN_DIR"
   if is_running; then
-    echo "quarkusRunDebug already running: pid $(cat "$PID_FILE")"
+    local -a managed_pids=()
+    mapfile -t managed_pids < <(collect_managed_pids)
+    echo "quarkusRunDebug already running: pids ${managed_pids[*]}"
     return
   fi
 
@@ -165,49 +263,48 @@ start() {
 }
 
 stop() {
-  if [[ ! -f "$PID_FILE" ]]; then
-    echo "quarkusRunDebug not running"
-    return
-  fi
-
-  local pid
-  if ! pid="$(read_pid)"; then
-    echo "quarkusRunDebug pid file existed but was invalid"
-    rm -f "$PID_FILE"
-    return
-  fi
-  local -a quarkus_pids=()
-  mapfile -t quarkus_pids < <(find_quarkus_dev_pids)
-  if is_process_tree_running "$pid" || ((${#quarkus_pids[@]} > 0)); then
-    if is_process_tree_running "$pid"; then
-      kill_process_tree "$pid" TERM
-    fi
-    signal_quarkus_dev_processes TERM "${quarkus_pids[@]}"
+  local -a managed_pids=()
+  mapfile -t managed_pids < <(collect_managed_pids)
+  if ((${#managed_pids[@]} > 0)); then
+    signal_processes TERM "${managed_pids[@]}"
     for _ in {1..20}; do
-      if ! stop_targets_running "$pid" "${quarkus_pids[@]}"; then
+      if ! any_process_running "${managed_pids[@]}"; then
         break
       fi
       sleep 0.25
     done
-    if stop_targets_running "$pid" "${quarkus_pids[@]}"; then
-      if is_process_tree_running "$pid"; then
-        kill_process_tree "$pid" KILL
-      fi
-      signal_quarkus_dev_processes KILL "${quarkus_pids[@]}"
+    local -a remaining_pids=()
+    mapfile -t remaining_pids < <(
+      for pid in "${managed_pids[@]}"; do
+        process_is_running "$pid" && echo "$pid"
+      done
+      collect_managed_pids
+    )
+    if ((${#remaining_pids[@]} > 0)); then
+      mapfile -t remaining_pids < <(printf '%s\n' "${remaining_pids[@]}" | sort -un)
     fi
-    for _ in {1..20}; do
-      if ! stop_targets_running "$pid" "${quarkus_pids[@]}"; then
-        break
-      fi
-      sleep 0.05
-    done
-    if stop_targets_running "$pid" "${quarkus_pids[@]}"; then
+    if ((${#remaining_pids[@]} > 0)); then
+      signal_processes KILL "${remaining_pids[@]}"
+      for _ in {1..20}; do
+        if ! any_process_running "${remaining_pids[@]}"; then
+          break
+        fi
+        sleep 0.05
+      done
+    fi
+    mapfile -t remaining_pids < <(
+      for pid in "${remaining_pids[@]}"; do
+        process_is_running "$pid" && echo "$pid"
+      done
+      collect_managed_pids
+    )
+    if ((${#remaining_pids[@]} > 0)); then
       echo "quarkusRunDebug failed to stop" >&2
       return 1
     fi
     echo "quarkusRunDebug stopped"
   else
-    echo "quarkusRunDebug pid file existed but process was not running"
+    echo "quarkusRunDebug not running"
   fi
   rm -f "$PID_FILE"
 }

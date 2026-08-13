@@ -27,7 +27,7 @@ scripts/devctl.sh restart
 scripts/devctl.sh stop
 ```
 
-该脚本通过独立的非 daemon Gradle 进程调用 `quarkusRunDebug`，默认开放 JDWP `5005`，每次启动从仓库根目录 `.env` 重新加载运行变量，并把 PID 与日志写入 `build/local/`。停止时会同时终止启动进程组与对应的 Quarkus 开发 JVM，避免进程残留；`.env` 不提交到仓库。
+该脚本通过独立的非 daemon Gradle 进程调用 `quarkusRunDebug`，默认开放 JDWP `5005`，每次启动从仓库根目录 `.env` 重新加载运行变量，并把 PID 与日志写入 `build/local/`。停止时会同时终止 Gradle 启动链与对应的 Quarkus 开发 JVM；即使 `gradle clean` 已删除 `build/local/` 中的 PID 文件，也会根据命令行中的当前仓库路径和 Quarkus Dev 参数扫描残留进程后停止，避免旧实例继续占用端口。`.env` 不提交到仓库。
 
 ## 4. JVM 构建与运行
 

@@ -6,9 +6,7 @@ DEVCTL_SOURCE="$(cd "$SCRIPT_DIR/.." && pwd)/devctl.sh"
 TEST_ROOT="$(mktemp -d)"
 
 cleanup() {
-  if [[ -f "$TEST_ROOT/build/local/quarkusRunDebug.pid" ]]; then
-    "$TEST_ROOT/scripts/devctl.sh" stop >/dev/null 2>&1 || true
-  fi
+  "$TEST_ROOT/scripts/devctl.sh" stop >/dev/null 2>&1 || true
   if [[ -f "$TEST_ROOT/quarkus-child.pid" ]]; then
     kill -KILL "$(cat "$TEST_ROOT/quarkus-child.pid")" >/dev/null 2>&1 || true
   fi
@@ -54,13 +52,24 @@ wait_for_observation() {
 assert_child_stopped() {
   local child_pid
   child_pid="$(cat "$TEST_ROOT/quarkus-child.pid")"
+  assert_process_stopped "$child_pid" "detached Quarkus child"
+}
+
+assert_process_stopped() {
+  local pid="$1"
+  local description="$2"
+  local state
   for _ in {1..20}; do
-    if ! kill -0 "$child_pid" >/dev/null 2>&1; then
+    if ! kill -0 "$pid" >/dev/null 2>&1; then
+      return 0
+    fi
+    state="$(ps -o stat= -p "$pid" 2>/dev/null || true)"
+    if [[ "${state:0:1}" == "Z" ]]; then
       return 0
     fi
     sleep 0.05
   done
-  echo "Expected detached Quarkus child $child_pid to stop" >&2
+  echo "Expected $description $pid to stop" >&2
   return 1
 }
 
@@ -85,8 +94,11 @@ MAP_PROVIDER=HERE "$TEST_ROOT/scripts/devctl.sh" start >/dev/null
 wait_for_observation
 assert_provider "<unset>"
 assert_no_daemon
+launcher_pid="$(cat "$TEST_ROOT/build/local/quarkusRunDebug.pid")"
+rm -rf "$TEST_ROOT/build"
 "$TEST_ROOT/scripts/devctl.sh" stop >/dev/null
 assert_child_stopped
+assert_process_stopped "$launcher_pid" "Gradle launcher"
 
 rm -f "$TEST_ROOT/observed-map-provider"
 printf 'MAP_PROVIDER=AMAP\n' >"$TEST_ROOT/.env"
@@ -97,4 +109,4 @@ assert_no_daemon
 "$TEST_ROOT/scripts/devctl.sh" stop >/dev/null
 assert_child_stopped
 
-echo "devctl environment isolation test passed"
+echo "devctl environment and residual process test passed"

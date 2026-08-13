@@ -50,7 +50,7 @@ External 测试覆盖 AMap/HERE 真实服务、地址搜索、矩阵、场景创
 
 Manual 测试用于报表、求解样例和人工观察，不计入稳定门禁。具备稳定业务断言的场景应优先下沉到 Unit 或 App，而不是扩充手工脚本。
 
-Script 测试当前覆盖 `devctl.sh` 的运行环境隔离、`.env` 加载、非 daemon Gradle 启动参数，以及停止时清理脱离启动进程组的 Quarkus 开发 JVM。
+Script 测试当前覆盖 `devctl.sh` 的运行环境隔离、`.env` 加载、非 daemon Gradle 启动参数，以及 PID 文件被 `gradle clean` 删除后扫描并清理 Gradle 启动链和 Quarkus 开发 JVM。
 
 ## 6. Static UI 覆盖
 
