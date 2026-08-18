@@ -75,6 +75,7 @@ test("Host 与 Scenario Shadow DOM 共用紧凑字号、控件和连续表格线
     assert.match(css, /\.scenario-main-grid > \.scenario-sidebar-panel,\s*\.scenario-main-grid > \.scenario-sidebar-column > \.scenario-sidebar-panel\s*\{\s*border-left-width: 0;/);
     assert.match(css, /\.scenario-main-grid \.data-table th:last-child,\s*\.scenario-main-grid \.data-table td:last-child\s*\{\s*border-right-width: 0;/);
     assert.match(css, /\.scenario-main-grid \.data-table\s*\{\s*border-width: 0;/, "场景分区应负责表格外围分隔线，避免表格外框与相邻边线重叠");
+    assert.match(css, /\.table-empty-state\s*\{\s*@apply border-b-\[1\.25px\] border-slate-200 /, "表格空状态只保留底部分隔线，左右边线由工作区统一绘制");
     assert.match(css, /\.data-table\s*\{\s*@apply min-w-full border-collapse border-\[1\.25px\] /);
     assert.match(css, /\.data-table-adaptive\s*\{\s*min-width: 0;\s*width: max-content;\s*table-layout: auto;/, "预览态应先按内容自动计算列宽");
     assert.match(css, /\.data-table-adaptive\[data-columns-fitted="true"\]\s*\{\s*table-layout: fixed;/, "测量完成后应锁定列宽，避免编辑态重排");

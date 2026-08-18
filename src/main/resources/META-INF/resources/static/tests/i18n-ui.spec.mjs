@@ -897,6 +897,7 @@ test("scenario table uses one border owner per perimeter edge", async ({ page })
     const table = root.querySelector(".data-table");
     return {
       table: borders(table),
+      emptyState: borders(root.querySelector(".table-empty-state")),
       tabs: borders(root.querySelector(".scenario-config-tabs")),
       workspaceMain: borders(root.querySelector(".scenario-main-grid > .responsive-workspace-main")),
       lastHeaderCell: borders(table?.querySelector("th:last-child"))
@@ -904,6 +905,7 @@ test("scenario table uses one border owner per perimeter edge", async ({ page })
   });
 
   expect(separators.table).toEqual({ top: 0, right: 0, bottom: 0, left: 0 });
+  expect(separators.emptyState).toEqual({ top: 0, right: 0, bottom: 1, left: 0 });
   expect(separators.tabs?.bottom).toBe(1);
   expect(separators.workspaceMain?.right).toBe(1);
   expect(separators.lastHeaderCell?.right).toBe(0);

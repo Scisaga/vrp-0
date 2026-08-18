@@ -970,7 +970,7 @@
   }
 
   .table-empty-state {
-    @apply border-[1.25px] border-t-0 border-slate-200 px-[1.25rem] py-[3.125rem] text-center text-[1.09375rem]/[1.5625rem] text-slate-500;
+    @apply border-b-[1.25px] border-slate-200 px-[1.25rem] py-[3.125rem] text-center text-[1.09375rem]/[1.5625rem] text-slate-500;
   }
 
   .cell-input {
@@ -1456,8 +1456,8 @@
   }
 
   /* The surrounding scenario regions own the table perimeter: the tab strip
-     owns the top separator, the workspace owns the side edges, and the last
-     row cells own the bottom line. Keep only the table's internal grid lines
+     owns the top separator, the workspace owns the side edges, and the table
+     content owns the bottom line. Keep only the table's internal grid lines
      so collapsed table borders cannot stack on those surrounding separators. */
   .scenario-main-grid .data-table {
     border-width: 0;
