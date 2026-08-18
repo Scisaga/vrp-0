@@ -6,6 +6,7 @@ import { shouldShowFullValueTooltip } from "../utils/ui-tooltip.js";
 
 const MIN_GANTT_BLOCK_DURATION = 15 * 60 * 1000;
 const PREVIEW_MAP_WARMUP_TIMEOUT_MS = 1200;
+const RESULT_POLL_INTERVAL_MS = 5000;
 const SCORE_CHART_MIN_HEIGHT = 200;
 const SCORE_COLORS = Object.freeze({
   hard: "#f43f5e",
@@ -913,6 +914,8 @@ export function solverJobDetailPage() {
     ganttViewRefreshFrame: null,
     ganttPopoverRepositionFrame: null,
     ganttPopoverScrollRoot: null,
+    resultPollTimer: null,
+    resultRefreshInFlight: false,
     disposed: false,
     boundGanttPointerMove: null,
     boundGanttPointerUp: null,
@@ -964,6 +967,7 @@ export function solverJobDetailPage() {
       await this.refresh();
       window.addEventListener("hashchange", this.handleRouteExit);
       window.addEventListener("vrp:solver-detail-dispose", () => {
+        this.stopResultPolling();
         this.stopGanttDrag();
         this.unbindScoreCurvePointerEvents();
         this.hideScoreCurveHover();
@@ -989,6 +993,7 @@ export function solverJobDetailPage() {
     },
     dispose() {
       this.disposed = true;
+      this.stopResultPolling();
       this.cancelDeferredGanttRender();
       this.cancelGanttViewRefresh();
       this.cancelGanttPopoverReposition();
@@ -1007,6 +1012,7 @@ export function solverJobDetailPage() {
       document.removeEventListener("visibilitychange", this.boundScoreCurveVisibilityChange);
       document.removeEventListener("freeze", this.boundScoreCurveLifecycleChange);
       document.removeEventListener("resume", this.boundScoreCurveLifecycleChange);
+      window.removeEventListener("hashchange", this.handleRouteExit);
       if (this.$refs.scoreChart && window.Plotly?.purge) {
         window.Plotly.purge(this.$refs.scoreChart);
       }
@@ -1018,64 +1024,98 @@ export function solverJobDetailPage() {
         delete this.$refs.previewMap._vrpMap;
       }
     },
-    async refresh() {
-      this.selectedJobId = currentHashQueryParam("id");
-      if (this.gatewayMode && solverGatewayBridge()?.actions?.load_scenario_result) {
-        const response = await solverGatewayBridge().actions.load_scenario_result({
-          refresh: true,
-          job_id: solverGatewayBridge()?.context?.result_job_id || this.selectedJobId || null,
-          include: ["task", "result_summary", "engine_view"]
-        });
-        if (!response?.ok) {
-          this.error = localizeRequestError(response?.error);
-          return;
-        }
-        await this.applyGatewayResult(response.data);
+    startResultPolling() {
+      if (this.resultPollTimer || this.disposed || !this.isJobSolving()) {
         return;
       }
-      this.loading = true;
-      this.error = "";
+      this.resultPollTimer = window.setTimeout(() => {
+        this.resultPollTimer = null;
+        if (this.disposed || !this.isJobSolving()) {
+          return;
+        }
+        this.refresh().catch(() => this.syncResultPolling());
+      }, RESULT_POLL_INTERVAL_MS);
+    },
+    stopResultPolling() {
+      if (!this.resultPollTimer) {
+        return;
+      }
+      window.clearTimeout(this.resultPollTimer);
+      this.resultPollTimer = null;
+    },
+    syncResultPolling() {
+      this.stopResultPolling();
+      if (!this.disposed && this.isJobSolving()) {
+        this.startResultPolling();
+      }
+    },
+    async refresh() {
+      if (this.disposed || this.resultRefreshInFlight) {
+        return;
+      }
+      this.resultRefreshInFlight = true;
       try {
-        const path = this.selectedJobId
-          ? `/solver_job/${encodeURIComponent(this.selectedJobId)}?remove_virtual=true`
-          : "/solver_job?remove_virtual=true";
-        const jobRequest = getJson(path);
-        this.beginResultRender();
-        await this.waitForMapSdkWarmup();
-        this.job = hydrateJob(await jobRequest);
-        this.scenario = normalizeScenarioForView(await getJson("/scenario"));
-        if (!this.agents().some((agent) => agent.id === this.selectedAgentId)) {
-          this.selectedAgentId = this.agents()[0]?.id || "";
+        this.selectedJobId = currentHashQueryParam("id");
+        if (this.gatewayMode && solverGatewayBridge()?.actions?.load_scenario_result) {
+          const response = await solverGatewayBridge().actions.load_scenario_result({
+            refresh: true,
+            job_id: solverGatewayBridge()?.context?.result_job_id || this.selectedJobId || null,
+            include: ["task", "result_summary", "engine_view"]
+          });
+          if (!response?.ok) {
+            this.error = localizeRequestError(response?.error);
+            return;
+          }
+          await this.applyGatewayResult(response.data);
+          return;
         }
-        this.hoveredTicketId = "";
-        this.closeTicketPopover();
-        this.syncGanttViewport();
-        this.syncScoreCurveViewport();
-        window.dispatchEvent(new CustomEvent("vrp:connection", { detail: { online: true, labelKey: "connection.jobAvailable" } }));
-        await this.$nextTick();
-        this.drawScoreCurve();
+        this.loading = true;
+        this.error = "";
         try {
-          await this.drawPreviewMap();
+          const path = this.selectedJobId
+            ? `/solver_job/${encodeURIComponent(this.selectedJobId)}?remove_virtual=true`
+            : "/solver_job?remove_virtual=true";
+          const jobRequest = getJson(path);
+          this.beginResultRender();
+          await this.waitForMapSdkWarmup();
+          this.job = hydrateJob(await jobRequest);
+          this.scenario = normalizeScenarioForView(await getJson("/scenario"));
+          if (!this.agents().some((agent) => agent.id === this.selectedAgentId)) {
+            this.selectedAgentId = this.agents()[0]?.id || "";
+          }
+          this.hoveredTicketId = "";
+          this.closeTicketPopover();
+          this.syncGanttViewport();
+          this.syncScoreCurveViewport();
+          window.dispatchEvent(new CustomEvent("vrp:connection", { detail: { online: true, labelKey: "connection.jobAvailable" } }));
+          await this.$nextTick();
+          this.drawScoreCurve();
+          try {
+            await this.drawPreviewMap();
+          } finally {
+            this.deferGanttRender();
+          }
+        } catch (error) {
+          if (error.status === 404) {
+            this.job = null;
+            this.scoreCurveViewport = null;
+            this.scoreCurveFullRangeCache = null;
+            this.scoreCurveEventTarget = null;
+            this.unbindScoreCurvePointerEvents();
+            this.hideScoreCurveHover();
+            this.notice = this.t(this.selectedJobId ? "result.notice.jobMissing" : "result.notice.noJob");
+            window.dispatchEvent(new CustomEvent("vrp:connection", { detail: { online: true, labelKey: "connection.noJob" } }));
+          } else {
+            this.error = localizeRequestError(error);
+            notify(this.error, "danger");
+            window.dispatchEvent(new CustomEvent("vrp:connection", { detail: { online: false, labelKey: "connection.jobUnavailable" } }));
+          }
         } finally {
-          this.deferGanttRender();
-        }
-      } catch (error) {
-        if (error.status === 404) {
-          this.job = null;
-          this.scoreCurveViewport = null;
-          this.scoreCurveFullRangeCache = null;
-          this.scoreCurveEventTarget = null;
-          this.unbindScoreCurvePointerEvents();
-          this.hideScoreCurveHover();
-          this.notice = this.t(this.selectedJobId ? "result.notice.jobMissing" : "result.notice.noJob");
-          window.dispatchEvent(new CustomEvent("vrp:connection", { detail: { online: true, labelKey: "connection.noJob" } }));
-        } else {
-          this.error = localizeRequestError(error);
-          notify(this.error, "danger");
-          window.dispatchEvent(new CustomEvent("vrp:connection", { detail: { online: false, labelKey: "connection.jobUnavailable" } }));
+          this.loading = false;
         }
       } finally {
-        this.loading = false;
+        this.resultRefreshInFlight = false;
+        this.syncResultPolling();
       }
     },
     async applyGatewayResult(input) {
@@ -1119,6 +1159,9 @@ export function solverJobDetailPage() {
         this.loading = false;
         solverGatewayBridge()?.notifyResultState?.(this.error ? null : this.job);
         solverGatewayBridge()?.scheduleResize?.();
+        if (!this.resultRefreshInFlight) {
+          this.syncResultPolling();
+        }
       }
     },
     setTaskSidebarTab(tab) {
@@ -1131,18 +1174,22 @@ export function solverJobDetailPage() {
       if (!this.job?.id || !this.isJobSolving()) {
         return;
       }
+      this.stopResultPolling();
       try {
         this.job = await postJson("/solver_job/terminate");
         this.notice = this.t("result.notice.stopRequested");
         await this.refresh();
       } catch (error) {
         this.error = localizeRequestError(error);
+      } finally {
+        this.syncResultPolling();
       }
     },
     async deleteJob() {
       if (!this.canDeleteJob() || !window.confirm(this.t("result.notice.deleteConfirm"))) {
         return;
       }
+      this.stopResultPolling();
       try {
         await deleteRequest(`/solver_job/${encodeURIComponent(this.job.id)}`);
         this.notice = this.t("result.notice.deleted");

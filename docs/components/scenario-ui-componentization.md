@@ -193,7 +193,7 @@ Engine Host 挂载时传入以下 `context`。Gateway 与组件共享 `view`、`
 | `resolve_coordinate_address` | 创建页的地图选点或坐标录入后，批量将经纬度反查为可显示的地址和行政区信息。 | 对每个有效坐标调用 `/pois/regeocode`，逐点返回已解析、未找到或 provider 失败状态。 |
 | `search_text_address` | 创建页地址搜索时，将用户输入的关键词和可选城市提示转换为可选地址候选项。 | 调用 `/pois/geocode`，过滤无坐标项，并将候选数限制在 1–20 个。 |
 | `load_available_agent_windows` | 创建页右侧“空闲车辆趋势”刷新时读取可用工程师时间窗。 | 调用 `/scenario/available_agents`；组件只在 `available_agent_trend` 存在时调用。 |
-| `load_scenario_result` | `result`、`map` 视图首次加载或刷新时读取任务结果，作为摘要、图表、路线和一张图的展示输入。 | 有 `job_id` 时调用 `/solver_job/{id}?remove_virtual=true`，否则调用 `/solver_job?remove_virtual=true`。 |
+| `load_scenario_result` | `result`、`map` 视图首次加载或刷新时读取任务结果，作为摘要、图表、路线和一张图的展示输入；`result` 视图对运行态任务每 5 秒调用一次，进入终态或销毁时停止。 | 有 `job_id` 时调用 `/solver_job/{id}?remove_virtual=true`，否则调用 `/solver_job?remove_virtual=true`。 |
 
 Action 返回 `{ ok: true, data }` 或 `{ ok: false, error }`。当前 Engine Adapter 将请求异常转换为 `ok: false`。Gateway 必须注入其需要的 action，不能依赖上述 Engine REST fallback。
 

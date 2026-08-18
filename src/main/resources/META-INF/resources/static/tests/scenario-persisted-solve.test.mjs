@@ -182,14 +182,58 @@ test("终态任务的完成时间使用任务更新时间，不使用规划结�
   }
 });
 
-test("求解详情不再维护自动刷新状态或定时器", async () => {
-  const { solverJobDetailPage } = await loadModule(solverJobDetailPagePath);
-  const page = solverJobDetailPage();
+test("求解详情仅在运行态安排后台刷新，并在终态停止", async () => {
+  const previousWindow = globalThis.window;
+  const timers = new Map();
+  const clearedTimers = [];
+  let nextTimerId = 1;
+  globalThis.window = {
+    setTimeout(callback, delay) {
+      const timerId = nextTimerId;
+      nextTimerId += 1;
+      timers.set(timerId, { callback, delay });
+      return timerId;
+    },
+    clearTimeout(timerId) {
+      clearedTimers.push(timerId);
+      timers.delete(timerId);
+    }
+  };
 
-  assert.equal(page.autoRefresh, undefined);
-  assert.equal(page.refreshTimer, undefined);
-  assert.equal(page.setAutoRefresh, undefined);
-  assert.equal(page.syncAutoRefreshOnJobLoad, undefined);
+  try {
+    const { solverJobDetailPage } = await loadModule(solverJobDetailPagePath);
+    const page = solverJobDetailPage();
+
+    page.job = { id: "running-job", status: "SOLVING_ACTIVE" };
+    page.syncResultPolling();
+    assert.equal(page.resultPollTimer, 1);
+    assert.equal(timers.get(1)?.delay, 5000);
+
+    let refreshCount = 0;
+    page.refresh = async () => {
+      refreshCount += 1;
+      page.job = { id: "finished-job", status: "SOLVING_FINISHED" };
+      page.syncResultPolling();
+    };
+    const scheduledRefresh = timers.get(1);
+    timers.delete(1);
+    await scheduledRefresh.callback();
+    assert.equal(refreshCount, 1);
+    assert.equal(page.resultPollTimer, null);
+    assert.equal(timers.size, 0);
+
+    page.job = { id: "running-job", status: "SOLVING_SCHEDULED" };
+    page.syncResultPolling();
+    assert.equal(page.resultPollTimer, 2);
+
+    page.job = { id: "finished-job", status: "ERROR" };
+    page.syncResultPolling();
+    assert.equal(page.resultPollTimer, null);
+    assert.deepEqual(clearedTimers, [2]);
+    assert.equal(timers.size, 0);
+  } finally {
+    globalThis.window = previousWindow;
+  }
 });
 
 test("求解中不在隐藏的地图容器创建预览，完成后先 resize 再清空或绘制", async () => {

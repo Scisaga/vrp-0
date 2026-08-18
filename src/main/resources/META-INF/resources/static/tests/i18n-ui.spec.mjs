@@ -544,6 +544,40 @@ test("任务详情首次请求期间不闪现无任务空状态", async ({ page 
   await expect(component.getByText("当前没有求解任务", { exact: true })).toHaveCount(0);
 });
 
+test("运行态任务详情后台刷新到终态后停止请求", async ({ page }) => {
+  let resultRequestCount = 0;
+  await page.addInitScript(() => {
+    const nativeSetTimeout = window.setTimeout.bind(window);
+    window.setTimeout = (callback, delay, ...args) => nativeSetTimeout(
+      callback,
+      delay === 5000 ? 20 : delay,
+      ...args
+    );
+    window.__resultStates = [];
+    window.addEventListener("scenario-result-state-changed", (event) => window.__resultStates.push(event.detail));
+  });
+  await page.route("**/solver_job/polling-result-job*", async (route) => {
+    resultRequestCount += 1;
+    const status = resultRequestCount === 1 ? "SOLVING_ACTIVE" : "SOLVING_FINISHED";
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ ...resultJob, id: "polling-result-job", status })
+    });
+  });
+
+  await page.goto(`${baseUrl}/static/index.html#/solver-job?id=polling-result-job`);
+  await expect.poll(() => page.evaluate(() => window.__resultStates.some((state) => state.status === "SOLVING_ACTIVE"))).toBe(true);
+  await expect.poll(() => page.evaluate(() => window.__resultStates.at(-1))).toEqual({
+    job_id: "polling-result-job",
+    status: "SOLVING_FINISHED"
+  });
+  expect(resultRequestCount).toBe(2);
+
+  await page.waitForTimeout(100);
+  expect(resultRequestCount).toBe(2);
+});
+
 test("quota masks API key in the preview while preserving the save payload", async ({ page }) => {
   lastQuotaPayload = null;
   await page.addInitScript(() => localStorage.setItem("vrp0.engine.locale", "en-US"));
