@@ -62,6 +62,7 @@
     --color-violet-200: oklch(89.4% 0.057 293.283);
     --color-violet-700: oklch(49.1% 0.27 292.581);
     --color-rose-50: oklch(96.9% 0.015 12.422);
+    --color-rose-100: oklch(94.1% 0.03 12.58);
     --color-rose-200: oklch(89.2% 0.058 10.001);
     --color-rose-500: oklch(64.5% 0.246 16.439);
     --color-rose-600: oklch(58.6% 0.253 17.585);
@@ -340,11 +341,17 @@
       max-width: 96rem;
     }
   }
+  .-my-\[0\.46875rem\] {
+    margin-block: calc(0.46875rem * -1);
+  }
   .mt-0 {
     margin-top: calc(var(--spacing) * 0);
   }
   .mt-\[-1\.25px\] {
     margin-top: -1.25px;
+  }
+  .mt-\[0\.0625rem\] {
+    margin-top: 0.0625rem;
   }
   .mt-\[0\.625rem\] {
     margin-top: 0.625rem;
@@ -360,6 +367,9 @@
   }
   .mt-\[0\.46875rem\] {
     margin-top: 0.46875rem;
+  }
+  .mt-\[0\.53125rem\] {
+    margin-top: 0.53125rem;
   }
   .mt-\[1\.25rem\] {
     margin-top: 1.25rem;
@@ -400,6 +410,9 @@
   .h-\[0\.625rem\] {
     height: 0.625rem;
   }
+  .h-\[0\.3125rem\] {
+    height: 0.3125rem;
+  }
   .h-\[0\.46875rem\] {
     height: 0.46875rem;
   }
@@ -417,6 +430,9 @@
   }
   .h-\[2\.5rem\] {
     height: 2.5rem;
+  }
+  .h-\[2\.1875rem\] {
+    height: 2.1875rem;
   }
   .h-\[3\.75px\] {
     height: 3.75px;
@@ -466,6 +482,9 @@
   .w-\[0\.625rem\] {
     width: 0.625rem;
   }
+  .w-\[0\.3125rem\] {
+    width: 0.3125rem;
+  }
   .w-\[0\.46875rem\] {
     width: 0.46875rem;
   }
@@ -474,6 +493,9 @@
   }
   .w-\[1\.5625rem\] {
     width: 1.5625rem;
+  }
+  .w-\[2\.1875rem\] {
+    width: 2.1875rem;
   }
   .w-\[2\.8125rem\] {
     width: 2.8125rem;
@@ -544,9 +566,6 @@
   }
   .resize-y {
     resize: vertical;
-  }
-  .list-disc {
-    list-style-type: disc;
   }
   .grid-cols-3 {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -620,6 +639,13 @@
       margin-block-end: calc(0.3125rem * calc(1 - var(--tw-space-y-reverse)));
     }
   }
+  .space-y-\[0\.15625rem\] {
+    :where(& > :not(:last-child)) {
+      --tw-space-y-reverse: 0;
+      margin-block-start: calc(0.15625rem * var(--tw-space-y-reverse));
+      margin-block-end: calc(0.15625rem * calc(1 - var(--tw-space-y-reverse)));
+    }
+  }
   .space-y-\[1\.25rem\] {
     :where(& > :not(:last-child)) {
       --tw-space-y-reverse: 0;
@@ -654,6 +680,9 @@
   }
   .gap-y-\[0\.9375rem\] {
     row-gap: 0.9375rem;
+  }
+  .gap-y-\[0\.15625rem\] {
+    row-gap: 0.15625rem;
   }
   .divide-x-\[1\.25px\] {
     :where(& > :not(:last-child)) {
@@ -730,6 +759,9 @@
   }
   .rounded-\[inherit\] {
     border-radius: inherit;
+  }
+  .rounded-full {
+    border-radius: calc(infinity * 1px);
   }
   .rounded-l-none {
     border-top-left-radius: 0;
@@ -950,6 +982,15 @@
   .bg-rose-50 {
     background-color: var(--color-rose-50);
   }
+  .bg-rose-50\/70 {
+    background-color: color-mix(in srgb, oklch(96.9% 0.015 12.422) 70%, transparent);
+    @supports (color: color-mix(in lab, red, red)) {
+      background-color: color-mix(in oklab, var(--color-rose-50) 70%, transparent);
+    }
+  }
+  .bg-rose-500 {
+    background-color: var(--color-rose-500);
+  }
   .bg-rose-500\/10 {
     background-color: color-mix(in srgb, oklch(64.5% 0.246 16.439) 10%, transparent);
     @supports (color: color-mix(in lab, red, red)) {
@@ -1115,6 +1156,9 @@
   .py-0 {
     padding-block: calc(var(--spacing) * 0);
   }
+  .py-\[0\.75rem\] {
+    padding-block: 0.75rem;
+  }
   .py-\[0\.625rem\] {
     padding-block: 0.625rem;
   }
@@ -1187,9 +1231,6 @@
   .pl-\[0\.9375rem\] {
     padding-left: 0.9375rem;
   }
-  .pl-\[1\.5625rem\] {
-    padding-left: 1.5625rem;
-  }
   .text-center {
     text-align: center;
   }
@@ -1204,6 +1245,10 @@
   }
   .text-\[0\.9375rem\]\/\[1\.25rem\] {
     font-size: 0.9375rem;
+    line-height: 1.25rem;
+  }
+  .text-\[1\.25rem\]\/\[1\.25rem\] {
+    font-size: 1.25rem;
     line-height: 1.25rem;
   }
   .text-\[1\.25rem\]\/\[1\.875rem\] {
@@ -1480,6 +1525,11 @@
     transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
     transition-duration: var(--tw-duration, var(--default-transition-duration));
   }
+  .transition-colors {
+    transition-property: color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to;
+    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
+    transition-duration: var(--tw-duration, var(--default-transition-duration));
+  }
   .ring-inset {
     --tw-ring-inset: inset;
   }
@@ -1503,6 +1553,13 @@
     &:hover {
       @media (hover: hover) {
         border-color: var(--color-slate-300);
+      }
+    }
+  }
+  .hover\:bg-rose-100 {
+    &:hover {
+      @media (hover: hover) {
+        background-color: var(--color-rose-100);
       }
     }
   }
@@ -1557,6 +1614,13 @@
       }
     }
   }
+  .hover\:text-rose-800 {
+    &:hover {
+      @media (hover: hover) {
+        color: var(--color-rose-800);
+      }
+    }
+  }
   .hover\:text-slate-800 {
     &:hover {
       @media (hover: hover) {
@@ -1596,6 +1660,14 @@
       --tw-ring-color: color-mix(in srgb, oklch(69.6% 0.17 162.48) 20%, transparent);
       @supports (color: color-mix(in lab, red, red)) {
         --tw-ring-color: color-mix(in oklab, var(--color-emerald-500) 20%, transparent);
+      }
+    }
+  }
+  .focus-visible\:ring-rose-600\/25 {
+    &:focus-visible {
+      --tw-ring-color: color-mix(in srgb, oklch(58.6% 0.253 17.585) 25%, transparent);
+      @supports (color: color-mix(in lab, red, red)) {
+        --tw-ring-color: color-mix(in oklab, var(--color-rose-600) 25%, transparent);
       }
     }
   }
@@ -5261,14 +5333,41 @@ var VrpScenarioComponentEntry = (() => {
             </div>
 
             <div class="panel-scroll">
-              <template x-if="validationErrors().length">
-                <div class="border-b-[1.25px] border-rose-200 bg-rose-50 px-[1.25rem] py-[0.9375rem] text-[1.09375rem]/[1.5625rem] text-rose-700">
-                  <div class="font-medium">\u6821\u9A8C\u5931\u8D25</div>
-                  <ul class="mt-[0.625rem] list-disc space-y-[0.3125rem] pl-[1.5625rem]">
-                    <template x-for="(error, index) in validationErrors()" :key="validationErrorKey(error, index)">
-                      <li x-text="formatValidationError(error)"></li>
-                    </template>
-                  </ul>
+              <template x-if="validationErrors().length && !validationSummaryDismissed">
+                <div
+                  class="border-b-[1.25px] border-rose-200 bg-rose-50/70 px-[1.25rem] py-[0.75rem] text-rose-800"
+                  role="alert"
+                >
+                  <div class="flex items-start gap-[0.625rem]">
+                    <span class="material-symbols-rounded mt-[0.0625rem] shrink-0 text-[1.25rem]/[1.25rem] text-rose-600" aria-hidden="true">error</span>
+                    <div class="min-w-0 flex-1">
+                      <div class="flex flex-wrap items-baseline gap-x-[0.625rem] gap-y-[0.15625rem]">
+                        <div class="text-[0.9375rem]/[1.25rem] font-semibold" x-text="validationSummaryTitle()"></div>
+                        <template x-if="validationErrors().length === 1">
+                          <div class="min-w-0 text-[0.9375rem]/[1.25rem] text-rose-700" x-text="validationErrorMessage(validationErrors()[0])"></div>
+                        </template>
+                      </div>
+                      <template x-if="validationErrors().length > 1">
+                        <ul class="mt-[0.3125rem] space-y-[0.15625rem] text-[0.9375rem]/[1.25rem] text-rose-700">
+                          <template x-for="(error, index) in validationErrors()" :key="validationErrorKey(error, index)">
+                            <li class="flex items-start gap-[0.46875rem]">
+                              <span class="mt-[0.53125rem] h-[0.3125rem] w-[0.3125rem] shrink-0 rounded-full bg-rose-500" aria-hidden="true"></span>
+                              <span x-text="validationErrorMessage(error)"></span>
+                            </li>
+                          </template>
+                        </ul>
+                      </template>
+                    </div>
+                    <button
+                      type="button"
+                      class="ui-tooltip -my-[0.46875rem] ml-auto inline-flex h-[2.1875rem] w-[2.1875rem] shrink-0 items-center justify-center rounded-[0.46875rem] text-rose-600 transition-colors hover:bg-rose-100 hover:text-rose-800 focus-visible:outline-none focus-visible:ring-[2.5px] focus-visible:ring-rose-600/25"
+                      @click="dismissValidationSummary()"
+                      :aria-label="t('scenario.validation.dismiss')"
+                      :data-tooltip="t('scenario.validation.dismiss')"
+                    >
+                      <span class="material-symbols-rounded text-[1.25rem]/[1.25rem]" aria-hidden="true">close</span>
+                    </button>
+                  </div>
                 </div>
               </template>
 
@@ -5405,10 +5504,10 @@ var VrpScenarioComponentEntry = (() => {
                           <td><template x-if="isEditingCell('agents', index, 'weight')"><div class="table-cell-editor-shell" @focusout="handleCellEditorFocusOut($event, 'agents', index, 'weight')"><input type="number" class="cell-input" x-model="editingCell.draftValue" placeholder="\u6838\u5B9A\u8F7D\u91CD" :data-inline-editor="inlineEditorToken('agents', index, 'weight')" @keydown.enter.prevent="commitEditingCell()" @keydown.tab="commitEditingCell()" @keydown.escape.prevent="cancelEditingCell()"></div></template><template x-if="!isEditingCell('agents', index, 'weight')"><button type="button" class="table-cell-button" @click="beginCellEdit('agents', index, 'weight', 'number')"><span class="table-cell-main font-mono tabular-nums" x-text="displayValue(row.weight)"></span></button></template></td>
                           <td><template x-if="isEditingCell('agents', index, 'vol')"><div class="table-cell-editor-shell" @focusout="handleCellEditorFocusOut($event, 'agents', index, 'vol')"><input type="number" class="cell-input" x-model="editingCell.draftValue" placeholder="\u6838\u5B9A\u5BB9\u79EF" :data-inline-editor="inlineEditorToken('agents', index, 'vol')" @keydown.enter.prevent="commitEditingCell()" @keydown.tab="commitEditingCell()" @keydown.escape.prevent="cancelEditingCell()"></div></template><template x-if="!isEditingCell('agents', index, 'vol')"><button type="button" class="table-cell-button" @click="beginCellEdit('agents', index, 'vol', 'number')"><span class="table-cell-main font-mono tabular-nums" x-text="displayValue(row.vol)"></span></button></template></td>
                           <td><template x-if="isEditingCell('agents', index, 'vehicle_type')"><div class="table-cell-editor-shell" @focusout="handleCellEditorFocusOut($event, 'agents', index, 'vehicle_type')"><select class="cell-select" x-model="editingCell.draftValue" :data-inline-editor="inlineEditorToken('agents', index, 'vehicle_type')" @change="commitEditingCell()" @keydown.escape.prevent="cancelEditingCell()"><option value="CAR">CAR</option><option value="TRUCK">TRUCK</option><option value="E_BIKE">E_BIKE</option></select></div></template><template x-if="!isEditingCell('agents', index, 'vehicle_type')"><button type="button" class="table-cell-button" @click="beginCellEdit('agents', index, 'vehicle_type')"><span class="table-cell-main" x-text="displayValue(row.vehicle_type)"></span></button></template></td>
-                          <td><template x-if="isEditingCell('agents', index, 'fuel_type')"><div class="table-cell-editor-shell" @focusout="handleCellEditorFocusOut($event, 'agents', index, 'fuel_type')"><select class="cell-select" x-model="editingCell.draftValue" :data-inline-editor="inlineEditorToken('agents', index, 'fuel_type')" @change="commitEditingCell()" @keydown.escape.prevent="cancelEditingCell()"><option value="GAS_92">GAS_92</option><option value="ELEC">ELEC</option></select></div></template><template x-if="!isEditingCell('agents', index, 'fuel_type')"><button type="button" class="table-cell-button" @click="beginCellEdit('agents', index, 'fuel_type')"><span class="table-cell-main" x-text="displayValue(row.fuel_type)"></span></button></template></td>
-                          <td><template x-if="isEditingCell('agents', index, 'fuel_consumption')"><div class="table-cell-editor-shell" @focusout="handleCellEditorFocusOut($event, 'agents', index, 'fuel_consumption')"><input type="number" class="cell-input" x-model="editingCell.draftValue" placeholder="\u6CB9\u8017/\u7535\u8017" :data-inline-editor="inlineEditorToken('agents', index, 'fuel_consumption')" @keydown.enter.prevent="commitEditingCell()" @keydown.tab="commitEditingCell()" @keydown.escape.prevent="cancelEditingCell()"></div></template><template x-if="!isEditingCell('agents', index, 'fuel_consumption')"><button type="button" class="table-cell-button" @click="beginCellEdit('agents', index, 'fuel_consumption', 'number')"><span class="table-cell-main font-mono tabular-nums" x-text="displayValue(row.fuel_consumption)"></span></button></template></td>
+                          <td><template x-if="isEditingCell('agents', index, 'fuel_type')"><div class="table-cell-editor-shell" @focusout="handleCellEditorFocusOut($event, 'agents', index, 'fuel_type')"><select class="cell-select" x-model="editingCell.draftValue" :data-inline-editor="inlineEditorToken('agents', index, 'fuel_type')" @change="commitEditingCell()" @keydown.escape.prevent="cancelEditingCell()"><option value=""></option><option value="GAS_92">GAS_92</option><option value="ELEC">ELEC</option></select></div></template><template x-if="!isEditingCell('agents', index, 'fuel_type')"><button type="button" class="table-cell-button" @click="beginCellEdit('agents', index, 'fuel_type')"><span class="table-cell-main" x-text="row.fuel_type ?? ''"></span></button></template></td>
+                          <td><template x-if="isEditingCell('agents', index, 'fuel_consumption')"><div class="table-cell-editor-shell" @focusout="handleCellEditorFocusOut($event, 'agents', index, 'fuel_consumption')"><input type="number" class="cell-input" x-model="editingCell.draftValue" placeholder="\u6CB9\u8017/\u7535\u8017" :data-inline-editor="inlineEditorToken('agents', index, 'fuel_consumption')" @keydown.enter.prevent="commitEditingCell()" @keydown.tab="commitEditingCell()" @keydown.escape.prevent="cancelEditingCell()"></div></template><template x-if="!isEditingCell('agents', index, 'fuel_consumption')"><button type="button" class="table-cell-button" @click="beginCellEdit('agents', index, 'fuel_consumption', 'number')"><span class="table-cell-main font-mono tabular-nums" x-text="row.fuel_consumption ?? ''"></span></button></template></td>
                           <td><template x-if="isEditingCell('agents', index, 'rented')"><div class="table-cell-editor-shell" @focusout="handleCellEditorFocusOut($event, 'agents', index, 'rented')"><select class="cell-select" x-model="editingCell.draftValue" :data-inline-editor="inlineEditorToken('agents', index, 'rented')" @change="commitEditingCell()" @keydown.escape.prevent="cancelEditingCell()"><option :value="false" x-text="t('scenario.owned')"></option><option :value="true" x-text="t('scenario.rented')"></option></select></div></template><template x-if="!isEditingCell('agents', index, 'rented')"><button type="button" class="table-cell-button" @click="beginCellEdit('agents', index, 'rented', 'checkbox')"><span class="table-cell-chip" :class="row.rented ? 'border-amber-500/25 bg-amber-500/10 text-amber-700' : 'border-slate-200 bg-slate-50 text-slate-600'" x-text="displayBoolean(row.rented, '\u79DF\u7528', '\u81EA\u6709')"></span></button></template></td>
-                          <td><template x-if="isEditingCell('agents', index, 'fix_cost_daily')"><div class="table-cell-editor-shell" @focusout="handleCellEditorFocusOut($event, 'agents', index, 'fix_cost_daily')"><input type="number" class="cell-input" x-model="editingCell.draftValue" placeholder="\u6BCF\u65E5\u51FA\u8F66\u8D39" :data-inline-editor="inlineEditorToken('agents', index, 'fix_cost_daily')" @keydown.enter.prevent="commitEditingCell()" @keydown.tab="commitEditingCell()" @keydown.escape.prevent="cancelEditingCell()"></div></template><template x-if="!isEditingCell('agents', index, 'fix_cost_daily')"><button type="button" class="table-cell-button" @click="beginCellEdit('agents', index, 'fix_cost_daily', 'number')"><span class="table-cell-main font-mono tabular-nums" x-text="displayValue(row.fix_cost_daily)"></span></button></template></td>
+                          <td><template x-if="isEditingCell('agents', index, 'fix_cost_daily')"><div class="table-cell-editor-shell" @focusout="handleCellEditorFocusOut($event, 'agents', index, 'fix_cost_daily')"><input type="number" class="cell-input" x-model="editingCell.draftValue" placeholder="\u6BCF\u65E5\u51FA\u8F66\u8D39" :data-inline-editor="inlineEditorToken('agents', index, 'fix_cost_daily')" @keydown.enter.prevent="commitEditingCell()" @keydown.tab="commitEditingCell()" @keydown.escape.prevent="cancelEditingCell()"></div></template><template x-if="!isEditingCell('agents', index, 'fix_cost_daily')"><button type="button" class="table-cell-button" @click="beginCellEdit('agents', index, 'fix_cost_daily', 'number')"><span class="table-cell-main font-mono tabular-nums" x-text="row.fix_cost_daily ?? ''"></span></button></template></td>
                           <td><template x-if="isEditingCell('agents', index, 'shift_start_time_input')"><div class="table-cell-editor-shell" @focusout="handleCellEditorFocusOut($event, 'agents', index, 'shift_start_time_input')"><vrp-date-time-24 class="datetime24-input cell-input" x-model="editingCell.draftValue" :data-inline-editor="inlineEditorToken('agents', index, 'shift_start_time_input')" @keydown.enter.prevent="commitEditingCell()" @keydown.escape.prevent="cancelEditingCell()" aria-label="\u73ED\u6B21\u5F00\u59CB\u65F6\u95F4"></vrp-date-time-24></div></template><template x-if="!isEditingCell('agents', index, 'shift_start_time_input')"><button type="button" class="table-cell-button" @click="beginCellEdit('agents', index, 'shift_start_time_input')"><span class="table-cell-main font-mono tabular-nums" :class="!hasDisplayValue(row.shift_start_time_input) ? 'table-cell-empty' : ''" x-text="displayDateTime(row.shift_start_time_input)"></span></button></template></td>
                           <td><template x-if="isEditingCell('agents', index, 'shift_off_time_input')"><div class="table-cell-editor-shell" @focusout="handleCellEditorFocusOut($event, 'agents', index, 'shift_off_time_input')"><vrp-date-time-24 class="datetime24-input cell-input" x-model="editingCell.draftValue" :data-inline-editor="inlineEditorToken('agents', index, 'shift_off_time_input')" @keydown.enter.prevent="commitEditingCell()" @keydown.escape.prevent="cancelEditingCell()" aria-label="\u73ED\u6B21\u7ED3\u675F\u65F6\u95F4"></vrp-date-time-24></div></template><template x-if="!isEditingCell('agents', index, 'shift_off_time_input')"><button type="button" class="table-cell-button" @click="beginCellEdit('agents', index, 'shift_off_time_input')"><span class="table-cell-main font-mono tabular-nums" :class="!hasDisplayValue(row.shift_off_time_input) ? 'table-cell-empty' : ''" x-text="displayDateTime(row.shift_off_time_input)"></span></button></template></td>
                           <td><div class="flex min-w-0 flex-nowrap items-center gap-[0.3125rem] overflow-hidden"><template x-if="!assignedTicketsForAgent(row.id).length"><span class="table-cell-main table-cell-empty">--</span></template><template x-for="ticket in assignedTicketsForAgent(row.id).slice(0, 2)" :key="ticket.id"><button type="button" class="table-cell-chip identifier-trigger max-w-[7.5rem] cursor-pointer truncate font-mono tabular-nums" @mouseenter="showJobIdTooltip(ticket.id, $event)" @mouseleave="hideJobIdTooltip(ticket.id)" @click="jumpToTicket(ticket.id)"><span x-text="ticket.id"></span></button></template><span x-show="assignedTicketsForAgent(row.id).length > 2" class="table-cell-chip" x-text="\`+\${assignedTicketsForAgent(row.id).length - 2}\`"></span></div></td>
@@ -7480,14 +7579,6 @@ var VrpScenarioComponentEntry = (() => {
     "elec_price",
     "gas_92_price"
   ];
-  var DEFAULT_AGENT_COST_PROFILES = [
-    { fuel_type: "GAS_92", fuel_consumption: 12.6, fix_cost_daily: 104 },
-    { fuel_type: "GAS_92", fuel_consumption: 12.9, fix_cost_daily: 108 },
-    { fuel_type: "GAS_92", fuel_consumption: 13.1, fix_cost_daily: 111 },
-    { fuel_type: "GAS_92", fuel_consumption: 13.4, fix_cost_daily: 115 },
-    { fuel_type: "GAS_92", fuel_consumption: 12.8, fix_cost_daily: 109 },
-    { fuel_type: "GAS_92", fuel_consumption: 13.2, fix_cost_daily: 113 }
-  ];
   var CONSTRAINT_LABELS = {
     name: "constraint.name",
     agent_capacity: "constraint.agent_capacity",
@@ -7559,17 +7650,48 @@ var VrpScenarioComponentEntry = (() => {
     const date = new Date();
     return date.toISOString().slice(0, 10);
   }
-  function datetimeInputValue(value) {
+  function validDateString(value) {
+    const text = String(value || "").trim();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) {
+      return "";
+    }
+    const parsed = new Date(`${text}T00:00:00Z`);
+    return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === text ? text : "";
+  }
+  function normalizedClock(value) {
+    const match = String(value || "").trim().match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+    if (!match) {
+      return "";
+    }
+    const hour = Number(match[1]);
+    const minute = Number(match[2]);
+    const second = Number(match[3] || 0);
+    if (hour > 23 || minute > 59 || second > 59) {
+      return "";
+    }
+    return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}:${String(second).padStart(2, "0")}`;
+  }
+  function datetimeInputValue(value, fallbackDate = "") {
     if (!value) {
       return "";
     }
-    return value.replace(" ", "T").slice(0, 16);
+    const clock = normalizedClock(value);
+    const date = validDateString(fallbackDate);
+    if (clock && date) {
+      return `${date}T${clock.slice(0, 5)}`;
+    }
+    return String(value).replace(" ", "T").slice(0, 16);
   }
-  function datetimeApiValue(value) {
+  function datetimeApiValue(value, fallbackDate = "") {
     if (!value) {
       return null;
     }
-    const normalized = value.includes("T") ? value.replace("T", " ") : value;
+    const clock = normalizedClock(value);
+    const date = validDateString(fallbackDate);
+    if (clock && date) {
+      return `${date} ${clock}`;
+    }
+    const normalized = String(value).includes("T") ? String(value).replace("T", " ") : String(value);
     return normalized.length === 16 ? `${normalized}:00` : normalized;
   }
   function splitTags(value) {
@@ -7634,9 +7756,43 @@ var VrpScenarioComponentEntry = (() => {
   function poiAddress(poi) {
     return poi?.address || poi?.name || poi?.location || poi?.id || "";
   }
-  function defaultAgentCostProfile(index = 0) {
-    const normalizedIndex = Math.max(0, Number(index) || 0);
-    return { ...DEFAULT_AGENT_COST_PROFILES[normalizedIndex % DEFAULT_AGENT_COST_PROFILES.length] };
+  function generateBusinessId(prefix = "ITEM") {
+    const normalizedPrefix = String(prefix || "ITEM").trim().toUpperCase().replaceAll(/[^A-Z0-9]+/g, "-") || "ITEM";
+    const randomId = globalThis.crypto?.randomUUID?.() || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+    return `${normalizedPrefix}-${String(randomId).replaceAll("-", "").slice(0, 12).toUpperCase()}`;
+  }
+  function hasResolvedBusinessCoordinate(row, locField) {
+    const location = row?.[locField];
+    if (parseLocationString(row?.poi_location) || parseLocationString(location?.location) || parseLocationString(location?.entr_location)) {
+      return true;
+    }
+    const coordinate = location?.loc || location?.entr_loc;
+    return coordinate?.lat !== null && coordinate?.lat !== void 0 && coordinate?.lon !== null && coordinate?.lon !== void 0 && Number.isFinite(Number(coordinate.lat)) && Number.isFinite(Number(coordinate.lon));
+  }
+  function gatewayLocationErrors(plan = {}) {
+    const errors = [];
+    const collect = (rows, label, addressField, locField, pathPrefix) => {
+      safeArray(rows).forEach((row, index) => {
+        if (!String(row?.[addressField] || "").trim()) {
+          errors.push({
+            path: `${pathPrefix}[${index}].${addressField}`,
+            code: "REQUIRED",
+            message: `${label}\u7B2C ${index + 1} \u884C\u7F3A\u5C11\u5730\u5740\u3002`
+          });
+        }
+        if (!hasResolvedBusinessCoordinate(row, locField)) {
+          errors.push({
+            path: `${pathPrefix}[${index}].${locField}`,
+            code: "REQUIRED",
+            message: `${label}\u7B2C ${index + 1} \u884C\u7F3A\u5C11\u5DF2\u89E3\u6790\u5750\u6807\u3002`
+          });
+        }
+      });
+    };
+    collect(plan.depos, "\u4ED3\u5E93", "address", "loc", "request_payload.plan.depos");
+    collect(plan.agents, "\u8F66\u8F86/\u5DE5\u7A0B\u5E08", "start_address", "start_loc", "request_payload.plan.agents");
+    collect(plan.tickets, "\u5DE5\u5355", "address", "loc", "request_payload.plan.tickets");
+    return errors;
   }
   function hasCostParameterData(costParameter) {
     return COST_DATA_FIELDS.some((key) => Number(costParameter?.[key] || 0) > 0);
@@ -7646,10 +7802,6 @@ var VrpScenarioComponentEntry = (() => {
       return { ...DEFAULT_COST_PARAMETER };
     }
     return { ...DEFAULT_COST_PARAMETER, ...costParameter };
-  }
-  function normalizeAgentCostValue(value, fallback) {
-    const numericValue = Number(value || 0);
-    return numericValue > 0 ? numericValue : fallback;
   }
   function normalizeMapProvider(value) {
     const provider = String(value || "").trim().toUpperCase();
@@ -7692,7 +7844,7 @@ var VrpScenarioComponentEntry = (() => {
   function normalizeDepot(depot, poiIndex) {
     const loc = resolvePoiReference(depot?.loc, poiIndex) || {};
     return {
-      id: depot?.id || "",
+      id: depot?.id || generateBusinessId("DEPO"),
       name: depot?.name || "",
       address: poiAddress(loc),
       city: poiCity(loc),
@@ -7700,14 +7852,13 @@ var VrpScenarioComponentEntry = (() => {
       loc
     };
   }
-  function normalizeAgent(agent, poiIndex, index = 0) {
+  function normalizeAgent(agent, poiIndex, planningDate) {
     const startLoc = resolvePoiReference(agent?.start_loc, poiIndex);
     const isVirtual = Boolean(agent?.virtual || agent?.is_virtual);
-    const costProfile = defaultAgentCostProfile(index);
     return {
-      id: agent?.id || "",
+      id: agent?.id || generateBusinessId("AGENT"),
       depo_id: agent?.depo_id || "",
-      date: agent?.date || todayString(),
+      date: agent?.date || planningDate || todayString(),
       name: agent?.name || "",
       start_address: poiAddress(startLoc),
       start_city: poiCity(startLoc),
@@ -7719,12 +7870,12 @@ var VrpScenarioComponentEntry = (() => {
       weight: agent?.weight ?? 0,
       vol: agent?.vol ?? 0,
       vehicle_type: agent?.vehicle_type || "CAR",
-      fuel_type: agent?.fuel_type || costProfile.fuel_type,
-      fuel_consumption: isVirtual ? agent?.fuel_consumption ?? 0 : normalizeAgentCostValue(agent?.fuel_consumption, costProfile.fuel_consumption),
+      fuel_type: agent?.fuel_type ?? "",
+      fuel_consumption: agent?.fuel_consumption ?? "",
       rented: Boolean(agent?.rented),
-      fix_cost_daily: isVirtual ? agent?.fix_cost_daily ?? 0 : normalizeAgentCostValue(agent?.fix_cost_daily, costProfile.fix_cost_daily),
-      shift_start_time_input: datetimeInputValue(agent?.shift_start_time),
-      shift_off_time_input: datetimeInputValue(agent?.shift_off_time),
+      fix_cost_daily: agent?.fix_cost_daily ?? "",
+      shift_start_time_input: datetimeInputValue(agent?.shift_start_time, agent?.date || planningDate),
+      shift_off_time_input: datetimeInputValue(agent?.shift_off_time, agent?.date || planningDate),
       max_ticket_num: agent?.max_ticket_num ?? 0,
       tickets: safeArray(agent?.tickets),
       is_virtual: isVirtual
@@ -7736,10 +7887,10 @@ var VrpScenarioComponentEntry = (() => {
       value: Number(item?.value || 0)
     })).filter((item) => item.sku && item.value > 0);
   }
-  function normalizeTicket(ticket, poiIndex) {
+  function normalizeTicket(ticket, poiIndex, planningDate) {
     const loc = resolvePoiReference(ticket?.loc, poiIndex) || {};
     return {
-      id: ticket?.id || "",
+      id: ticket?.id || generateBusinessId("TICKET"),
       depo_id: ticket?.depo_id || "",
       pinned: Boolean(ticket?.pinned),
       type: ticket?.type || "Delv",
@@ -7754,18 +7905,18 @@ var VrpScenarioComponentEntry = (() => {
       items: normalizeTicketItems(ticket?.items),
       weight: ticket?.weight ?? 0,
       vol: ticket?.vol ?? 0,
-      min_start_time_input: datetimeInputValue(ticket?.min_start_time),
-      max_end_time_input: datetimeInputValue(ticket?.max_end_time),
+      min_start_time_input: datetimeInputValue(ticket?.min_start_time, planningDate),
+      max_end_time_input: datetimeInputValue(ticket?.max_end_time, planningDate),
       duration_minutes: durationToMinutes(ticket?.duration),
       agent: ticket?.agent || "",
       arrival_time: ticket?.arrival_time || "",
-      create_time_input: datetimeInputValue(ticket?.create_time),
+      create_time_input: datetimeInputValue(ticket?.create_time, planningDate),
       qualification_text: ticket?.qualification_levels_required ? JSON.stringify(ticket.qualification_levels_required) : ""
     };
   }
   function normalizeSku(sku) {
     return {
-      id: sku?.id || "",
+      id: sku?.id || generateBusinessId("SKU"),
       name: sku?.name || "",
       weight: sku?.weight ?? 0,
       vol: sku?.vol ?? 0
@@ -7778,21 +7929,22 @@ var VrpScenarioComponentEntry = (() => {
     const normalizedPois = safeArray(plan.pois).map((poi) => canonicalizePoi(poi));
     const poiIndex = buildPoiIndex(normalizedPois);
     const costParameter = normalizeCostParameter(plan.cost_parameter);
+    const planningDate = scenario.planning_date || todayString();
     const constraintConfiguration = { ...DEFAULT_CONSTRAINT_CONFIGURATION, ...plan.constraint_configuration || {} };
     const normalizedDepos = safeArray(plan.depos).map((depot) => normalizeDepot(depot, poiIndex));
     return {
       ...scenario,
       ...mapProvider ? { map_provider: mapProvider } : {},
-      planning_date: scenario.planning_date || todayString(),
-      start_time_input: datetimeInputValue(scenario.start_time),
-      end_time_input: datetimeInputValue(scenario.end_time),
+      planning_date: planningDate,
+      start_time_input: datetimeInputValue(scenario.start_time, planningDate),
+      end_time_input: datetimeInputValue(scenario.end_time, planningDate),
       city_hint: normalizedDepos[0]?.city || "",
       plan: {
         ...plan,
         pois: normalizedPois,
         depos: normalizedDepos,
-        agents: safeArray(plan.agents).map((agent, index) => normalizeAgent(agent, poiIndex, index)),
-        tickets: safeArray(plan.tickets).map((ticket) => normalizeTicket(ticket, poiIndex)),
+        agents: safeArray(plan.agents).map((agent) => normalizeAgent(agent, poiIndex, planningDate)),
+        tickets: safeArray(plan.tickets).map((ticket) => normalizeTicket(ticket, poiIndex, planningDate)),
         skus: safeArray(plan.skus).map(normalizeSku),
         cost_parameter: costParameter,
         constraint_configuration: constraintConfiguration
@@ -7803,13 +7955,14 @@ var VrpScenarioComponentEntry = (() => {
     const scenario = viewScenario || {};
     const mapProvider = normalizeMapProvider(scenario.map_provider ?? scenario.mapProvider);
     const plan = scenario.plan || {};
+    const planningDate = scenario.planning_date || todayString();
     const payload = {
       name: scenario.name || "",
       desc: scenario.desc || "",
       ...mapProvider ? { map_provider: mapProvider } : {},
-      planning_date: scenario.planning_date || todayString(),
-      start_time: datetimeApiValue(scenario.start_time_input),
-      end_time: datetimeApiValue(scenario.end_time_input),
+      planning_date: planningDate,
+      start_time: datetimeApiValue(scenario.start_time_input, planningDate),
+      end_time: datetimeApiValue(scenario.end_time_input, planningDate),
       create_time: scenario.create_time || null,
       update_time: scenario.update_time || null,
       plan: {
@@ -7819,26 +7972,35 @@ var VrpScenarioComponentEntry = (() => {
           name: row.name || "",
           loc: buildRawPoi(row.address, row.city || scenario.city_hint, row.loc)
         })),
-        agents: safeArray(plan.agents).filter((row) => row.id || row.name || row.start_address || row.start_city || row.start_loc?.location || row.start_loc?.loc).map((row) => ({
-          id: row.id || "",
-          depo_id: row.depo_id || "",
-          date: row.date || todayString(),
-          name: row.name || "",
-          start_loc: buildRawPoi(row.start_address, row.start_city || scenario.city_hint, row.start_loc),
-          skills: splitTags(row.skills_text),
-          qualification_levels: parseJsonObject(row.qualification_text),
-          weight: Number(row.weight || 0),
-          vol: Number(row.vol || 0),
-          vehicle_type: row.vehicle_type || "CAR",
-          fuel_type: row.fuel_type || "GAS_92",
-          fuel_consumption: Number(row.fuel_consumption || 0),
-          rented: Boolean(row.rented),
-          fix_cost_daily: Number(row.fix_cost_daily || 0),
-          shift_start_time: datetimeApiValue(row.shift_start_time_input),
-          shift_off_time: datetimeApiValue(row.shift_off_time_input),
-          max_ticket_num: Number(row.max_ticket_num || 0),
-          tickets: []
-        })),
+        agents: safeArray(plan.agents).filter((row) => row.id || row.name || row.start_address || row.start_city || row.start_loc?.location || row.start_loc?.loc).map((row) => {
+          const agent = {
+            id: row.id || "",
+            depo_id: row.depo_id || "",
+            date: row.date || planningDate,
+            name: row.name || "",
+            start_loc: buildRawPoi(row.start_address, row.start_city || scenario.city_hint, row.start_loc),
+            skills: splitTags(row.skills_text),
+            qualification_levels: parseJsonObject(row.qualification_text),
+            weight: Number(row.weight || 0),
+            vol: Number(row.vol || 0),
+            vehicle_type: row.vehicle_type || "CAR",
+            rented: Boolean(row.rented),
+            shift_start_time: datetimeApiValue(row.shift_start_time_input, row.date || planningDate),
+            shift_off_time: datetimeApiValue(row.shift_off_time_input, row.date || planningDate),
+            max_ticket_num: Number(row.max_ticket_num || 0),
+            tickets: []
+          };
+          if (String(row.fuel_type ?? "").trim()) {
+            agent.fuel_type = String(row.fuel_type).trim();
+          }
+          if (row.fuel_consumption !== null && row.fuel_consumption !== void 0 && String(row.fuel_consumption).trim() !== "") {
+            agent.fuel_consumption = Number(row.fuel_consumption);
+          }
+          if (row.fix_cost_daily !== null && row.fix_cost_daily !== void 0 && String(row.fix_cost_daily).trim() !== "") {
+            agent.fix_cost_daily = Number(row.fix_cost_daily);
+          }
+          return agent;
+        }),
         skus: safeArray(plan.skus).filter((row) => row.id || row.name).map((row) => ({
           id: row.id || "",
           name: row.name || "",
@@ -7859,9 +8021,9 @@ var VrpScenarioComponentEntry = (() => {
           weight: Number(row.weight || 0),
           vol: Number(row.vol || 0),
           loc: buildRawPoi(row.address, row.city || scenario.city_hint, row.loc),
-          create_time: datetimeApiValue(row.create_time_input),
-          min_start_time: datetimeApiValue(row.min_start_time_input),
-          max_end_time: datetimeApiValue(row.max_end_time_input),
+          create_time: datetimeApiValue(row.create_time_input, planningDate),
+          min_start_time: datetimeApiValue(row.min_start_time_input, planningDate),
+          max_end_time: datetimeApiValue(row.max_end_time_input, planningDate),
           duration: `PT${Math.max(0, Number(row.duration_minutes || 0))}M`,
           agent: row.agent || null,
           arrival_time: row.arrival_time || null
@@ -9510,12 +9672,11 @@ var VrpScenarioComponentEntry = (() => {
     return SKILL_TAG_TONE_CLASSES[(hash >>> 0) % SKILL_TAG_TONE_CLASSES.length];
   }
   function blankDepot() {
-    return { id: "", name: "", address: "", city: "", loc: null };
+    return { id: generateBusinessId("DEPO"), name: "", address: "", city: "", loc: null };
   }
-  function blankAgent(index = 0) {
-    const costProfile = defaultAgentCostProfile(index);
+  function blankAgent() {
     return {
-      id: "",
+      id: generateBusinessId("AGENT"),
       depo_id: "",
       date: todayString(),
       name: "",
@@ -9527,10 +9688,10 @@ var VrpScenarioComponentEntry = (() => {
       weight: 0,
       vol: 0,
       vehicle_type: "CAR",
-      fuel_type: costProfile.fuel_type,
-      fuel_consumption: costProfile.fuel_consumption,
+      fuel_type: "",
+      fuel_consumption: "",
       rented: false,
-      fix_cost_daily: costProfile.fix_cost_daily,
+      fix_cost_daily: "",
       shift_start_time_input: `${todayString()}T08:00`,
       shift_off_time_input: `${todayString()}T18:00`,
       max_ticket_num: 0
@@ -9538,7 +9699,7 @@ var VrpScenarioComponentEntry = (() => {
   }
   function blankTicket() {
     return {
-      id: "",
+      id: generateBusinessId("TICKET"),
       depo_id: "",
       pinned: false,
       type: "Delv",
@@ -9560,16 +9721,13 @@ var VrpScenarioComponentEntry = (() => {
     };
   }
   function blankSku() {
-    return { id: "", name: "", weight: 0, vol: 0 };
+    return { id: generateBusinessId("SKU"), name: "", weight: 0, vol: 0 };
   }
   function gatewayBridge() {
     return window.VrpScenarioGateway || null;
   }
   function isGatewayScenarioMode() {
     return Boolean(gatewayBridge()?.isScenarioComponent);
-  }
-  function gatewayContextPayload() {
-    return gatewayBridge()?.context?.payload || null;
   }
   function componentActions() {
     return gatewayBridge()?.actions || null;
@@ -9707,6 +9865,34 @@ var VrpScenarioComponentEntry = (() => {
           }
         } catch (_error) {
           errors.push(validationError(`${pathPrefix}[${rowIndex}].${field}`, "FORMAT_INVALID", `${label}\u7B2C ${rowIndex + 1} \u884C\u7684${fieldLabel}\u4E0D\u662F\u5408\u6CD5 JSON\u3002`));
+        }
+      });
+    });
+  }
+  function validDateInput(value) {
+    const text = String(value || "").trim();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) {
+      return false;
+    }
+    const parsed = new Date(`${text}T00:00:00Z`);
+    return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === text;
+  }
+  function validDateTimeInput(value) {
+    const text = String(value || "").trim();
+    if (!/^\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):[0-5]\d$/.test(text)) {
+      return false;
+    }
+    return validDateInput(text.slice(0, 10));
+  }
+  function collectDateTimeErrors(rows, label, fields, pathPrefix, errors) {
+    safeArrayForValidation(rows).forEach((row, rowIndex) => {
+      fields.forEach(([field, fieldLabel]) => {
+        const value = row?.[field];
+        if (value == null || value === "") {
+          return;
+        }
+        if (!validDateTimeInput(value)) {
+          errors.push(validationError(`${pathPrefix}[${rowIndex}].${field}`, "FORMAT_INVALID", `${label}\u7B2C ${rowIndex + 1} \u884C\u7684${fieldLabel}\u5FC5\u987B\u5305\u542B\u5B8C\u6574\u65E5\u671F\u548C\u65F6\u95F4\u3002`));
         }
       });
     });
@@ -9870,6 +10056,7 @@ var VrpScenarioComponentEntry = (() => {
       adaptiveTableObservedContainer: null,
       gatewayReadinessSignature: "",
       gatewayValidationErrors: [],
+      validationSummaryDismissed: false,
       configTab: "depos",
       scenario: defaultScenario(),
       scenarioPersisted: true,
@@ -9947,10 +10134,8 @@ var VrpScenarioComponentEntry = (() => {
           this.showAvailableAgentTrend = Object.prototype.hasOwnProperty.call(componentContext, "available_agent_trend");
           this.loading = false;
           this.configTab = "depos";
-          this.applyGatewayCreateData(gatewayContextPayload());
-          this.markGatewayPristine();
+          await gatewayBridge()?.registerComponent?.("create", this);
           this.startGatewayDirtyWatch();
-          gatewayBridge()?.registerComponent?.("create", this);
         }
       },
       dispose() {
@@ -9973,7 +10158,7 @@ var VrpScenarioComponentEntry = (() => {
         this.mapPicker.map = null;
         this.mapPicker.marker = null;
       },
-      applyGatewayCreateData(input) {
+      async applyGatewayCreateData(input) {
         if (plainObject(input) && Object.prototype.hasOwnProperty.call(input, "scenario_persisted")) {
           this.scenarioPersisted = Boolean(input.scenario_persisted);
           this.scenarioPersistedProvided = true;
@@ -10003,10 +10188,16 @@ var VrpScenarioComponentEntry = (() => {
         this.drawRoute = coerceGatewayBoolean(solveOptions.draw_route ?? solveOptions.drawRoute, this.drawRoute);
         this.gatewayValidationErrors = [];
         this.gatewayServerValidationErrors = [];
+        this.validationSummaryDismissed = false;
         this.gatewayValidationFocus = { path: "", tab: "", rowIndex: -1 };
+        let locationResolution = { resolved: 0, failed: 0, skipped: 0 };
+        if (requestPayload?.plan) {
+          locationResolution = await this.resolveImportedLocations();
+        }
         this.markGatewayPristine();
         gatewayBridge()?.scheduleResize?.();
         this.scheduleAdaptiveTableFit("depos");
+        return { locationResolution };
       },
       gatewayExpectedSolveDuration() {
         return `PT${Math.max(1, Number(this.solveTimeValue || 1))}${this.solveTimeUnit || "S"}`;
@@ -10093,6 +10284,8 @@ var VrpScenarioComponentEntry = (() => {
         }
         if (!String(scenario.planning_date || "").trim()) {
           errors.push(validationError("request_payload.planning_date", "REQUIRED", "\u89C4\u5212\u65E5\u671F\u4E0D\u80FD\u4E3A\u7A7A\u3002"));
+        } else if (!validDateInput(scenario.planning_date)) {
+          errors.push(validationError("request_payload.planning_date", "FORMAT_INVALID", "\u89C4\u5212\u65E5\u671F\u5FC5\u987B\u4F7F\u7528 YYYY-MM-DD \u683C\u5F0F\u5E76\u4E14\u662F\u6709\u6548\u65E5\u671F\u3002"));
         }
         const startTime = scenario.start_time_input ? new Date(scenario.start_time_input) : null;
         const endTime = scenario.end_time_input ? new Date(scenario.end_time_input) : null;
@@ -10101,6 +10294,12 @@ var VrpScenarioComponentEntry = (() => {
         }
         if (!scenario.end_time_input) {
           errors.push(validationError("request_payload.end_time", "REQUIRED", "\u7ED3\u675F\u65F6\u95F4\u4E0D\u80FD\u4E3A\u7A7A\u3002"));
+        }
+        if (scenario.start_time_input && !validDateTimeInput(scenario.start_time_input)) {
+          errors.push(validationError("request_payload.start_time", "FORMAT_INVALID", "\u5F00\u59CB\u65F6\u95F4\u5FC5\u987B\u5305\u542B\u5B8C\u6574\u65E5\u671F\u548C\u65F6\u95F4\u3002"));
+        }
+        if (scenario.end_time_input && !validDateTimeInput(scenario.end_time_input)) {
+          errors.push(validationError("request_payload.end_time", "FORMAT_INVALID", "\u7ED3\u675F\u65F6\u95F4\u5FC5\u987B\u5305\u542B\u5B8C\u6574\u65E5\u671F\u548C\u65F6\u95F4\u3002"));
         }
         if (startTime && endTime && !Number.isNaN(startTime.getTime()) && !Number.isNaN(endTime.getTime()) && startTime >= endTime) {
           errors.push(validationError("request_payload.end_time", "OUT_OF_RANGE", "\u7ED3\u675F\u65F6\u95F4\u5FC5\u987B\u665A\u4E8E\u5F00\u59CB\u65F6\u95F4\u3002"));
@@ -10112,12 +10311,13 @@ var VrpScenarioComponentEntry = (() => {
           errors.push(validationError("expected_solve_duration", "FORMAT_INVALID", "\u6C42\u89E3\u65F6\u95F4\u5355\u4F4D\u4EC5\u652F\u6301\u79D2\u3001\u5206\u949F\u6216\u5C0F\u65F6\u3002"));
         }
         if (!["ROUTING", "MANHATTAN"].includes(String(this.matrixMode || "").toUpperCase())) {
-          errors.push(validationError("request_payload.options.matrix_mode", "ENUM_MISMATCH", "\u77E9\u9635\u751F\u6210\u65B9\u5F0F\u4EC5\u652F\u6301 ROUTING \u6216 MANHATTAN\u3002"));
+          errors.push(validationError("request_payload.options.matrix_mode", "ENUM_MISMATCH", this.t("scenario.validation.invalidMatrixMode")));
         }
         collectDuplicateIdErrors(plan.depos, "\u4ED3\u5E93", ["id", "name", "address", "city", "loc"], "request_payload.plan.depos", errors);
         collectDuplicateIdErrors(plan.agents, "\u8F66\u8F86/\u5DE5\u7A0B\u5E08", ["id", "name", "start_address", "start_city", "start_loc"], "request_payload.plan.agents", errors);
         collectDuplicateIdErrors(plan.tickets, "\u5DE5\u5355", ["id", "address", "city", "loc"], "request_payload.plan.tickets", errors);
         collectDuplicateIdErrors(plan.skus, "SKU", ["id", "name"], "request_payload.plan.skus", errors);
+        errors.push(...gatewayLocationErrors(plan));
         collectNonNegativeNumberErrors(plan.agents, "\u8F66\u8F86/\u5DE5\u7A0B\u5E08", [
           ["weight", "\u8F7D\u91CD"],
           ["vol", "\u5BB9\u79EF"],
@@ -10137,6 +10337,15 @@ var VrpScenarioComponentEntry = (() => {
         collectNonNegativeNumberErrors([plan.cost_parameter || {}], "\u6210\u672C\u53C2\u6570", COST_FIELDS, "request_payload.plan.cost_parameter", errors);
         collectJsonObjectErrors(plan.agents, "\u8F66\u8F86/\u5DE5\u7A0B\u5E08", [["qualification_text", "\u6280\u80FD\u7B49\u7EA7"]], "request_payload.plan.agents", errors);
         collectJsonObjectErrors(plan.tickets, "\u5DE5\u5355", [["qualification_text", "\u9700\u6C42\u6280\u80FD\u7B49\u7EA7"]], "request_payload.plan.tickets", errors);
+        collectDateTimeErrors(plan.agents, "\u8F66\u8F86/\u5DE5\u7A0B\u5E08", [
+          ["shift_start_time_input", "\u6700\u65E9\u51FA\u53D1\u65F6\u95F4"],
+          ["shift_off_time_input", "\u6700\u665A\u7ED3\u675F\u65F6\u95F4"]
+        ], "request_payload.plan.agents", errors);
+        collectDateTimeErrors(plan.tickets, "\u5DE5\u5355", [
+          ["create_time_input", "\u521B\u5EFA\u65F6\u95F4"],
+          ["min_start_time_input", "\u6700\u65E9\u5F00\u59CB\u65F6\u95F4"],
+          ["max_end_time_input", "\u6700\u665A\u7ED3\u675F\u65F6\u95F4"]
+        ], "request_payload.plan.tickets", errors);
         this.constraintEntries().forEach(([key, value]) => {
           if (this.isConstraintWeightEntry(key) && !isConstraintScoreText(value)) {
             errors.push(validationError(`constraint_overrides.${key}`, "FORMAT_INVALID", `${this.humanConstraintLabel(key)} \u7684\u7EA6\u675F\u503C\u683C\u5F0F\u5E94\u4E3A Nhard/Nmedium/Nsoft\u3002`));
@@ -10144,6 +10353,7 @@ var VrpScenarioComponentEntry = (() => {
         });
         this.gatewayServerValidationErrors = [];
         this.gatewayValidationErrors = errors;
+        this.validationSummaryDismissed = false;
         if (errors.length) {
           this.showFlash(`\u521B\u5EFA\u53C2\u6570\u6821\u9A8C\u5931\u8D25\uFF1A${this.formatValidationError(errors[0])}`, "danger");
         } else {
@@ -10161,18 +10371,27 @@ var VrpScenarioComponentEntry = (() => {
       validationErrorKey(error, index) {
         return `${error?.path || "validation"}-${error?.code || "FAILED"}-${index}`;
       },
-      formatValidationError(error) {
+      validationSummaryTitle() {
+        const count = this.validationErrors().length;
+        return count === 1 ? this.t("scenario.validation.singleTitle") : this.t("scenario.validation.multipleTitle", { count });
+      },
+      validationErrorMessage(error) {
         if (typeof error === "string") {
           return error;
         }
-        if (!error?.path) {
-          return error?.message || "\u5B57\u6BB5\u6821\u9A8C\u5931\u8D25";
-        }
-        return `${error.path}\uFF1A${error.message || "\u5B57\u6BB5\u6821\u9A8C\u5931\u8D25"}`;
+        return error?.message || this.t("scenario.validation.fallbackMessage");
+      },
+      formatValidationError(error) {
+        return this.validationErrorMessage(error);
+      },
+      dismissValidationSummary() {
+        this.validationSummaryDismissed = true;
+        gatewayBridge()?.scheduleResize?.();
       },
       applyGatewayValidationErrors(fieldErrors) {
         this.gatewayValidationErrors = [];
         this.gatewayServerValidationErrors = safeArrayForValidation(fieldErrors).filter((item) => item && typeof item === "object").map((item) => validationError(String(item.path || ""), String(item.code || "VALIDATION_FAILED"), String(item.message || "\u5B57\u6BB5\u6821\u9A8C\u5931\u8D25")));
+        this.validationSummaryDismissed = false;
         const target = this.validationTarget(this.gatewayServerValidationErrors[0]?.path || "");
         this.gatewayValidationFocus = target;
         if (target.tab) {
@@ -10186,6 +10405,7 @@ var VrpScenarioComponentEntry = (() => {
       },
       clearGatewayValidationErrors() {
         this.gatewayServerValidationErrors = [];
+        this.validationSummaryDismissed = false;
         this.gatewayValidationFocus = { path: "", tab: "", rowIndex: -1 };
         gatewayBridge()?.scheduleResize?.();
       },
@@ -10767,8 +10987,15 @@ var VrpScenarioComponentEntry = (() => {
           ...this.scenario.plan.agents.map((row) => [row, "start_address", "start_city", "start_loc"]),
           ...this.scenario.plan.tickets.map((row) => [row, "address", "city", "loc"])
         ];
-        const summary = { resolved: 0, failed: 0 };
+        const summary = { resolved: 0, failed: 0, skipped: 0 };
         for (const [row, addressField, cityField, locField] of targets) {
+          const address = String(row?.[addressField] || "").trim();
+          const hasReadableAddress = Boolean(address) && !parseLocationString(address);
+          const hasCoordinate = Boolean(parseLocationString(poiLocationText(row?.[locField])));
+          if (hasReadableAddress && hasCoordinate) {
+            summary.skipped += 1;
+            continue;
+          }
           const outcome = await this.resolveLocationForRow(row, addressField, cityField, locField);
           if (outcome.status === "resolved") {
             summary.resolved += 1;
@@ -11108,7 +11335,7 @@ var VrpScenarioComponentEntry = (() => {
           if (nextMatrixMode === "AMAP")
             nextMatrixMode = "ROUTING";
           if (!["ROUTING", "MANHATTAN"].includes(nextMatrixMode)) {
-            this.importRequestDialog.error = "matrix_mode \u4EC5\u652F\u6301 ROUTING \u6216 MANHATTAN\u3002";
+            this.importRequestDialog.error = this.t("scenario.validation.invalidMatrixMode");
             return;
           }
           let parsedSolveTime;
@@ -11550,7 +11777,7 @@ var VrpScenarioComponentEntry = (() => {
       addRow(tab) {
         this.commitEditingCell();
         const target = this.rowsForTab(tab);
-        const row = tab === "agents" ? blankAgent(target.length) : this.factoryForTab(tab)();
+        const row = this.factoryForTab(tab)();
         target.push(row);
         const rowIndex = target.length - 1;
         this.$nextTick(() => {
@@ -11803,6 +12030,55 @@ var VrpScenarioComponentEntry = (() => {
           ["\u5DE5\u5355", count(this.scenario.plan.tickets, ["id", "address"])],
           ["SKU", count(this.scenario.plan.skus, ["id", "name"])]
         ];
+      },
+      buildGatewayScenarioOutline() {
+        const scenario = this.scenario || {};
+        const plan = scenario.plan || {};
+        const stats = this.currentScenarioStats();
+        const cities = [...new Set([
+          ...safeArrayForValidation(plan.depos).map((row) => row.city),
+          ...safeArrayForValidation(plan.agents).map((row) => row.start_city),
+          ...safeArrayForValidation(plan.tickets).map((row) => row.city)
+        ].map((value) => String(value || "").trim()).filter(Boolean))];
+        const clock = (value) => {
+          const match = String(value || "").match(/(?:T|\s)(\d{2}:\d{2})(?::\d{2})?$/);
+          return match?.[1] || "";
+        };
+        const shiftRanges = [...new Set(safeArrayForValidation(plan.agents).map((row) => {
+          const start = clock(row.shift_start_time_input);
+          const end = clock(row.shift_off_time_input);
+          return start && end ? `${start}\u2013${end}` : "";
+        }).filter(Boolean))];
+        const durations = [...new Set(safeArrayForValidation(plan.tickets).map((row) => Number(row.duration_minutes)).filter((value) => Number.isFinite(value) && value > 0))];
+        const changedConstraints = this.constraintEntries().filter(([key, value]) => String(value || "") !== String(DEFAULT_CONSTRAINT_CONFIGURATION[key] || "")).slice(0, 4).map(([key]) => ({ label: this.humanConstraintLabel(key), value: this.t("scenario.outline.adjusted") }));
+        const locationErrors = gatewayLocationErrors(plan);
+        const sections = [
+          {
+            label: this.t("scenario.outline.scope"),
+            items: [
+              { label: this.t("scenario.outline.planningDate"), value: scenario.planning_date || "" },
+              { label: this.t("scenario.outline.timeRange"), value: `${clock(scenario.start_time_input)}\u2013${clock(scenario.end_time_input)}`.replace(/^–$|^–|–$/g, "") },
+              { label: this.t("scenario.outline.cities"), value: cities.join("\u3001") }
+            ].filter((item) => item.value)
+          },
+          {
+            label: this.t("scenario.outline.scale"),
+            items: stats.map(([label, value]) => ({ label, value: String(value) }))
+          },
+          {
+            label: this.t("scenario.outline.timeAndRules"),
+            items: [
+              { label: this.t("scenario.outline.shifts"), value: shiftRanges.join("\u3001") },
+              { label: this.t("scenario.outline.serviceDuration"), value: durations.map((value) => `${value} ${this.t("scenario.outline.minutes")}`).join("\u3001") },
+              ...changedConstraints
+            ].filter((item) => item.value)
+          }
+        ].filter((section) => section.items.length);
+        return {
+          title: scenario.name || this.t("scenario.untitled"),
+          sections,
+          warnings: locationErrors.length ? [this.t("scenario.outline.locationIncomplete", { count: locationErrors.length })] : [this.t("scenario.outline.locationComplete")]
+        };
       },
       setConfigTab(tab) {
         this.commitEditingCell();
@@ -15709,10 +15985,27 @@ var VrpScenarioComponentEntry = (() => {
       "scenario.noData": "\u6682\u65E0\u6570\u636E",
       "scenario.availableAgentTrendEmpty": "\u4FDD\u5B58\u573A\u666F\u5E76\u4FDD\u8BC1\u65F6\u95F4\u8303\u56F4\u6709\u6548\u540E\uFF0C\u8FD9\u91CC\u4F1A\u5C55\u793A\u6309 2 \u5C0F\u65F6\u7C92\u5EA6\u7EDF\u8BA1\u7684\u53EF\u7528\u5DE5\u7A0B\u5E08\u6570\u91CF\u3002",
       "scenario.planningDate": "\u89C4\u5212\u65E5\u671F",
+      "scenario.outline.scope": "\u89C4\u5212\u8303\u56F4",
+      "scenario.outline.scale": "\u573A\u666F\u89C4\u6A21",
+      "scenario.outline.timeAndRules": "\u65F6\u95F4\u4E0E\u5173\u952E\u89C4\u5219",
+      "scenario.outline.planningDate": "\u89C4\u5212\u65E5\u671F",
+      "scenario.outline.timeRange": "\u603B\u4F53\u65F6\u95F4",
+      "scenario.outline.cities": "\u4E3B\u8981\u533A\u57DF",
+      "scenario.outline.shifts": "\u5DE5\u7A0B\u5E08\u73ED\u6B21",
+      "scenario.outline.serviceDuration": "\u5DE5\u5355\u670D\u52A1\u65F6\u957F",
+      "scenario.outline.minutes": "\u5206\u949F",
+      "scenario.outline.adjusted": "\u5DF2\u6309\u5F53\u524D\u65B9\u6848\u8C03\u6574",
+      "scenario.outline.locationComplete": "\u5730\u5740\u548C\u5750\u6807\u5DF2\u5B8C\u6574\u3002",
+      "scenario.outline.locationIncomplete": "\u4ECD\u6709 {count} \u4E2A\u5730\u5740\u6216\u5750\u6807\u95EE\u9898\u9700\u8981\u8865\u5145\u3002",
       "scenario.field.loadWeightWithUnit": "\u8F7D\u91CD\uFF08\u5428\uFF09",
       "scenario.field.volumeCapacityWithUnit": "\u5BB9\u79EF\uFF08m\xB3\uFF09",
       "scenario.field.weightWithUnit": "\u91CD\u91CF\uFF08\u5428\uFF09",
       "scenario.field.volumeWithUnit": "\u4F53\u79EF\uFF08m\xB3\uFF09",
+      "scenario.validation.singleTitle": "\u8BF7\u4FEE\u6B63\u6B64\u9879\u540E\u7EE7\u7EED",
+      "scenario.validation.multipleTitle": "\u8BF7\u4FEE\u6B63\u4EE5\u4E0B {count} \u9879\u540E\u7EE7\u7EED",
+      "scenario.validation.fallbackMessage": "\u5B57\u6BB5\u5185\u5BB9\u4E0D\u7B26\u5408\u8981\u6C42\u3002",
+      "scenario.validation.invalidMatrixMode": "\u77E9\u9635\u751F\u6210\u65B9\u5F0F\u4EC5\u652F\u6301 ROUTING \u6216 MANHATTAN\u3002",
+      "scenario.validation.dismiss": "\u5173\u95ED\u6821\u9A8C\u63D0\u793A",
       "scenario.solveDrawer.title": "\u521B\u5EFA\u6C42\u89E3\u4EFB\u52A1",
       "scenario.solveDrawer.description": "\u786E\u8BA4\u540E\u5C06\u63D0\u4EA4\u89C4\u5212\u6C42\u89E3\u3002",
       "scenario.solveDrawer.close": "\u5173\u95ED\u521B\u5EFA\u6C42\u89E3\u4EFB\u52A1\u62BD\u5C49",
@@ -16012,10 +16305,27 @@ var VrpScenarioComponentEntry = (() => {
       "scenario.noData": "No data",
       "scenario.availableAgentTrendEmpty": "Save the scenario and provide a valid time range to show available technicians in two-hour windows.",
       "scenario.planningDate": "Planning date",
+      "scenario.outline.scope": "Planning scope",
+      "scenario.outline.scale": "Scenario size",
+      "scenario.outline.timeAndRules": "Time and key rules",
+      "scenario.outline.planningDate": "Planning date",
+      "scenario.outline.timeRange": "Overall time",
+      "scenario.outline.cities": "Main areas",
+      "scenario.outline.shifts": "Technician shifts",
+      "scenario.outline.serviceDuration": "Job service duration",
+      "scenario.outline.minutes": "minutes",
+      "scenario.outline.adjusted": "Adjusted for this scenario",
+      "scenario.outline.locationComplete": "Addresses and coordinates are complete.",
+      "scenario.outline.locationIncomplete": "{count} address or coordinate issues still need attention.",
       "scenario.field.loadWeightWithUnit": "Load weight (t)",
       "scenario.field.volumeCapacityWithUnit": "Volume capacity (m\xB3)",
       "scenario.field.weightWithUnit": "Weight (t)",
       "scenario.field.volumeWithUnit": "Volume (m\xB3)",
+      "scenario.validation.singleTitle": "Fix this item to continue",
+      "scenario.validation.multipleTitle": "Fix these {count} items to continue",
+      "scenario.validation.fallbackMessage": "This field does not meet the requirements.",
+      "scenario.validation.invalidMatrixMode": "Matrix generation mode must be ROUTING or MANHATTAN.",
+      "scenario.validation.dismiss": "Dismiss validation summary",
       "scenario.solveDrawer.title": "Create solver job",
       "scenario.solveDrawer.description": "Confirm to submit the solve.",
       "scenario.solveDrawer.close": "Close the create solver job drawer",
@@ -16743,13 +17053,17 @@ var VrpScenarioComponentEntry = (() => {
       isScenarioComponent: true,
       actions,
       context: null,
-      registerComponent(kind, pageComponent) {
+      async registerComponent(kind, pageComponent) {
         activeComponent = pageComponent;
         if (kind === "create") {
-          deliverCreateData();
+          await deliverCreateData();
           return;
         }
-        deliverResult().catch((error) => this.sendError(error));
+        try {
+          await deliverResult();
+        } catch (error) {
+          this.sendError(error);
+        }
       },
       notifyDirty(dirty) {
         lifecycleEvent(component, "scenario-dirty-state-changed", {
@@ -16869,7 +17183,7 @@ var VrpScenarioComponentEntry = (() => {
         field_errors: fieldErrors
       });
     }
-    function deliverCreateData() {
+    async function deliverCreateData() {
       if (disposed || !activeComponent?.applyGatewayCreateData) {
         return;
       }
@@ -16881,11 +17195,13 @@ var VrpScenarioComponentEntry = (() => {
         return;
       }
       try {
-        activeComponent.applyGatewayCreateData(bridge.context.payload);
+        const result2 = await activeComponent.applyGatewayCreateData(bridge.context.payload);
         createDataInitialized = true;
         if (revision != null) {
           appliedDraftRevision = revision;
-          reportDraftImported(revision, true, "JSON \u8349\u7A3F\u5DF2\u5BFC\u5165\u573A\u666F\u8868\u5355\u3002");
+          const resolution = result2?.locationResolution || {};
+          const suffix = Number(resolution.resolved || 0) > 0 ? `\uFF0C\u5E76\u81EA\u52A8\u8865\u9F50 ${resolution.resolved} \u6761\u5730\u5740\u6216\u5750\u6807` : "";
+          reportDraftImported(revision, true, `JSON \u8349\u7A3F\u5DF2\u5BFC\u5165\u573A\u666F\u8868\u5355${suffix}\u3002`);
         }
       } catch (error) {
         if (revision != null) {
@@ -16940,13 +17256,13 @@ var VrpScenarioComponentEntry = (() => {
     function clearScenarioValidationErrors() {
       activeComponent?.clearGatewayValidationErrors?.();
     }
-    function replaceScenarioDraft(payload) {
+    async function replaceScenarioDraft(payload) {
       if (!activeComponent?.applyGatewayCreateData) {
         return;
       }
       const source = firstObject2(payload) || null;
       const hasEnvelope = Boolean(source) && (Object.prototype.hasOwnProperty.call(source, "request_payload") || Object.prototype.hasOwnProperty.call(source, "expected_solve_duration") || Object.prototype.hasOwnProperty.call(source, "solve_options") || Object.prototype.hasOwnProperty.call(source, "constraint_overrides") || Object.prototype.hasOwnProperty.call(source, "scenario_persisted"));
-      activeComponent.applyGatewayCreateData(hasEnvelope ? source : { request_payload: source });
+      await activeComponent.applyGatewayCreateData(hasEnvelope ? source : { request_payload: source });
     }
     function openPlanningDrawer() {
       return activeComponent?.openPlanningDrawer?.() || false;
@@ -16962,6 +17278,7 @@ var VrpScenarioComponentEntry = (() => {
       };
     }
     component.getScenarioDraft = getScenarioDraft;
+    component.getScenarioOutline = () => activeComponent?.buildGatewayScenarioOutline?.() || null;
     component.validateScenarioDraft = validateScenarioDraft;
     component.applyScenarioValidationErrors = applyScenarioValidationErrors;
     component.clearScenarioValidationErrors = clearScenarioValidationErrors;
@@ -16995,6 +17312,7 @@ var VrpScenarioComponentEntry = (() => {
       }
       i18n.disconnect();
       delete component.getScenarioDraft;
+      delete component.getScenarioOutline;
       delete component.validateScenarioDraft;
       delete component.applyScenarioValidationErrors;
       delete component.clearScenarioValidationErrors;
@@ -17018,7 +17336,7 @@ var VrpScenarioComponentEntry = (() => {
         return;
       }
       if (context.view === "create" && activeComponent?.applyGatewayCreateData) {
-        deliverCreateData();
+        await deliverCreateData();
         return;
       }
       if (["result", "map"].includes(context.view)) {

@@ -384,11 +384,17 @@
   .mx-\[1\.25rem\] {
     margin-inline: 1.25rem;
   }
+  .-my-\[0\.46875rem\] {
+    margin-block: calc(0.46875rem * -1);
+  }
   .mt-0 {
     margin-top: calc(var(--spacing) * 0);
   }
   .mt-\[-1\.25px\] {
     margin-top: -1.25px;
+  }
+  .mt-\[0\.0625rem\] {
+    margin-top: 0.0625rem;
   }
   .mt-\[0\.625rem\] {
     margin-top: 0.625rem;
@@ -404,6 +410,9 @@
   }
   .mt-\[0\.46875rem\] {
     margin-top: 0.46875rem;
+  }
+  .mt-\[0\.53125rem\] {
+    margin-top: 0.53125rem;
   }
   .mt-\[1\.25rem\] {
     margin-top: 1.25rem;
@@ -468,6 +477,9 @@
   .h-\[0\.625rem\] {
     height: 0.625rem;
   }
+  .h-\[0\.3125rem\] {
+    height: 0.3125rem;
+  }
   .h-\[0\.46875rem\] {
     height: 0.46875rem;
   }
@@ -485,6 +497,9 @@
   }
   .h-\[2\.5rem\] {
     height: 2.5rem;
+  }
+  .h-\[2\.1875rem\] {
+    height: 2.1875rem;
   }
   .h-\[2\.8125rem\] {
     height: 2.8125rem;
@@ -558,6 +573,9 @@
   .w-\[0\.625rem\] {
     width: 0.625rem;
   }
+  .w-\[0\.3125rem\] {
+    width: 0.3125rem;
+  }
   .w-\[0\.46875rem\] {
     width: 0.46875rem;
   }
@@ -569,6 +587,9 @@
   }
   .w-\[1\.5625rem\] {
     width: 1.5625rem;
+  }
+  .w-\[2\.1875rem\] {
+    width: 2.1875rem;
   }
   .w-\[2\.8125rem\] {
     width: 2.8125rem;
@@ -741,9 +762,6 @@
   .resize-y {
     resize: vertical;
   }
-  .list-disc {
-    list-style-type: disc;
-  }
   .grid-cols-1 {
     grid-template-columns: repeat(1, minmax(0, 1fr));
   }
@@ -822,6 +840,13 @@
       margin-block-end: calc(0.3125rem * calc(1 - var(--tw-space-y-reverse)));
     }
   }
+  .space-y-\[0\.15625rem\] {
+    :where(& > :not(:last-child)) {
+      --tw-space-y-reverse: 0;
+      margin-block-start: calc(0.15625rem * var(--tw-space-y-reverse));
+      margin-block-end: calc(0.15625rem * calc(1 - var(--tw-space-y-reverse)));
+    }
+  }
   .space-y-\[0\.46875rem\] {
     :where(& > :not(:last-child)) {
       --tw-space-y-reverse: 0;
@@ -874,6 +899,9 @@
   }
   .gap-y-\[0\.9375rem\] {
     row-gap: 0.9375rem;
+  }
+  .gap-y-\[0\.15625rem\] {
+    row-gap: 0.15625rem;
   }
   .divide-x-\[1\.25px\] {
     :where(& > :not(:last-child)) {
@@ -964,6 +992,9 @@
   }
   .rounded-\[inherit\] {
     border-radius: inherit;
+  }
+  .rounded-full {
+    border-radius: calc(infinity * 1px);
   }
   .rounded-none {
     border-radius: 0;
@@ -1232,6 +1263,12 @@
   .bg-rose-50 {
     background-color: var(--color-rose-50);
   }
+  .bg-rose-50\/70 {
+    background-color: color-mix(in srgb, oklch(96.9% 0.015 12.422) 70%, transparent);
+    @supports (color: color-mix(in lab, red, red)) {
+      background-color: color-mix(in oklab, var(--color-rose-50) 70%, transparent);
+    }
+  }
   .bg-rose-500 {
     background-color: var(--color-rose-500);
   }
@@ -1455,6 +1492,9 @@
   .py-0 {
     padding-block: calc(var(--spacing) * 0);
   }
+  .py-\[0\.75rem\] {
+    padding-block: 0.75rem;
+  }
   .py-\[0\.625rem\] {
     padding-block: 0.625rem;
   }
@@ -1542,9 +1582,6 @@
   .pl-\[0\.9375rem\] {
     padding-left: 0.9375rem;
   }
-  .pl-\[1\.5625rem\] {
-    padding-left: 1.5625rem;
-  }
   .text-center {
     text-align: center;
   }
@@ -1559,6 +1596,10 @@
   }
   .text-\[0\.9375rem\]\/\[1\.25rem\] {
     font-size: 0.9375rem;
+    line-height: 1.25rem;
+  }
+  .text-\[1\.25rem\]\/\[1\.25rem\] {
+    font-size: 1.25rem;
     line-height: 1.25rem;
   }
   .text-\[1\.25rem\]\/\[1\.875rem\] {
@@ -1987,6 +2028,13 @@
       }
     }
   }
+  .hover\:bg-rose-100 {
+    &:hover {
+      @media (hover: hover) {
+        background-color: var(--color-rose-100);
+      }
+    }
+  }
   .hover\:bg-slate-50 {
     &:hover {
       @media (hover: hover) {
@@ -2049,6 +2097,13 @@
     &:hover {
       @media (hover: hover) {
         color: var(--color-rose-700);
+      }
+    }
+  }
+  .hover\:text-rose-800 {
+    &:hover {
+      @media (hover: hover) {
+        color: var(--color-rose-800);
       }
     }
   }
@@ -2133,6 +2188,14 @@
       --tw-ring-color: color-mix(in srgb, oklch(59.6% 0.145 163.225) 25%, transparent);
       @supports (color: color-mix(in lab, red, red)) {
         --tw-ring-color: color-mix(in oklab, var(--color-emerald-600) 25%, transparent);
+      }
+    }
+  }
+  .focus-visible\:ring-rose-600\/25 {
+    &:focus-visible {
+      --tw-ring-color: color-mix(in srgb, oklch(58.6% 0.253 17.585) 25%, transparent);
+      @supports (color: color-mix(in lab, red, red)) {
+        --tw-ring-color: color-mix(in oklab, var(--color-rose-600) 25%, transparent);
       }
     }
   }

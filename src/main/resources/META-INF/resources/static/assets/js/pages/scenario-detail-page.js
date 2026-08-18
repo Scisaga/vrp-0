@@ -2,11 +2,13 @@ import { copyText, deleteRequest, formatDuration, getJson, localizeRequestError,
 import {
   CONSTRAINT_LABELS,
   COST_FIELDS,
+  DEFAULT_CONSTRAINT_CONFIGURATION,
   buildRawPoi,
   buildScenarioPayload,
-  defaultAgentCostProfile,
   defaultScenario,
   formatConstraintValue,
+  gatewayLocationErrors,
+  generateBusinessId,
   normalizeScenarioForView,
   parseConstraintValue,
   parseLocationString,
@@ -36,13 +38,12 @@ export function skillTagToneClass(tag) {
 }
 
 function blankDepot() {
-  return { id: "", name: "", address: "", city: "", loc: null };
+  return { id: generateBusinessId("DEPO"), name: "", address: "", city: "", loc: null };
 }
 
-function blankAgent(index = 0) {
-  const costProfile = defaultAgentCostProfile(index);
+function blankAgent() {
   return {
-    id: "",
+    id: generateBusinessId("AGENT"),
     depo_id: "",
     date: todayString(),
     name: "",
@@ -54,10 +55,10 @@ function blankAgent(index = 0) {
     weight: 0,
     vol: 0,
     vehicle_type: "CAR",
-    fuel_type: costProfile.fuel_type,
-    fuel_consumption: costProfile.fuel_consumption,
+    fuel_type: "",
+    fuel_consumption: "",
     rented: false,
-    fix_cost_daily: costProfile.fix_cost_daily,
+    fix_cost_daily: "",
     shift_start_time_input: `${todayString()}T08:00`,
     shift_off_time_input: `${todayString()}T18:00`,
     max_ticket_num: 0
@@ -66,7 +67,7 @@ function blankAgent(index = 0) {
 
 function blankTicket() {
   return {
-    id: "",
+    id: generateBusinessId("TICKET"),
     depo_id: "",
     pinned: false,
     type: "Delv",
@@ -89,7 +90,7 @@ function blankTicket() {
 }
 
 function blankSku() {
-  return { id: "", name: "", weight: 0, vol: 0 };
+  return { id: generateBusinessId("SKU"), name: "", weight: 0, vol: 0 };
 }
 
 function gatewayBridge() {
@@ -276,6 +277,41 @@ function collectJsonObjectErrors(rows, label, fields, pathPrefix, errors) {
   });
 }
 
+function validDateInput(value) {
+  const text = String(value || "").trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) {
+    return false;
+  }
+  const parsed = new Date(`${text}T00:00:00Z`);
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === text;
+}
+
+function validDateTimeInput(value) {
+  const text = String(value || "").trim();
+  if (!/^\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):[0-5]\d$/.test(text)) {
+    return false;
+  }
+  return validDateInput(text.slice(0, 10));
+}
+
+function collectDateTimeErrors(rows, label, fields, pathPrefix, errors) {
+  safeArrayForValidation(rows).forEach((row, rowIndex) => {
+    fields.forEach(([field, fieldLabel]) => {
+      const value = row?.[field];
+      if (value == null || value === "") {
+        return;
+      }
+      if (!validDateTimeInput(value)) {
+        errors.push(validationError(
+          `${pathPrefix}[${rowIndex}].${field}`,
+          "FORMAT_INVALID",
+          `${label}第 ${rowIndex + 1} 行的${fieldLabel}必须包含完整日期和时间。`
+        ));
+      }
+    });
+  });
+}
+
 function isConstraintScoreText(value) {
   return /^-?\d+hard\/-?\d+medium\/-?\d+soft$/i.test(String(value || "").trim());
 }
@@ -453,6 +489,7 @@ export function scenarioDetailPage() {
     adaptiveTableObservedContainer: null,
     gatewayReadinessSignature: "",
     gatewayValidationErrors: [],
+    validationSummaryDismissed: false,
     configTab: "depos",
     scenario: defaultScenario(),
     scenarioPersisted: true,
@@ -530,10 +567,8 @@ export function scenarioDetailPage() {
         this.showAvailableAgentTrend = Object.prototype.hasOwnProperty.call(componentContext, "available_agent_trend");
         this.loading = false;
         this.configTab = "depos";
-        this.applyGatewayCreateData(gatewayContextPayload());
-        this.markGatewayPristine();
+        await gatewayBridge()?.registerComponent?.("create", this);
         this.startGatewayDirtyWatch();
-        gatewayBridge()?.registerComponent?.("create", this);
       }
     },
     dispose() {
@@ -556,7 +591,7 @@ export function scenarioDetailPage() {
       this.mapPicker.map = null;
       this.mapPicker.marker = null;
     },
-    applyGatewayCreateData(input) {
+    async applyGatewayCreateData(input) {
       if (plainObject(input) && Object.prototype.hasOwnProperty.call(input, "scenario_persisted")) {
         this.scenarioPersisted = Boolean(input.scenario_persisted);
         this.scenarioPersistedProvided = true;
@@ -586,10 +621,16 @@ export function scenarioDetailPage() {
       this.drawRoute = coerceGatewayBoolean(solveOptions.draw_route ?? solveOptions.drawRoute, this.drawRoute);
       this.gatewayValidationErrors = [];
       this.gatewayServerValidationErrors = [];
+      this.validationSummaryDismissed = false;
       this.gatewayValidationFocus = { path: "", tab: "", rowIndex: -1 };
+      let locationResolution = { resolved: 0, failed: 0, skipped: 0 };
+      if (requestPayload?.plan) {
+        locationResolution = await this.resolveImportedLocations();
+      }
       this.markGatewayPristine();
       gatewayBridge()?.scheduleResize?.();
       this.scheduleAdaptiveTableFit("depos");
+      return { locationResolution };
     },
     gatewayExpectedSolveDuration() {
       return `PT${Math.max(1, Number(this.solveTimeValue || 1))}${this.solveTimeUnit || "S"}`;
@@ -679,6 +720,8 @@ export function scenarioDetailPage() {
       }
       if (!String(scenario.planning_date || "").trim()) {
         errors.push(validationError("request_payload.planning_date", "REQUIRED", "规划日期不能为空。"));
+      } else if (!validDateInput(scenario.planning_date)) {
+        errors.push(validationError("request_payload.planning_date", "FORMAT_INVALID", "规划日期必须使用 YYYY-MM-DD 格式并且是有效日期。"));
       }
       const startTime = scenario.start_time_input ? new Date(scenario.start_time_input) : null;
       const endTime = scenario.end_time_input ? new Date(scenario.end_time_input) : null;
@@ -687,6 +730,12 @@ export function scenarioDetailPage() {
       }
       if (!scenario.end_time_input) {
         errors.push(validationError("request_payload.end_time", "REQUIRED", "结束时间不能为空。"));
+      }
+      if (scenario.start_time_input && !validDateTimeInput(scenario.start_time_input)) {
+        errors.push(validationError("request_payload.start_time", "FORMAT_INVALID", "开始时间必须包含完整日期和时间。"));
+      }
+      if (scenario.end_time_input && !validDateTimeInput(scenario.end_time_input)) {
+        errors.push(validationError("request_payload.end_time", "FORMAT_INVALID", "结束时间必须包含完整日期和时间。"));
       }
       if (startTime && endTime && !Number.isNaN(startTime.getTime()) && !Number.isNaN(endTime.getTime()) && startTime >= endTime) {
         errors.push(validationError("request_payload.end_time", "OUT_OF_RANGE", "结束时间必须晚于开始时间。"));
@@ -698,13 +747,15 @@ export function scenarioDetailPage() {
         errors.push(validationError("expected_solve_duration", "FORMAT_INVALID", "求解时间单位仅支持秒、分钟或小时。"));
       }
       if (!["ROUTING", "MANHATTAN"].includes(String(this.matrixMode || "").toUpperCase())) {
-        errors.push(validationError("request_payload.options.matrix_mode", "ENUM_MISMATCH", "矩阵生成方式仅支持 ROUTING 或 MANHATTAN。"));
+        errors.push(validationError("request_payload.options.matrix_mode", "ENUM_MISMATCH", this.t("scenario.validation.invalidMatrixMode")));
       }
 
       collectDuplicateIdErrors(plan.depos, "仓库", ["id", "name", "address", "city", "loc"], "request_payload.plan.depos", errors);
       collectDuplicateIdErrors(plan.agents, "车辆/工程师", ["id", "name", "start_address", "start_city", "start_loc"], "request_payload.plan.agents", errors);
       collectDuplicateIdErrors(plan.tickets, "工单", ["id", "address", "city", "loc"], "request_payload.plan.tickets", errors);
       collectDuplicateIdErrors(plan.skus, "SKU", ["id", "name"], "request_payload.plan.skus", errors);
+
+      errors.push(...gatewayLocationErrors(plan));
 
       collectNonNegativeNumberErrors(plan.agents, "车辆/工程师", [
         ["weight", "载重"],
@@ -725,6 +776,15 @@ export function scenarioDetailPage() {
       collectNonNegativeNumberErrors([plan.cost_parameter || {}], "成本参数", COST_FIELDS, "request_payload.plan.cost_parameter", errors);
       collectJsonObjectErrors(plan.agents, "车辆/工程师", [["qualification_text", "技能等级"]], "request_payload.plan.agents", errors);
       collectJsonObjectErrors(plan.tickets, "工单", [["qualification_text", "需求技能等级"]], "request_payload.plan.tickets", errors);
+      collectDateTimeErrors(plan.agents, "车辆/工程师", [
+        ["shift_start_time_input", "最早出发时间"],
+        ["shift_off_time_input", "最晚结束时间"]
+      ], "request_payload.plan.agents", errors);
+      collectDateTimeErrors(plan.tickets, "工单", [
+        ["create_time_input", "创建时间"],
+        ["min_start_time_input", "最早开始时间"],
+        ["max_end_time_input", "最晚结束时间"]
+      ], "request_payload.plan.tickets", errors);
 
       this.constraintEntries().forEach(([key, value]) => {
         if (this.isConstraintWeightEntry(key) && !isConstraintScoreText(value)) {
@@ -734,6 +794,7 @@ export function scenarioDetailPage() {
 
       this.gatewayServerValidationErrors = [];
       this.gatewayValidationErrors = errors;
+      this.validationSummaryDismissed = false;
       if (errors.length) {
         this.showFlash(`创建参数校验失败：${this.formatValidationError(errors[0])}`, "danger");
       } else {
@@ -751,20 +812,31 @@ export function scenarioDetailPage() {
     validationErrorKey(error, index) {
       return `${error?.path || "validation"}-${error?.code || "FAILED"}-${index}`;
     },
-    formatValidationError(error) {
+    validationSummaryTitle() {
+      const count = this.validationErrors().length;
+      return count === 1
+        ? this.t("scenario.validation.singleTitle")
+        : this.t("scenario.validation.multipleTitle", { count });
+    },
+    validationErrorMessage(error) {
       if (typeof error === "string") {
         return error;
       }
-      if (!error?.path) {
-        return error?.message || "字段校验失败";
-      }
-      return `${error.path}：${error.message || "字段校验失败"}`;
+      return error?.message || this.t("scenario.validation.fallbackMessage");
+    },
+    formatValidationError(error) {
+      return this.validationErrorMessage(error);
+    },
+    dismissValidationSummary() {
+      this.validationSummaryDismissed = true;
+      gatewayBridge()?.scheduleResize?.();
     },
     applyGatewayValidationErrors(fieldErrors) {
       this.gatewayValidationErrors = [];
       this.gatewayServerValidationErrors = safeArrayForValidation(fieldErrors)
         .filter((item) => item && typeof item === "object")
         .map((item) => validationError(String(item.path || ""), String(item.code || "VALIDATION_FAILED"), String(item.message || "字段校验失败")));
+      this.validationSummaryDismissed = false;
       const target = this.validationTarget(this.gatewayServerValidationErrors[0]?.path || "");
       this.gatewayValidationFocus = target;
       if (target.tab) {
@@ -778,6 +850,7 @@ export function scenarioDetailPage() {
     },
     clearGatewayValidationErrors() {
       this.gatewayServerValidationErrors = [];
+      this.validationSummaryDismissed = false;
       this.gatewayValidationFocus = { path: "", tab: "", rowIndex: -1 };
       gatewayBridge()?.scheduleResize?.();
     },
@@ -1410,9 +1483,16 @@ export function scenarioDetailPage() {
         ...this.scenario.plan.agents.map((row) => [row, "start_address", "start_city", "start_loc"]),
         ...this.scenario.plan.tickets.map((row) => [row, "address", "city", "loc"])
       ];
-      const summary = { resolved: 0, failed: 0 };
+      const summary = { resolved: 0, failed: 0, skipped: 0 };
       // 顺序执行以复用地址服务既有限流；相同输入由缓存合并为一次请求。
       for (const [row, addressField, cityField, locField] of targets) {
+        const address = String(row?.[addressField] || "").trim();
+        const hasReadableAddress = Boolean(address) && !parseLocationString(address);
+        const hasCoordinate = Boolean(parseLocationString(poiLocationText(row?.[locField])));
+        if (hasReadableAddress && hasCoordinate) {
+          summary.skipped += 1;
+          continue;
+        }
         const outcome = await this.resolveLocationForRow(row, addressField, cityField, locField);
         if (outcome.status === "resolved") {
           summary.resolved += 1;
@@ -1755,7 +1835,7 @@ export function scenarioDetailPage() {
         let nextMatrixMode = String(solveOptions.matrix_mode ?? this.matrixMode ?? "MANHATTAN").trim().toUpperCase();
         if (nextMatrixMode === "AMAP") nextMatrixMode = "ROUTING";
         if (!["ROUTING", "MANHATTAN"].includes(nextMatrixMode)) {
-          this.importRequestDialog.error = "matrix_mode 仅支持 ROUTING 或 MANHATTAN。";
+          this.importRequestDialog.error = this.t("scenario.validation.invalidMatrixMode");
           return;
         }
 
@@ -2240,7 +2320,7 @@ export function scenarioDetailPage() {
     addRow(tab) {
       this.commitEditingCell();
       const target = this.rowsForTab(tab);
-      const row = tab === "agents" ? blankAgent(target.length) : this.factoryForTab(tab)();
+      const row = this.factoryForTab(tab)();
       target.push(row);
       const rowIndex = target.length - 1;
       this.$nextTick(() => {
@@ -2494,6 +2574,62 @@ export function scenarioDetailPage() {
         ["工单", count(this.scenario.plan.tickets, ["id", "address"])],
         ["SKU", count(this.scenario.plan.skus, ["id", "name"])]
       ];
+    },
+    buildGatewayScenarioOutline() {
+      const scenario = this.scenario || {};
+      const plan = scenario.plan || {};
+      const stats = this.currentScenarioStats();
+      const cities = [...new Set([
+        ...safeArrayForValidation(plan.depos).map((row) => row.city),
+        ...safeArrayForValidation(plan.agents).map((row) => row.start_city),
+        ...safeArrayForValidation(plan.tickets).map((row) => row.city)
+      ].map((value) => String(value || "").trim()).filter(Boolean))];
+      const clock = (value) => {
+        const match = String(value || "").match(/(?:T|\s)(\d{2}:\d{2})(?::\d{2})?$/);
+        return match?.[1] || "";
+      };
+      const shiftRanges = [...new Set(safeArrayForValidation(plan.agents).map((row) => {
+        const start = clock(row.shift_start_time_input);
+        const end = clock(row.shift_off_time_input);
+        return start && end ? `${start}–${end}` : "";
+      }).filter(Boolean))];
+      const durations = [...new Set(safeArrayForValidation(plan.tickets)
+        .map((row) => Number(row.duration_minutes))
+        .filter((value) => Number.isFinite(value) && value > 0))];
+      const changedConstraints = this.constraintEntries()
+        .filter(([key, value]) => String(value || "") !== String(DEFAULT_CONSTRAINT_CONFIGURATION[key] || ""))
+        .slice(0, 4)
+        .map(([key]) => ({ label: this.humanConstraintLabel(key), value: this.t("scenario.outline.adjusted") }));
+      const locationErrors = gatewayLocationErrors(plan);
+      const sections = [
+        {
+          label: this.t("scenario.outline.scope"),
+          items: [
+            { label: this.t("scenario.outline.planningDate"), value: scenario.planning_date || "" },
+            { label: this.t("scenario.outline.timeRange"), value: `${clock(scenario.start_time_input)}–${clock(scenario.end_time_input)}`.replace(/^–$|^–|–$/g, "") },
+            { label: this.t("scenario.outline.cities"), value: cities.join("、") }
+          ].filter((item) => item.value)
+        },
+        {
+          label: this.t("scenario.outline.scale"),
+          items: stats.map(([label, value]) => ({ label, value: String(value) }))
+        },
+        {
+          label: this.t("scenario.outline.timeAndRules"),
+          items: [
+            { label: this.t("scenario.outline.shifts"), value: shiftRanges.join("、") },
+            { label: this.t("scenario.outline.serviceDuration"), value: durations.map((value) => `${value} ${this.t("scenario.outline.minutes")}`).join("、") },
+            ...changedConstraints
+          ].filter((item) => item.value)
+        }
+      ].filter((section) => section.items.length);
+      return {
+        title: scenario.name || this.t("scenario.untitled"),
+        sections,
+        warnings: locationErrors.length
+          ? [this.t("scenario.outline.locationIncomplete", { count: locationErrors.length })]
+          : [this.t("scenario.outline.locationComplete")]
+      };
     },
     setConfigTab(tab) {
       this.commitEditingCell();

@@ -36,15 +36,6 @@ const COST_DATA_FIELDS = [
   "gas_92_price"
 ];
 
-const DEFAULT_AGENT_COST_PROFILES = [
-  { fuel_type: "GAS_92", fuel_consumption: 12.6, fix_cost_daily: 104 },
-  { fuel_type: "GAS_92", fuel_consumption: 12.9, fix_cost_daily: 108 },
-  { fuel_type: "GAS_92", fuel_consumption: 13.1, fix_cost_daily: 111 },
-  { fuel_type: "GAS_92", fuel_consumption: 13.4, fix_cost_daily: 115 },
-  { fuel_type: "GAS_92", fuel_consumption: 12.8, fix_cost_daily: 109 },
-  { fuel_type: "GAS_92", fuel_consumption: 13.2, fix_cost_daily: 113 }
-];
-
 export const CONSTRAINT_LABELS = {
   name: "constraint.name",
   agent_capacity: "constraint.agent_capacity",
@@ -121,18 +112,51 @@ export function todayString() {
   return date.toISOString().slice(0, 10);
 }
 
-export function datetimeInputValue(value) {
+function validDateString(value) {
+  const text = String(value || "").trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) {
+    return "";
+  }
+  const parsed = new Date(`${text}T00:00:00Z`);
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === text ? text : "";
+}
+
+function normalizedClock(value) {
+  const match = String(value || "").trim().match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+  if (!match) {
+    return "";
+  }
+  const hour = Number(match[1]);
+  const minute = Number(match[2]);
+  const second = Number(match[3] || 0);
+  if (hour > 23 || minute > 59 || second > 59) {
+    return "";
+  }
+  return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}:${String(second).padStart(2, "0")}`;
+}
+
+export function datetimeInputValue(value, fallbackDate = "") {
   if (!value) {
     return "";
   }
-  return value.replace(" ", "T").slice(0, 16);
+  const clock = normalizedClock(value);
+  const date = validDateString(fallbackDate);
+  if (clock && date) {
+    return `${date}T${clock.slice(0, 5)}`;
+  }
+  return String(value).replace(" ", "T").slice(0, 16);
 }
 
-export function datetimeApiValue(value) {
+export function datetimeApiValue(value, fallbackDate = "") {
   if (!value) {
     return null;
   }
-  const normalized = value.includes("T") ? value.replace("T", " ") : value;
+  const clock = normalizedClock(value);
+  const date = validDateString(fallbackDate);
+  if (clock && date) {
+    return `${date} ${clock}`;
+  }
+  const normalized = String(value).includes("T") ? String(value).replace("T", " ") : String(value);
   return normalized.length === 16 ? `${normalized}:00` : normalized;
 }
 
@@ -230,9 +254,53 @@ function poiAddress(poi) {
   return poi?.address || poi?.name || poi?.location || poi?.id || "";
 }
 
-export function defaultAgentCostProfile(index = 0) {
-  const normalizedIndex = Math.max(0, Number(index) || 0);
-  return { ...DEFAULT_AGENT_COST_PROFILES[normalizedIndex % DEFAULT_AGENT_COST_PROFILES.length] };
+export function generateBusinessId(prefix = "ITEM") {
+  const normalizedPrefix = String(prefix || "ITEM").trim().toUpperCase().replaceAll(/[^A-Z0-9]+/g, "-") || "ITEM";
+  const randomId = globalThis.crypto?.randomUUID?.()
+    || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+  return `${normalizedPrefix}-${String(randomId).replaceAll("-", "").slice(0, 12).toUpperCase()}`;
+}
+
+function hasResolvedBusinessCoordinate(row, locField) {
+  const location = row?.[locField];
+  if (parseLocationString(row?.poi_location)
+      || parseLocationString(location?.location)
+      || parseLocationString(location?.entr_location)) {
+    return true;
+  }
+  const coordinate = location?.loc || location?.entr_loc;
+  return coordinate?.lat !== null
+    && coordinate?.lat !== undefined
+    && coordinate?.lon !== null
+    && coordinate?.lon !== undefined
+    && Number.isFinite(Number(coordinate.lat))
+    && Number.isFinite(Number(coordinate.lon));
+}
+
+export function gatewayLocationErrors(plan = {}) {
+  const errors = [];
+  const collect = (rows, label, addressField, locField, pathPrefix) => {
+    safeArray(rows).forEach((row, index) => {
+      if (!String(row?.[addressField] || "").trim()) {
+        errors.push({
+          path: `${pathPrefix}[${index}].${addressField}`,
+          code: "REQUIRED",
+          message: `${label}第 ${index + 1} 行缺少地址。`
+        });
+      }
+      if (!hasResolvedBusinessCoordinate(row, locField)) {
+        errors.push({
+          path: `${pathPrefix}[${index}].${locField}`,
+          code: "REQUIRED",
+          message: `${label}第 ${index + 1} 行缺少已解析坐标。`
+        });
+      }
+    });
+  };
+  collect(plan.depos, "仓库", "address", "loc", "request_payload.plan.depos");
+  collect(plan.agents, "车辆/工程师", "start_address", "start_loc", "request_payload.plan.agents");
+  collect(plan.tickets, "工单", "address", "loc", "request_payload.plan.tickets");
+  return errors;
 }
 
 function hasCostParameterData(costParameter) {
@@ -244,11 +312,6 @@ function normalizeCostParameter(costParameter) {
     return { ...DEFAULT_COST_PARAMETER };
   }
   return { ...DEFAULT_COST_PARAMETER, ...costParameter };
-}
-
-function normalizeAgentCostValue(value, fallback) {
-  const numericValue = Number(value || 0);
-  return numericValue > 0 ? numericValue : fallback;
 }
 
 function normalizeMapProvider(value) {
@@ -296,7 +359,7 @@ export function defaultScenario() {
 function normalizeDepot(depot, poiIndex) {
   const loc = resolvePoiReference(depot?.loc, poiIndex) || {};
   return {
-    id: depot?.id || "",
+    id: depot?.id || generateBusinessId("DEPO"),
     name: depot?.name || "",
     address: poiAddress(loc),
     city: poiCity(loc),
@@ -305,14 +368,13 @@ function normalizeDepot(depot, poiIndex) {
   };
 }
 
-function normalizeAgent(agent, poiIndex, index = 0) {
+function normalizeAgent(agent, poiIndex, planningDate) {
   const startLoc = resolvePoiReference(agent?.start_loc, poiIndex);
   const isVirtual = Boolean(agent?.virtual || agent?.is_virtual);
-  const costProfile = defaultAgentCostProfile(index);
   return {
-    id: agent?.id || "",
+    id: agent?.id || generateBusinessId("AGENT"),
     depo_id: agent?.depo_id || "",
-    date: agent?.date || todayString(),
+    date: agent?.date || planningDate || todayString(),
     name: agent?.name || "",
     start_address: poiAddress(startLoc),
     start_city: poiCity(startLoc),
@@ -324,12 +386,12 @@ function normalizeAgent(agent, poiIndex, index = 0) {
     weight: agent?.weight ?? 0,
     vol: agent?.vol ?? 0,
     vehicle_type: agent?.vehicle_type || "CAR",
-    fuel_type: agent?.fuel_type || costProfile.fuel_type,
-    fuel_consumption: isVirtual ? (agent?.fuel_consumption ?? 0) : normalizeAgentCostValue(agent?.fuel_consumption, costProfile.fuel_consumption),
+    fuel_type: agent?.fuel_type ?? "",
+    fuel_consumption: agent?.fuel_consumption ?? "",
     rented: Boolean(agent?.rented),
-    fix_cost_daily: isVirtual ? (agent?.fix_cost_daily ?? 0) : normalizeAgentCostValue(agent?.fix_cost_daily, costProfile.fix_cost_daily),
-    shift_start_time_input: datetimeInputValue(agent?.shift_start_time),
-    shift_off_time_input: datetimeInputValue(agent?.shift_off_time),
+    fix_cost_daily: agent?.fix_cost_daily ?? "",
+    shift_start_time_input: datetimeInputValue(agent?.shift_start_time, agent?.date || planningDate),
+    shift_off_time_input: datetimeInputValue(agent?.shift_off_time, agent?.date || planningDate),
     max_ticket_num: agent?.max_ticket_num ?? 0,
     tickets: safeArray(agent?.tickets),
     is_virtual: isVirtual
@@ -345,10 +407,10 @@ function normalizeTicketItems(items) {
     .filter((item) => item.sku && item.value > 0);
 }
 
-function normalizeTicket(ticket, poiIndex) {
+function normalizeTicket(ticket, poiIndex, planningDate) {
   const loc = resolvePoiReference(ticket?.loc, poiIndex) || {};
   return {
-    id: ticket?.id || "",
+    id: ticket?.id || generateBusinessId("TICKET"),
     depo_id: ticket?.depo_id || "",
     pinned: Boolean(ticket?.pinned),
     type: ticket?.type || "Delv",
@@ -363,19 +425,19 @@ function normalizeTicket(ticket, poiIndex) {
     items: normalizeTicketItems(ticket?.items),
     weight: ticket?.weight ?? 0,
     vol: ticket?.vol ?? 0,
-    min_start_time_input: datetimeInputValue(ticket?.min_start_time),
-    max_end_time_input: datetimeInputValue(ticket?.max_end_time),
+    min_start_time_input: datetimeInputValue(ticket?.min_start_time, planningDate),
+    max_end_time_input: datetimeInputValue(ticket?.max_end_time, planningDate),
     duration_minutes: durationToMinutes(ticket?.duration),
     agent: ticket?.agent || "",
     arrival_time: ticket?.arrival_time || "",
-    create_time_input: datetimeInputValue(ticket?.create_time),
+    create_time_input: datetimeInputValue(ticket?.create_time, planningDate),
     qualification_text: ticket?.qualification_levels_required ? JSON.stringify(ticket.qualification_levels_required) : ""
   };
 }
 
 function normalizeSku(sku) {
   return {
-    id: sku?.id || "",
+    id: sku?.id || generateBusinessId("SKU"),
     name: sku?.name || "",
     weight: sku?.weight ?? 0,
     vol: sku?.vol ?? 0
@@ -389,21 +451,22 @@ export function normalizeScenarioForView(rawScenario) {
   const normalizedPois = safeArray(plan.pois).map((poi) => canonicalizePoi(poi));
   const poiIndex = buildPoiIndex(normalizedPois);
   const costParameter = normalizeCostParameter(plan.cost_parameter);
+  const planningDate = scenario.planning_date || todayString();
   const constraintConfiguration = { ...DEFAULT_CONSTRAINT_CONFIGURATION, ...(plan.constraint_configuration || {}) };
   const normalizedDepos = safeArray(plan.depos).map((depot) => normalizeDepot(depot, poiIndex));
   return {
     ...scenario,
     ...(mapProvider ? { map_provider: mapProvider } : {}),
-    planning_date: scenario.planning_date || todayString(),
-    start_time_input: datetimeInputValue(scenario.start_time),
-    end_time_input: datetimeInputValue(scenario.end_time),
+    planning_date: planningDate,
+    start_time_input: datetimeInputValue(scenario.start_time, planningDate),
+    end_time_input: datetimeInputValue(scenario.end_time, planningDate),
     city_hint: normalizedDepos[0]?.city || "",
     plan: {
       ...plan,
       pois: normalizedPois,
       depos: normalizedDepos,
-      agents: safeArray(plan.agents).map((agent, index) => normalizeAgent(agent, poiIndex, index)),
-      tickets: safeArray(plan.tickets).map((ticket) => normalizeTicket(ticket, poiIndex)),
+      agents: safeArray(plan.agents).map((agent) => normalizeAgent(agent, poiIndex, planningDate)),
+      tickets: safeArray(plan.tickets).map((ticket) => normalizeTicket(ticket, poiIndex, planningDate)),
       skus: safeArray(plan.skus).map(normalizeSku),
       cost_parameter: costParameter,
       constraint_configuration: constraintConfiguration
@@ -415,13 +478,14 @@ export function buildScenarioPayload(viewScenario) {
   const scenario = viewScenario || {};
   const mapProvider = normalizeMapProvider(scenario.map_provider ?? scenario.mapProvider);
   const plan = scenario.plan || {};
+  const planningDate = scenario.planning_date || todayString();
   const payload = {
     name: scenario.name || "",
     desc: scenario.desc || "",
     ...(mapProvider ? { map_provider: mapProvider } : {}),
-    planning_date: scenario.planning_date || todayString(),
-    start_time: datetimeApiValue(scenario.start_time_input),
-    end_time: datetimeApiValue(scenario.end_time_input),
+    planning_date: planningDate,
+    start_time: datetimeApiValue(scenario.start_time_input, planningDate),
+    end_time: datetimeApiValue(scenario.end_time_input, planningDate),
     create_time: scenario.create_time || null,
     update_time: scenario.update_time || null,
     plan: {
@@ -435,26 +499,35 @@ export function buildScenarioPayload(viewScenario) {
         })),
       agents: safeArray(plan.agents)
         .filter((row) => row.id || row.name || row.start_address || row.start_city || row.start_loc?.location || row.start_loc?.loc)
-        .map((row) => ({
-          id: row.id || "",
-          depo_id: row.depo_id || "",
-          date: row.date || todayString(),
-          name: row.name || "",
-          start_loc: buildRawPoi(row.start_address, row.start_city || scenario.city_hint, row.start_loc),
-          skills: splitTags(row.skills_text),
-          qualification_levels: parseJsonObject(row.qualification_text),
-          weight: Number(row.weight || 0),
-          vol: Number(row.vol || 0),
-          vehicle_type: row.vehicle_type || "CAR",
-          fuel_type: row.fuel_type || "GAS_92",
-          fuel_consumption: Number(row.fuel_consumption || 0),
-          rented: Boolean(row.rented),
-          fix_cost_daily: Number(row.fix_cost_daily || 0),
-          shift_start_time: datetimeApiValue(row.shift_start_time_input),
-          shift_off_time: datetimeApiValue(row.shift_off_time_input),
-          max_ticket_num: Number(row.max_ticket_num || 0),
-          tickets: []
-        })),
+        .map((row) => {
+          const agent = {
+            id: row.id || "",
+            depo_id: row.depo_id || "",
+            date: row.date || planningDate,
+            name: row.name || "",
+            start_loc: buildRawPoi(row.start_address, row.start_city || scenario.city_hint, row.start_loc),
+            skills: splitTags(row.skills_text),
+            qualification_levels: parseJsonObject(row.qualification_text),
+            weight: Number(row.weight || 0),
+            vol: Number(row.vol || 0),
+            vehicle_type: row.vehicle_type || "CAR",
+            rented: Boolean(row.rented),
+            shift_start_time: datetimeApiValue(row.shift_start_time_input, row.date || planningDate),
+            shift_off_time: datetimeApiValue(row.shift_off_time_input, row.date || planningDate),
+            max_ticket_num: Number(row.max_ticket_num || 0),
+            tickets: []
+          };
+          if (String(row.fuel_type ?? "").trim()) {
+            agent.fuel_type = String(row.fuel_type).trim();
+          }
+          if (row.fuel_consumption !== null && row.fuel_consumption !== undefined && String(row.fuel_consumption).trim() !== "") {
+            agent.fuel_consumption = Number(row.fuel_consumption);
+          }
+          if (row.fix_cost_daily !== null && row.fix_cost_daily !== undefined && String(row.fix_cost_daily).trim() !== "") {
+            agent.fix_cost_daily = Number(row.fix_cost_daily);
+          }
+          return agent;
+        }),
       skus: safeArray(plan.skus)
         .filter((row) => row.id || row.name)
         .map((row) => ({
@@ -479,9 +552,9 @@ export function buildScenarioPayload(viewScenario) {
           weight: Number(row.weight || 0),
           vol: Number(row.vol || 0),
           loc: buildRawPoi(row.address, row.city || scenario.city_hint, row.loc),
-          create_time: datetimeApiValue(row.create_time_input),
-          min_start_time: datetimeApiValue(row.min_start_time_input),
-          max_end_time: datetimeApiValue(row.max_end_time_input),
+          create_time: datetimeApiValue(row.create_time_input, planningDate),
+          min_start_time: datetimeApiValue(row.min_start_time_input, planningDate),
+          max_end_time: datetimeApiValue(row.max_end_time_input, planningDate),
           duration: `PT${Math.max(0, Number(row.duration_minutes || 0))}M`,
           agent: row.agent || null,
           arrival_time: row.arrival_time || null

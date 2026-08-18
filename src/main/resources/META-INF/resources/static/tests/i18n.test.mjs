@@ -83,6 +83,10 @@ test("semantic Engine and Scenario catalogs stay complete and never use a Chines
   assert.equal(catalog.t("scenario.field.volumeCapacityWithUnit"), "Volume capacity (m³)");
   assert.equal(catalog.t("scenario.field.weightWithUnit"), "Weight (t)");
   assert.equal(catalog.t("scenario.field.volumeWithUnit"), "Volume (m³)");
+  assert.equal(catalog.t("scenario.validation.singleTitle"), "Fix this item to continue");
+  assert.equal(catalog.t("scenario.validation.multipleTitle", { count: 3 }), "Fix these 3 items to continue");
+  assert.equal(catalog.t("scenario.validation.invalidMatrixMode"), "Matrix generation mode must be ROUTING or MANHATTAN.");
+  assert.equal(catalog.t("scenario.validation.dismiss"), "Dismiss validation summary");
   assert.equal(catalog.t("cost.cross_region_threshold"), "Cross-region threshold");
   assert.equal(catalog.t("cost.unit.yuan_per_trip"), "CNY/trip");
   assert.equal(catalog.t("cost.unit.per_kwh"), "/kWh");

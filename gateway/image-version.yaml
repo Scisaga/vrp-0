@@ -1,6 +1,6 @@
 image:
   name: x-force/vrp-0
-  version: 1.0.4-alpha-SNAPSHOT
+  version: 1.0.5-alpha-SNAPSHOT
 display_name: VRP0 Solver（AMAP / HERE）
 description: 支持 AMAP 和 HERE 图商的 VRP0 车辆路径求解；地图图商由请求中的 map_provider 选择。
 supported_map_providers:

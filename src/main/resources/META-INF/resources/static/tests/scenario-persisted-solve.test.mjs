@@ -58,6 +58,38 @@ test("新建求解任务默认使用 Manhattan 矩阵方式", async () => {
   assert.equal(page.buildSolveRequestPayload().solve_options.matrix_mode, "MANHATTAN");
 });
 
+test("组件校验摘要隐藏技术路径并使用紧凑的可读文案", async () => {
+  const { scenarioDetailPage } = await loadPageModule();
+  const page = scenarioDetailPage();
+  page.t = (key, params = {}) => ({
+    "scenario.validation.singleTitle": "请修正此项后继续",
+    "scenario.validation.multipleTitle": `请修正以下 ${params.count} 项后继续`,
+    "scenario.validation.fallbackMessage": "字段内容不符合要求。"
+  })[key];
+  page.gatewayValidationErrors = [{
+    path: "request_payload.options.matrix_mode",
+    code: "ENUM_MISMATCH",
+    message: "矩阵生成方式仅支持 ROUTING 或 MANHATTAN。"
+  }];
+
+  assert.equal(page.validationSummaryTitle(), "请修正此项后继续");
+  assert.equal(page.validationErrorMessage(page.gatewayValidationErrors[0]), "矩阵生成方式仅支持 ROUTING 或 MANHATTAN。");
+  assert.doesNotMatch(page.formatValidationError(page.gatewayValidationErrors[0]), /request_payload/);
+
+  const previousWindow = globalThis.window;
+  globalThis.window = {};
+  try {
+    page.dismissValidationSummary();
+    assert.equal(page.validationSummaryDismissed, true);
+    assert.equal(page.gatewayValidationErrors.length, 1, "关闭摘要不应清除结构化校验错误");
+  } finally {
+    globalThis.window = previousWindow;
+  }
+
+  page.gatewayValidationErrors.push({ path: "request_payload.name", code: "REQUIRED", message: "场景名称不能为空。" });
+  assert.equal(page.validationSummaryTitle(), "请修正以下 2 项后继续");
+});
+
 test("Routing 矩阵方式按场景图商展示，但请求仍提交 ROUTING", async () => {
   const { scenarioDetailPage } = await loadPageModule();
   const page = scenarioDetailPage();
@@ -355,6 +387,124 @@ test("手动地址解析覆盖已有坐标，自动补齐仍保留已有坐标",
   }
 });
 
+test("Gateway 对话草稿导入时主动补齐缺失地址或坐标", async () => {
+  const previousWindow = globalThis.window;
+  const searched = [];
+  const reversed = [];
+  globalThis.window = {
+    VrpScenarioGateway: {
+      isScenarioComponent: true,
+      context: {},
+      actions: {
+        async search_text_address({ keyword, city }) {
+          searched.push({ keyword, city });
+          return {
+            ok: true,
+            data: {
+              candidates: [{
+                candidate_id: `poi-${keyword}`,
+                name: keyword,
+                formatted_address: `${city}${keyword}`,
+                coordinate: { lng: 116.31, lat: 39.99 },
+                address_components: { city, district: "海淀区" }
+              }]
+            }
+          };
+        },
+        async resolve_coordinate_address({ points }) {
+          reversed.push(points[0]);
+          return {
+            ok: true,
+            data: {
+              items: [{
+                status: "resolved",
+                candidate_id: "poi-ticket",
+                name: "望京南地铁站",
+                formatted_address: "北京市朝阳区望京南地铁站",
+                coordinate: { lng: points[0].lng, lat: points[0].lat },
+                address_components: { city: "北京市", district: "朝阳区" }
+              }]
+            }
+          };
+        }
+      },
+      notifyDirty() {},
+      notifyCreateReadiness() {},
+      scheduleResize() {}
+    }
+  };
+
+  try {
+    const { scenarioDetailPage } = await loadPageModule();
+    const page = scenarioDetailPage();
+    page.gatewayMode = true;
+    page.scheduleAdaptiveTableFit = () => {};
+    const result = await page.applyGatewayCreateData({
+      request_payload: {
+        name: "维修调度",
+        planning_date: "2026-08-06",
+        start_time: "08:00",
+        end_time: "20:00",
+        plan: {
+          depos: [{ id: "depot-1", loc: { address: "北京市东城区仓库", location: "116.40,39.90" } }],
+          agents: [{ id: "agent-1", name: "小王", start_loc: { name: "北京大学", cityname: "北京市" } }],
+          tickets: [{ id: "ticket-1", loc: { location: "116.4819,39.9865" } }]
+        }
+      }
+    });
+
+    assert.deepEqual(result.locationResolution, { resolved: 2, failed: 0, skipped: 1 });
+    assert.deepEqual(searched, [{ keyword: "北京大学", city: "北京市" }]);
+    assert.equal(reversed.length, 1);
+    assert.equal(page.scenario.plan.agents[0].start_address, "北京大学");
+    assert.equal(page.scenario.plan.agents[0].start_loc.location, "116.31,39.99");
+    assert.equal(page.scenario.plan.tickets[0].address, "北京市朝阳区望京南地铁站");
+    assert.equal(page.scenario.plan.tickets[0].loc.location, "116.4819,39.9865");
+  } finally {
+    globalThis.window = previousWindow;
+  }
+});
+
+test("确认提案输出业务大纲而不是内部字段和值", async () => {
+  const { scenarioDetailPage } = await loadPageModule();
+  const page = scenarioDetailPage();
+  const translations = {
+    "scenario.outline.scope": "规划范围",
+    "scenario.outline.scale": "场景规模",
+    "scenario.outline.timeAndRules": "时间与关键规则",
+    "scenario.outline.planningDate": "规划日期",
+    "scenario.outline.timeRange": "总体时间",
+    "scenario.outline.cities": "主要区域",
+    "scenario.outline.shifts": "工程师班次",
+    "scenario.outline.serviceDuration": "工单服务时长",
+    "scenario.outline.minutes": "分钟",
+    "scenario.outline.adjusted": "已按当前方案调整",
+    "scenario.outline.locationComplete": "地址和坐标已完整。",
+    "constraint.minimize_travel_time": "尽量减少路途时间"
+  };
+  page.t = (key) => translations[key] || key;
+  page.scenario = {
+    ...validScenario(),
+    name: "北京维修调度",
+    city_hint: "北京市",
+    plan: {
+      depos: [{ id: "depot-1", city: "北京市", address: "东城区仓库", loc: { location: "116.4,39.9" } }],
+      agents: [{ id: "agent-1", name: "小王", start_city: "北京市", start_address: "北京大学", start_loc: { location: "116.3,39.9" }, shift_start_time_input: "2026-07-16T09:00", shift_off_time_input: "2026-07-16T16:00" }],
+      tickets: [{ id: "ticket-1", city: "北京市", address: "望京南", loc: { location: "116.5,39.9" }, duration_minutes: 120 }],
+      skus: [],
+      cost_parameter: {},
+      constraint_configuration: {
+        minimize_travel_time: "0hard/0medium/9soft"
+      }
+    }
+  };
+
+  const outline = page.buildGatewayScenarioOutline();
+  const serialized = JSON.stringify(outline);
+  assert.match(serialized, /北京维修调度|规划范围|工程师班次|09:00–16:00|尽量减少路途时间|已按当前方案调整/);
+  assert.doesNotMatch(serialized, /minimize_travel_time|0hard\/0medium\/9soft|request_payload/);
+});
+
 test("仓库、工程师和工单可直接编辑坐标，并同步 POI 的位置与入口位置", async () => {
   const previousWindow = globalThis.window;
   globalThis.window = {
@@ -579,14 +729,14 @@ test("无 host context 时首次保存前禁用规划求解，保存状态生效
     assert.equal(page.openPlanningDrawer(), true);
     page.closePlanningDrawer();
 
-    page.applyGatewayCreateData({ scenario_persisted: false });
+    await page.applyGatewayCreateData({ scenario_persisted: false });
     page.scenario = validScenario();
     assert.equal(page.openPlanningDrawer(), false);
     await page.solveScenario();
     assert.equal(submitCalls, 0);
     assert.equal(navigation, "");
 
-    page.applyGatewayCreateData({ scenario_persisted: true });
+    await page.applyGatewayCreateData({ scenario_persisted: true });
     page.scenario = validScenario();
     assert.equal(page.openPlanningDrawer(), true);
     assert.equal(dialog.open, true);
