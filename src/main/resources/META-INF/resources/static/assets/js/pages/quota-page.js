@@ -13,7 +13,7 @@ export function quotaPage() {
     localeChangeHandler: null,
     form: {
       key: "",
-      qps: 10,
+      qps: 100,
       quota: 10000,
       intervalSeconds: 86400,
       waitTimeoutSeconds: 10,
@@ -50,7 +50,7 @@ export function quotaPage() {
         const data = await getJson("/quota");
         this.form = {
           key: data.key || "",
-          qps: data.qps ?? 10,
+          qps: data.qps ?? 100,
           quota: data.quota ?? 10000,
           intervalSeconds: isoDurationToSeconds(data.interval) || 86400,
           waitTimeoutSeconds: isoDurationToSeconds(data.wait_timeout) || 10,

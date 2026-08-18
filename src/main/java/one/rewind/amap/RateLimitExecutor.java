@@ -22,7 +22,7 @@ public class RateLimitExecutor<T> {
 
     private String name = "Default";
 
-    private int qps = 10;
+    private int qps = 100;
 
     private Duration waitTimeout = Duration.ofSeconds(10);
 

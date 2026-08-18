@@ -1,7 +1,7 @@
 {
     "default" : {
         "app_key": "XXX",
-        "qps": 10,
+        "qps": 100,
         "quota": 1000,
         "interval": 86400,
         "wait_timeout": 10,

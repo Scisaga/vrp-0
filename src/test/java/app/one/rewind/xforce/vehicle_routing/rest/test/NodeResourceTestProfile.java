@@ -12,7 +12,7 @@ public class NodeResourceTestProfile implements QuarkusTestProfile {
                 Map.entry("map.provider", "AMAP"),
                 Map.entry("amap.enabled", "true"),
                 Map.entry("amap.app-key", "test-amap-key"),
-                Map.entry("amap.qps", "10"),
+                Map.entry("amap.qps", "100"),
                 Map.entry("amap.quota", "10000"),
                 Map.entry("amap.interval", "86400"),
                 Map.entry("amap.wait-timeout", "10"),

@@ -143,7 +143,7 @@ public class AmapAdapter implements MapAdapter {
     public AmapAdapter(
             @ConfigProperty(name = "amap.enabled", defaultValue = "false") boolean enabled,
             @ConfigProperty(name = "amap.app-key", defaultValue = "xxx") String app_key,
-            @ConfigProperty(name = "amap.qps", defaultValue = "10") int qps,
+            @ConfigProperty(name = "amap.qps", defaultValue = "100") int qps,
             @ConfigProperty(name = "amap.quota", defaultValue = "10000") long quota,
             @ConfigProperty(name = "amap.interval", defaultValue = "86400") long interval,
             @ConfigProperty(name = "amap.wait-timeout", defaultValue = "10") long waitTimeout,

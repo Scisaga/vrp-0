@@ -35,7 +35,7 @@ public class NodeResourceTest {
         Files.deleteIfExists(CONFIG_PATH);
         amapAdapter.updateConf(new AmapAdapter.Conf(
                 "test-amap-key",
-                10,
+                100,
                 10000,
                 java.time.Duration.ofHours(24),
                 java.time.Duration.ofSeconds(10),
@@ -53,7 +53,7 @@ public class NodeResourceTest {
                 .then()
                 .statusCode(200)
                 .body("key", equalTo("test-amap-key"))
-                .body("qps", equalTo(10))
+                .body("qps", equalTo(100))
                 .body("quota", equalTo(10000))
                 .body("interval", notNullValue())
                 .body("wait_timeout", notNullValue())
