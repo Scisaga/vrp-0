@@ -877,6 +877,38 @@ test("desktop result panels use one border owner per shared edge", async ({ page
   expect(withinTwoPixels(resultSeparators.gantt.right, resultSeparators.sidebar.left)).toBe(true);
 });
 
+test("scenario table uses one border owner per perimeter edge", async ({ page }) => {
+  await page.setViewportSize({ width: 1600, height: 900 });
+  await page.goto(`${baseUrl}/static/index.html#/scenario`);
+
+  const scenarioComponent = page.locator("vrp-scenario-ui-vrp0");
+  await expect(scenarioComponent.locator('input[x-model="scenario.name"]')).toBeVisible();
+  const separators = await scenarioComponent.evaluate((element) => {
+    const root = element.shadowRoot;
+    const borders = (node) => {
+      const style = node ? getComputedStyle(node) : null;
+      return style ? {
+        top: Number.parseFloat(style.borderTopWidth),
+        right: Number.parseFloat(style.borderRightWidth),
+        bottom: Number.parseFloat(style.borderBottomWidth),
+        left: Number.parseFloat(style.borderLeftWidth)
+      } : null;
+    };
+    const table = root.querySelector(".data-table");
+    return {
+      table: borders(table),
+      tabs: borders(root.querySelector(".scenario-config-tabs")),
+      workspaceMain: borders(root.querySelector(".scenario-main-grid > .responsive-workspace-main")),
+      lastHeaderCell: borders(table?.querySelector("th:last-child"))
+    };
+  });
+
+  expect(separators.table).toEqual({ top: 0, right: 0, bottom: 0, left: 0 });
+  expect(separators.tabs?.bottom).toBe(1);
+  expect(separators.workspaceMain?.right).toBe(1);
+  expect(separators.lastHeaderCell?.right).toBe(0);
+});
+
 test("visual density keeps controls, identifiers, tables, and map canvas consistent", async ({ page }) => {
   await page.setViewportSize({ width: 1600, height: 900 });
   await page.goto(`${baseUrl}/static/index.html#/scenario`);

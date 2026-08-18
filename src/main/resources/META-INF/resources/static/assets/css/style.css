@@ -1392,8 +1392,12 @@
     @apply min-w-full overflow-x-auto;
   }
 
+  /* The surrounding scenario regions own the table perimeter: the tab strip
+     owns the top separator, the workspace owns the side edges, and the last
+     row cells own the bottom line. Keep only the table's internal grid lines
+     so collapsed table borders cannot stack on those surrounding separators. */
   .scenario-main-grid .data-table {
-    border-left-width: 0;
+    border-width: 0;
   }
 
   .compact-icon-action {
