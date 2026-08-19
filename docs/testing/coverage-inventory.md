@@ -24,7 +24,7 @@
 | AMap/HERE | `AmapAdapter*Test`、`HereAdapterTest`、`MapProviderTest` | 配置、地址解析、路线、矩阵、降级和响应处理 |
 | 地理与矩阵 | `GeoUtilTest`、`TransitMatrixTest`、`AddressUtilTest` | 距离、矩阵、地址和时间等纯逻辑 |
 | 领域模型 | `ScenarioDomainTest`、`RoutePlanDomainTest`、`AgentEachDayDomainTest`、`TicketDomainTest` | 初始化、对象关系、可用性、结果应用和指派状态 |
-| 求解约束 | `RoutePlanConstraintProviderTest` | 约束触发、分数和部分边界条件 |
+| 求解约束 | `RoutePlanConstraintProviderTest` | 约束触发、分数、技能要求空数组和部分边界条件 |
 | 规划链 | `ArrivalTimeUpdatingVariableListenerTest`、`InitialArrivalTimeCustomPhaseCommandTest` | 链变化、到达时间和初始阶段处理 |
 | 求解生命周期 | `SolverServiceLifecycleTest`、`SolverServiceTimelineTest`、`SolverSearchProgressTrackerTest` | 调度、终止、指标采样和时间线 |
 | 场景处理 | `ScenarioLocationEnricherTest`、`ScenarioReferenceNormalizerTest` | 位置补全和反序列化对象引用归一化 |

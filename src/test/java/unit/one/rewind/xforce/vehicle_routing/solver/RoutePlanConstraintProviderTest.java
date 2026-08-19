@@ -68,6 +68,28 @@ class RoutePlanConstraintProviderTest {
     }
 
     @Test
+    void agentSkillConstraintPenalizesEmptyAgentSkillsWhenTicketRequiresSkills() {
+        AgentEachDay agent = agent("agent-1", "depo-a", List.of());
+        Ticket ticket = ticket("ticket-1", "depo-a", Ticket.Type.Inst, List.of("Inst"));
+        ticket.setAgent(agent);
+
+        constraintVerifier.verifyThat(RoutePlanConstraintProvider::agentSkillsAccordWithTicketSkills)
+                .given(ticket)
+                .penalizesBy(1);
+    }
+
+    @Test
+    void agentSkillConstraintDoesNotPenalizeEmptyRequirementsForAgentWithoutSkills() {
+        AgentEachDay agent = agent("agent-1", "depo-a", List.of());
+        Ticket ticket = ticket("ticket-1", "depo-a", Ticket.Type.Inst, List.of());
+        ticket.setAgent(agent);
+
+        constraintVerifier.verifyThat(RoutePlanConstraintProvider::agentSkillsAccordWithTicketSkills)
+                .given(ticket)
+                .penalizesBy(0);
+    }
+
+    @Test
     void qualificationConstraintPenalizesInsufficientAgentLevel() {
         AgentEachDay agent = agent("agent-1", "depo-a", List.of("Inst"));
         agent.setQualificationLevels(Map.of("install", 1.0));

@@ -169,7 +169,10 @@ public class RoutePlanConstraintProvider implements ConstraintProvider {
      */
     protected Constraint agentSkillsAccordWithTicketSkills(ConstraintFactory factory) {
         return factory.forEach(Ticket.class)
-                .filter(ticket -> ticket.getAgent() != null && !ticket.getAgent().isVirtual() && ticket.getSkillsRequired() != null)
+                .filter(ticket -> ticket.getAgent() != null &&
+                        !ticket.getAgent().isVirtual() &&
+                        ticket.getSkillsRequired() != null &&
+                        !ticket.getSkillsRequired().isEmpty())
                 .penalizeConfigurableLong(
                         (ticket) -> {
                             // 如果工单所属工程师技能为空，则一定不具备工单所需技能
