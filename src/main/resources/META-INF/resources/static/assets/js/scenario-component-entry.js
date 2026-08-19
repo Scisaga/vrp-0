@@ -87,17 +87,13 @@ export function mountScenarioUi(component, root, initialContext, actions, Alpine
     isScenarioComponent: true,
     actions,
     context: null,
-    async registerComponent(kind, pageComponent) {
+    registerComponent(kind, pageComponent) {
       activeComponent = pageComponent;
       if (kind === "create") {
-        await deliverCreateData();
+        deliverCreateData();
         return;
       }
-      try {
-        await deliverResult();
-      } catch (error) {
-        this.sendError(error);
-      }
+      deliverResult().catch((error) => this.sendError(error));
     },
     notifyDirty(dirty) {
       lifecycleEvent(component, "scenario-dirty-state-changed", {
@@ -227,7 +223,7 @@ export function mountScenarioUi(component, root, initialContext, actions, Alpine
     });
   }
 
-  async function deliverCreateData() {
+  function deliverCreateData() {
     if (disposed || !activeComponent?.applyGatewayCreateData) {
       return;
     }
@@ -239,15 +235,11 @@ export function mountScenarioUi(component, root, initialContext, actions, Alpine
       return;
     }
     try {
-      const result = await activeComponent.applyGatewayCreateData(bridge.context.payload);
+      activeComponent.applyGatewayCreateData(bridge.context.payload);
       createDataInitialized = true;
       if (revision != null) {
         appliedDraftRevision = revision;
-        const resolution = result?.locationResolution || {};
-        const suffix = Number(resolution.resolved || 0) > 0
-          ? `，并自动补齐 ${resolution.resolved} 条地址或坐标`
-          : "";
-        reportDraftImported(revision, true, `JSON 草稿已导入场景表单${suffix}。`);
+        reportDraftImported(revision, true, "JSON 草稿已导入场景表单。");
       }
     } catch (error) {
       if (revision != null) {
@@ -309,7 +301,7 @@ export function mountScenarioUi(component, root, initialContext, actions, Alpine
     activeComponent?.clearGatewayValidationErrors?.();
   }
 
-  async function replaceScenarioDraft(payload) {
+  function replaceScenarioDraft(payload) {
     if (!activeComponent?.applyGatewayCreateData) {
       return;
     }
@@ -321,7 +313,7 @@ export function mountScenarioUi(component, root, initialContext, actions, Alpine
       || Object.prototype.hasOwnProperty.call(source, "constraint_overrides")
       || Object.prototype.hasOwnProperty.call(source, "scenario_persisted")
     );
-    await activeComponent.applyGatewayCreateData(hasEnvelope ? source : { request_payload: source });
+    activeComponent.applyGatewayCreateData(hasEnvelope ? source : { request_payload: source });
   }
 
   function openPlanningDrawer() {
@@ -340,7 +332,6 @@ export function mountScenarioUi(component, root, initialContext, actions, Alpine
   }
 
   component.getScenarioDraft = getScenarioDraft;
-  component.getScenarioOutline = () => activeComponent?.buildGatewayScenarioOutline?.() || null;
   component.validateScenarioDraft = validateScenarioDraft;
   component.applyScenarioValidationErrors = applyScenarioValidationErrors;
   component.clearScenarioValidationErrors = clearScenarioValidationErrors;
@@ -376,7 +367,6 @@ export function mountScenarioUi(component, root, initialContext, actions, Alpine
     }
     i18n.disconnect();
     delete component.getScenarioDraft;
-    delete component.getScenarioOutline;
     delete component.validateScenarioDraft;
     delete component.applyScenarioValidationErrors;
     delete component.clearScenarioValidationErrors;
@@ -409,7 +399,7 @@ export function mountScenarioUi(component, root, initialContext, actions, Alpine
       return;
     }
     if (context.view === "create" && activeComponent?.applyGatewayCreateData) {
-      await deliverCreateData();
+      deliverCreateData();
       return;
     }
     if (["result", "map"].includes(context.view)) {

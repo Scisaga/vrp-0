@@ -7650,48 +7650,17 @@ var VrpScenarioComponentEntry = (() => {
     const date = new Date();
     return date.toISOString().slice(0, 10);
   }
-  function validDateString(value) {
-    const text = String(value || "").trim();
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) {
-      return "";
-    }
-    const parsed = new Date(`${text}T00:00:00Z`);
-    return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === text ? text : "";
-  }
-  function normalizedClock(value) {
-    const match = String(value || "").trim().match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
-    if (!match) {
-      return "";
-    }
-    const hour = Number(match[1]);
-    const minute = Number(match[2]);
-    const second = Number(match[3] || 0);
-    if (hour > 23 || minute > 59 || second > 59) {
-      return "";
-    }
-    return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}:${String(second).padStart(2, "0")}`;
-  }
-  function datetimeInputValue(value, fallbackDate = "") {
+  function datetimeInputValue(value) {
     if (!value) {
       return "";
     }
-    const clock = normalizedClock(value);
-    const date = validDateString(fallbackDate);
-    if (clock && date) {
-      return `${date}T${clock.slice(0, 5)}`;
-    }
-    return String(value).replace(" ", "T").slice(0, 16);
+    return value.replace(" ", "T").slice(0, 16);
   }
-  function datetimeApiValue(value, fallbackDate = "") {
+  function datetimeApiValue(value) {
     if (!value) {
       return null;
     }
-    const clock = normalizedClock(value);
-    const date = validDateString(fallbackDate);
-    if (clock && date) {
-      return `${date} ${clock}`;
-    }
-    const normalized = String(value).includes("T") ? String(value).replace("T", " ") : String(value);
+    const normalized = value.includes("T") ? value.replace("T", " ") : value;
     return normalized.length === 16 ? `${normalized}:00` : normalized;
   }
   function splitTags(value) {
@@ -7756,44 +7725,6 @@ var VrpScenarioComponentEntry = (() => {
   function poiAddress(poi) {
     return poi?.address || poi?.name || poi?.location || poi?.id || "";
   }
-  function generateBusinessId(prefix = "ITEM") {
-    const normalizedPrefix = String(prefix || "ITEM").trim().toUpperCase().replaceAll(/[^A-Z0-9]+/g, "-") || "ITEM";
-    const randomId = globalThis.crypto?.randomUUID?.() || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
-    return `${normalizedPrefix}-${String(randomId).replaceAll("-", "").slice(0, 12).toUpperCase()}`;
-  }
-  function hasResolvedBusinessCoordinate(row, locField) {
-    const location = row?.[locField];
-    if (parseLocationString(row?.poi_location) || parseLocationString(location?.location) || parseLocationString(location?.entr_location)) {
-      return true;
-    }
-    const coordinate = location?.loc || location?.entr_loc;
-    return coordinate?.lat !== null && coordinate?.lat !== void 0 && coordinate?.lon !== null && coordinate?.lon !== void 0 && Number.isFinite(Number(coordinate.lat)) && Number.isFinite(Number(coordinate.lon));
-  }
-  function gatewayLocationErrors(plan = {}) {
-    const errors = [];
-    const collect = (rows, label, addressField, locField, pathPrefix) => {
-      safeArray(rows).forEach((row, index) => {
-        if (!String(row?.[addressField] || "").trim()) {
-          errors.push({
-            path: `${pathPrefix}[${index}].${addressField}`,
-            code: "REQUIRED",
-            message: `${label}\u7B2C ${index + 1} \u884C\u7F3A\u5C11\u5730\u5740\u3002`
-          });
-        }
-        if (!hasResolvedBusinessCoordinate(row, locField)) {
-          errors.push({
-            path: `${pathPrefix}[${index}].${locField}`,
-            code: "REQUIRED",
-            message: `${label}\u7B2C ${index + 1} \u884C\u7F3A\u5C11\u5DF2\u89E3\u6790\u5750\u6807\u3002`
-          });
-        }
-      });
-    };
-    collect(plan.depos, "\u4ED3\u5E93", "address", "loc", "request_payload.plan.depos");
-    collect(plan.agents, "\u8F66\u8F86/\u5DE5\u7A0B\u5E08", "start_address", "start_loc", "request_payload.plan.agents");
-    collect(plan.tickets, "\u5DE5\u5355", "address", "loc", "request_payload.plan.tickets");
-    return errors;
-  }
   function hasCostParameterData(costParameter) {
     return COST_DATA_FIELDS.some((key) => Number(costParameter?.[key] || 0) > 0);
   }
@@ -7844,7 +7775,7 @@ var VrpScenarioComponentEntry = (() => {
   function normalizeDepot(depot, poiIndex) {
     const loc = resolvePoiReference(depot?.loc, poiIndex) || {};
     return {
-      id: depot?.id || generateBusinessId("DEPO"),
+      id: depot?.id || "",
       name: depot?.name || "",
       address: poiAddress(loc),
       city: poiCity(loc),
@@ -7852,13 +7783,13 @@ var VrpScenarioComponentEntry = (() => {
       loc
     };
   }
-  function normalizeAgent(agent, poiIndex, planningDate) {
+  function normalizeAgent(agent, poiIndex) {
     const startLoc = resolvePoiReference(agent?.start_loc, poiIndex);
     const isVirtual = Boolean(agent?.virtual || agent?.is_virtual);
     return {
-      id: agent?.id || generateBusinessId("AGENT"),
+      id: agent?.id || "",
       depo_id: agent?.depo_id || "",
-      date: agent?.date || planningDate || todayString(),
+      date: agent?.date || todayString(),
       name: agent?.name || "",
       start_address: poiAddress(startLoc),
       start_city: poiCity(startLoc),
@@ -7874,8 +7805,8 @@ var VrpScenarioComponentEntry = (() => {
       fuel_consumption: agent?.fuel_consumption ?? "",
       rented: Boolean(agent?.rented),
       fix_cost_daily: agent?.fix_cost_daily ?? "",
-      shift_start_time_input: datetimeInputValue(agent?.shift_start_time, agent?.date || planningDate),
-      shift_off_time_input: datetimeInputValue(agent?.shift_off_time, agent?.date || planningDate),
+      shift_start_time_input: datetimeInputValue(agent?.shift_start_time),
+      shift_off_time_input: datetimeInputValue(agent?.shift_off_time),
       max_ticket_num: agent?.max_ticket_num ?? 0,
       tickets: safeArray(agent?.tickets),
       is_virtual: isVirtual
@@ -7887,10 +7818,10 @@ var VrpScenarioComponentEntry = (() => {
       value: Number(item?.value || 0)
     })).filter((item) => item.sku && item.value > 0);
   }
-  function normalizeTicket(ticket, poiIndex, planningDate) {
+  function normalizeTicket(ticket, poiIndex) {
     const loc = resolvePoiReference(ticket?.loc, poiIndex) || {};
     return {
-      id: ticket?.id || generateBusinessId("TICKET"),
+      id: ticket?.id || "",
       depo_id: ticket?.depo_id || "",
       pinned: Boolean(ticket?.pinned),
       type: ticket?.type || "Delv",
@@ -7905,18 +7836,18 @@ var VrpScenarioComponentEntry = (() => {
       items: normalizeTicketItems(ticket?.items),
       weight: ticket?.weight ?? 0,
       vol: ticket?.vol ?? 0,
-      min_start_time_input: datetimeInputValue(ticket?.min_start_time, planningDate),
-      max_end_time_input: datetimeInputValue(ticket?.max_end_time, planningDate),
+      min_start_time_input: datetimeInputValue(ticket?.min_start_time),
+      max_end_time_input: datetimeInputValue(ticket?.max_end_time),
       duration_minutes: durationToMinutes(ticket?.duration),
       agent: ticket?.agent || "",
       arrival_time: ticket?.arrival_time || "",
-      create_time_input: datetimeInputValue(ticket?.create_time, planningDate),
+      create_time_input: datetimeInputValue(ticket?.create_time),
       qualification_text: ticket?.qualification_levels_required ? JSON.stringify(ticket.qualification_levels_required) : ""
     };
   }
   function normalizeSku(sku) {
     return {
-      id: sku?.id || generateBusinessId("SKU"),
+      id: sku?.id || "",
       name: sku?.name || "",
       weight: sku?.weight ?? 0,
       vol: sku?.vol ?? 0
@@ -7929,22 +7860,21 @@ var VrpScenarioComponentEntry = (() => {
     const normalizedPois = safeArray(plan.pois).map((poi) => canonicalizePoi(poi));
     const poiIndex = buildPoiIndex(normalizedPois);
     const costParameter = normalizeCostParameter(plan.cost_parameter);
-    const planningDate = scenario.planning_date || todayString();
     const constraintConfiguration = { ...DEFAULT_CONSTRAINT_CONFIGURATION, ...plan.constraint_configuration || {} };
     const normalizedDepos = safeArray(plan.depos).map((depot) => normalizeDepot(depot, poiIndex));
     return {
       ...scenario,
       ...mapProvider ? { map_provider: mapProvider } : {},
-      planning_date: planningDate,
-      start_time_input: datetimeInputValue(scenario.start_time, planningDate),
-      end_time_input: datetimeInputValue(scenario.end_time, planningDate),
+      planning_date: scenario.planning_date || todayString(),
+      start_time_input: datetimeInputValue(scenario.start_time),
+      end_time_input: datetimeInputValue(scenario.end_time),
       city_hint: normalizedDepos[0]?.city || "",
       plan: {
         ...plan,
         pois: normalizedPois,
         depos: normalizedDepos,
-        agents: safeArray(plan.agents).map((agent) => normalizeAgent(agent, poiIndex, planningDate)),
-        tickets: safeArray(plan.tickets).map((ticket) => normalizeTicket(ticket, poiIndex, planningDate)),
+        agents: safeArray(plan.agents).map((agent) => normalizeAgent(agent, poiIndex)),
+        tickets: safeArray(plan.tickets).map((ticket) => normalizeTicket(ticket, poiIndex)),
         skus: safeArray(plan.skus).map(normalizeSku),
         cost_parameter: costParameter,
         constraint_configuration: constraintConfiguration
@@ -7955,14 +7885,13 @@ var VrpScenarioComponentEntry = (() => {
     const scenario = viewScenario || {};
     const mapProvider = normalizeMapProvider(scenario.map_provider ?? scenario.mapProvider);
     const plan = scenario.plan || {};
-    const planningDate = scenario.planning_date || todayString();
     const payload = {
       name: scenario.name || "",
       desc: scenario.desc || "",
       ...mapProvider ? { map_provider: mapProvider } : {},
-      planning_date: planningDate,
-      start_time: datetimeApiValue(scenario.start_time_input, planningDate),
-      end_time: datetimeApiValue(scenario.end_time_input, planningDate),
+      planning_date: scenario.planning_date || todayString(),
+      start_time: datetimeApiValue(scenario.start_time_input),
+      end_time: datetimeApiValue(scenario.end_time_input),
       create_time: scenario.create_time || null,
       update_time: scenario.update_time || null,
       plan: {
@@ -7976,7 +7905,7 @@ var VrpScenarioComponentEntry = (() => {
           const agent = {
             id: row.id || "",
             depo_id: row.depo_id || "",
-            date: row.date || planningDate,
+            date: row.date || todayString(),
             name: row.name || "",
             start_loc: buildRawPoi(row.start_address, row.start_city || scenario.city_hint, row.start_loc),
             skills: splitTags(row.skills_text),
@@ -7985,8 +7914,8 @@ var VrpScenarioComponentEntry = (() => {
             vol: Number(row.vol || 0),
             vehicle_type: row.vehicle_type || "CAR",
             rented: Boolean(row.rented),
-            shift_start_time: datetimeApiValue(row.shift_start_time_input, row.date || planningDate),
-            shift_off_time: datetimeApiValue(row.shift_off_time_input, row.date || planningDate),
+            shift_start_time: datetimeApiValue(row.shift_start_time_input),
+            shift_off_time: datetimeApiValue(row.shift_off_time_input),
             max_ticket_num: Number(row.max_ticket_num || 0),
             tickets: []
           };
@@ -8021,9 +7950,9 @@ var VrpScenarioComponentEntry = (() => {
           weight: Number(row.weight || 0),
           vol: Number(row.vol || 0),
           loc: buildRawPoi(row.address, row.city || scenario.city_hint, row.loc),
-          create_time: datetimeApiValue(row.create_time_input, planningDate),
-          min_start_time: datetimeApiValue(row.min_start_time_input, planningDate),
-          max_end_time: datetimeApiValue(row.max_end_time_input, planningDate),
+          create_time: datetimeApiValue(row.create_time_input),
+          min_start_time: datetimeApiValue(row.min_start_time_input),
+          max_end_time: datetimeApiValue(row.max_end_time_input),
           duration: `PT${Math.max(0, Number(row.duration_minutes || 0))}M`,
           agent: row.agent || null,
           arrival_time: row.arrival_time || null
@@ -9672,11 +9601,11 @@ var VrpScenarioComponentEntry = (() => {
     return SKILL_TAG_TONE_CLASSES[(hash >>> 0) % SKILL_TAG_TONE_CLASSES.length];
   }
   function blankDepot() {
-    return { id: generateBusinessId("DEPO"), name: "", address: "", city: "", loc: null };
+    return { id: "", name: "", address: "", city: "", loc: null };
   }
   function blankAgent() {
     return {
-      id: generateBusinessId("AGENT"),
+      id: "",
       depo_id: "",
       date: todayString(),
       name: "",
@@ -9699,7 +9628,7 @@ var VrpScenarioComponentEntry = (() => {
   }
   function blankTicket() {
     return {
-      id: generateBusinessId("TICKET"),
+      id: "",
       depo_id: "",
       pinned: false,
       type: "Delv",
@@ -9721,13 +9650,16 @@ var VrpScenarioComponentEntry = (() => {
     };
   }
   function blankSku() {
-    return { id: generateBusinessId("SKU"), name: "", weight: 0, vol: 0 };
+    return { id: "", name: "", weight: 0, vol: 0 };
   }
   function gatewayBridge() {
     return window.VrpScenarioGateway || null;
   }
   function isGatewayScenarioMode() {
     return Boolean(gatewayBridge()?.isScenarioComponent);
+  }
+  function gatewayContextPayload() {
+    return gatewayBridge()?.context?.payload || null;
   }
   function componentActions() {
     return gatewayBridge()?.actions || null;
@@ -9865,34 +9797,6 @@ var VrpScenarioComponentEntry = (() => {
           }
         } catch (_error) {
           errors.push(validationError(`${pathPrefix}[${rowIndex}].${field}`, "FORMAT_INVALID", `${label}\u7B2C ${rowIndex + 1} \u884C\u7684${fieldLabel}\u4E0D\u662F\u5408\u6CD5 JSON\u3002`));
-        }
-      });
-    });
-  }
-  function validDateInput(value) {
-    const text = String(value || "").trim();
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) {
-      return false;
-    }
-    const parsed = new Date(`${text}T00:00:00Z`);
-    return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === text;
-  }
-  function validDateTimeInput(value) {
-    const text = String(value || "").trim();
-    if (!/^\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):[0-5]\d$/.test(text)) {
-      return false;
-    }
-    return validDateInput(text.slice(0, 10));
-  }
-  function collectDateTimeErrors(rows, label, fields, pathPrefix, errors) {
-    safeArrayForValidation(rows).forEach((row, rowIndex) => {
-      fields.forEach(([field, fieldLabel]) => {
-        const value = row?.[field];
-        if (value == null || value === "") {
-          return;
-        }
-        if (!validDateTimeInput(value)) {
-          errors.push(validationError(`${pathPrefix}[${rowIndex}].${field}`, "FORMAT_INVALID", `${label}\u7B2C ${rowIndex + 1} \u884C\u7684${fieldLabel}\u5FC5\u987B\u5305\u542B\u5B8C\u6574\u65E5\u671F\u548C\u65F6\u95F4\u3002`));
         }
       });
     });
@@ -10134,8 +10038,10 @@ var VrpScenarioComponentEntry = (() => {
           this.showAvailableAgentTrend = Object.prototype.hasOwnProperty.call(componentContext, "available_agent_trend");
           this.loading = false;
           this.configTab = "depos";
-          await gatewayBridge()?.registerComponent?.("create", this);
+          this.applyGatewayCreateData(gatewayContextPayload());
+          this.markGatewayPristine();
           this.startGatewayDirtyWatch();
+          gatewayBridge()?.registerComponent?.("create", this);
         }
       },
       dispose() {
@@ -10158,7 +10064,7 @@ var VrpScenarioComponentEntry = (() => {
         this.mapPicker.map = null;
         this.mapPicker.marker = null;
       },
-      async applyGatewayCreateData(input) {
+      applyGatewayCreateData(input) {
         if (plainObject(input) && Object.prototype.hasOwnProperty.call(input, "scenario_persisted")) {
           this.scenarioPersisted = Boolean(input.scenario_persisted);
           this.scenarioPersistedProvided = true;
@@ -10190,14 +10096,9 @@ var VrpScenarioComponentEntry = (() => {
         this.gatewayServerValidationErrors = [];
         this.validationSummaryDismissed = false;
         this.gatewayValidationFocus = { path: "", tab: "", rowIndex: -1 };
-        let locationResolution = { resolved: 0, failed: 0, skipped: 0 };
-        if (requestPayload?.plan) {
-          locationResolution = await this.resolveImportedLocations();
-        }
         this.markGatewayPristine();
         gatewayBridge()?.scheduleResize?.();
         this.scheduleAdaptiveTableFit("depos");
-        return { locationResolution };
       },
       gatewayExpectedSolveDuration() {
         return `PT${Math.max(1, Number(this.solveTimeValue || 1))}${this.solveTimeUnit || "S"}`;
@@ -10284,8 +10185,6 @@ var VrpScenarioComponentEntry = (() => {
         }
         if (!String(scenario.planning_date || "").trim()) {
           errors.push(validationError("request_payload.planning_date", "REQUIRED", "\u89C4\u5212\u65E5\u671F\u4E0D\u80FD\u4E3A\u7A7A\u3002"));
-        } else if (!validDateInput(scenario.planning_date)) {
-          errors.push(validationError("request_payload.planning_date", "FORMAT_INVALID", "\u89C4\u5212\u65E5\u671F\u5FC5\u987B\u4F7F\u7528 YYYY-MM-DD \u683C\u5F0F\u5E76\u4E14\u662F\u6709\u6548\u65E5\u671F\u3002"));
         }
         const startTime = scenario.start_time_input ? new Date(scenario.start_time_input) : null;
         const endTime = scenario.end_time_input ? new Date(scenario.end_time_input) : null;
@@ -10294,12 +10193,6 @@ var VrpScenarioComponentEntry = (() => {
         }
         if (!scenario.end_time_input) {
           errors.push(validationError("request_payload.end_time", "REQUIRED", "\u7ED3\u675F\u65F6\u95F4\u4E0D\u80FD\u4E3A\u7A7A\u3002"));
-        }
-        if (scenario.start_time_input && !validDateTimeInput(scenario.start_time_input)) {
-          errors.push(validationError("request_payload.start_time", "FORMAT_INVALID", "\u5F00\u59CB\u65F6\u95F4\u5FC5\u987B\u5305\u542B\u5B8C\u6574\u65E5\u671F\u548C\u65F6\u95F4\u3002"));
-        }
-        if (scenario.end_time_input && !validDateTimeInput(scenario.end_time_input)) {
-          errors.push(validationError("request_payload.end_time", "FORMAT_INVALID", "\u7ED3\u675F\u65F6\u95F4\u5FC5\u987B\u5305\u542B\u5B8C\u6574\u65E5\u671F\u548C\u65F6\u95F4\u3002"));
         }
         if (startTime && endTime && !Number.isNaN(startTime.getTime()) && !Number.isNaN(endTime.getTime()) && startTime >= endTime) {
           errors.push(validationError("request_payload.end_time", "OUT_OF_RANGE", "\u7ED3\u675F\u65F6\u95F4\u5FC5\u987B\u665A\u4E8E\u5F00\u59CB\u65F6\u95F4\u3002"));
@@ -10317,7 +10210,6 @@ var VrpScenarioComponentEntry = (() => {
         collectDuplicateIdErrors(plan.agents, "\u8F66\u8F86/\u5DE5\u7A0B\u5E08", ["id", "name", "start_address", "start_city", "start_loc"], "request_payload.plan.agents", errors);
         collectDuplicateIdErrors(plan.tickets, "\u5DE5\u5355", ["id", "address", "city", "loc"], "request_payload.plan.tickets", errors);
         collectDuplicateIdErrors(plan.skus, "SKU", ["id", "name"], "request_payload.plan.skus", errors);
-        errors.push(...gatewayLocationErrors(plan));
         collectNonNegativeNumberErrors(plan.agents, "\u8F66\u8F86/\u5DE5\u7A0B\u5E08", [
           ["weight", "\u8F7D\u91CD"],
           ["vol", "\u5BB9\u79EF"],
@@ -10337,15 +10229,6 @@ var VrpScenarioComponentEntry = (() => {
         collectNonNegativeNumberErrors([plan.cost_parameter || {}], "\u6210\u672C\u53C2\u6570", COST_FIELDS, "request_payload.plan.cost_parameter", errors);
         collectJsonObjectErrors(plan.agents, "\u8F66\u8F86/\u5DE5\u7A0B\u5E08", [["qualification_text", "\u6280\u80FD\u7B49\u7EA7"]], "request_payload.plan.agents", errors);
         collectJsonObjectErrors(plan.tickets, "\u5DE5\u5355", [["qualification_text", "\u9700\u6C42\u6280\u80FD\u7B49\u7EA7"]], "request_payload.plan.tickets", errors);
-        collectDateTimeErrors(plan.agents, "\u8F66\u8F86/\u5DE5\u7A0B\u5E08", [
-          ["shift_start_time_input", "\u6700\u65E9\u51FA\u53D1\u65F6\u95F4"],
-          ["shift_off_time_input", "\u6700\u665A\u7ED3\u675F\u65F6\u95F4"]
-        ], "request_payload.plan.agents", errors);
-        collectDateTimeErrors(plan.tickets, "\u5DE5\u5355", [
-          ["create_time_input", "\u521B\u5EFA\u65F6\u95F4"],
-          ["min_start_time_input", "\u6700\u65E9\u5F00\u59CB\u65F6\u95F4"],
-          ["max_end_time_input", "\u6700\u665A\u7ED3\u675F\u65F6\u95F4"]
-        ], "request_payload.plan.tickets", errors);
         this.constraintEntries().forEach(([key, value]) => {
           if (this.isConstraintWeightEntry(key) && !isConstraintScoreText(value)) {
             errors.push(validationError(`constraint_overrides.${key}`, "FORMAT_INVALID", `${this.humanConstraintLabel(key)} \u7684\u7EA6\u675F\u503C\u683C\u5F0F\u5E94\u4E3A Nhard/Nmedium/Nsoft\u3002`));
@@ -10987,15 +10870,8 @@ var VrpScenarioComponentEntry = (() => {
           ...this.scenario.plan.agents.map((row) => [row, "start_address", "start_city", "start_loc"]),
           ...this.scenario.plan.tickets.map((row) => [row, "address", "city", "loc"])
         ];
-        const summary = { resolved: 0, failed: 0, skipped: 0 };
+        const summary = { resolved: 0, failed: 0 };
         for (const [row, addressField, cityField, locField] of targets) {
-          const address = String(row?.[addressField] || "").trim();
-          const hasReadableAddress = Boolean(address) && !parseLocationString(address);
-          const hasCoordinate = Boolean(parseLocationString(poiLocationText(row?.[locField])));
-          if (hasReadableAddress && hasCoordinate) {
-            summary.skipped += 1;
-            continue;
-          }
           const outcome = await this.resolveLocationForRow(row, addressField, cityField, locField);
           if (outcome.status === "resolved") {
             summary.resolved += 1;
@@ -12030,55 +11906,6 @@ var VrpScenarioComponentEntry = (() => {
           ["\u5DE5\u5355", count(this.scenario.plan.tickets, ["id", "address"])],
           ["SKU", count(this.scenario.plan.skus, ["id", "name"])]
         ];
-      },
-      buildGatewayScenarioOutline() {
-        const scenario = this.scenario || {};
-        const plan = scenario.plan || {};
-        const stats = this.currentScenarioStats();
-        const cities = [...new Set([
-          ...safeArrayForValidation(plan.depos).map((row) => row.city),
-          ...safeArrayForValidation(plan.agents).map((row) => row.start_city),
-          ...safeArrayForValidation(plan.tickets).map((row) => row.city)
-        ].map((value) => String(value || "").trim()).filter(Boolean))];
-        const clock = (value) => {
-          const match = String(value || "").match(/(?:T|\s)(\d{2}:\d{2})(?::\d{2})?$/);
-          return match?.[1] || "";
-        };
-        const shiftRanges = [...new Set(safeArrayForValidation(plan.agents).map((row) => {
-          const start = clock(row.shift_start_time_input);
-          const end = clock(row.shift_off_time_input);
-          return start && end ? `${start}\u2013${end}` : "";
-        }).filter(Boolean))];
-        const durations = [...new Set(safeArrayForValidation(plan.tickets).map((row) => Number(row.duration_minutes)).filter((value) => Number.isFinite(value) && value > 0))];
-        const changedConstraints = this.constraintEntries().filter(([key, value]) => String(value || "") !== String(DEFAULT_CONSTRAINT_CONFIGURATION[key] || "")).slice(0, 4).map(([key]) => ({ label: this.humanConstraintLabel(key), value: this.t("scenario.outline.adjusted") }));
-        const locationErrors = gatewayLocationErrors(plan);
-        const sections = [
-          {
-            label: this.t("scenario.outline.scope"),
-            items: [
-              { label: this.t("scenario.outline.planningDate"), value: scenario.planning_date || "" },
-              { label: this.t("scenario.outline.timeRange"), value: `${clock(scenario.start_time_input)}\u2013${clock(scenario.end_time_input)}`.replace(/^–$|^–|–$/g, "") },
-              { label: this.t("scenario.outline.cities"), value: cities.join("\u3001") }
-            ].filter((item) => item.value)
-          },
-          {
-            label: this.t("scenario.outline.scale"),
-            items: stats.map(([label, value]) => ({ label, value: String(value) }))
-          },
-          {
-            label: this.t("scenario.outline.timeAndRules"),
-            items: [
-              { label: this.t("scenario.outline.shifts"), value: shiftRanges.join("\u3001") },
-              { label: this.t("scenario.outline.serviceDuration"), value: durations.map((value) => `${value} ${this.t("scenario.outline.minutes")}`).join("\u3001") },
-              ...changedConstraints
-            ].filter((item) => item.value)
-          }
-        ].filter((section) => section.items.length);
-        return {
-          title: scenario.name || this.t("scenario.untitled"),
-          sections,
-          warnings: locationErrors.length ? [this.t("scenario.outline.locationIncomplete", { count: locationErrors.length })] : [this.t("scenario.outline.locationComplete")]
-        };
       },
       setConfigTab(tab) {
         this.commitEditingCell();
@@ -15985,18 +15812,6 @@ var VrpScenarioComponentEntry = (() => {
       "scenario.noData": "\u6682\u65E0\u6570\u636E",
       "scenario.availableAgentTrendEmpty": "\u4FDD\u5B58\u573A\u666F\u5E76\u4FDD\u8BC1\u65F6\u95F4\u8303\u56F4\u6709\u6548\u540E\uFF0C\u8FD9\u91CC\u4F1A\u5C55\u793A\u6309 2 \u5C0F\u65F6\u7C92\u5EA6\u7EDF\u8BA1\u7684\u53EF\u7528\u5DE5\u7A0B\u5E08\u6570\u91CF\u3002",
       "scenario.planningDate": "\u89C4\u5212\u65E5\u671F",
-      "scenario.outline.scope": "\u89C4\u5212\u8303\u56F4",
-      "scenario.outline.scale": "\u573A\u666F\u89C4\u6A21",
-      "scenario.outline.timeAndRules": "\u65F6\u95F4\u4E0E\u5173\u952E\u89C4\u5219",
-      "scenario.outline.planningDate": "\u89C4\u5212\u65E5\u671F",
-      "scenario.outline.timeRange": "\u603B\u4F53\u65F6\u95F4",
-      "scenario.outline.cities": "\u4E3B\u8981\u533A\u57DF",
-      "scenario.outline.shifts": "\u5DE5\u7A0B\u5E08\u73ED\u6B21",
-      "scenario.outline.serviceDuration": "\u5DE5\u5355\u670D\u52A1\u65F6\u957F",
-      "scenario.outline.minutes": "\u5206\u949F",
-      "scenario.outline.adjusted": "\u5DF2\u6309\u5F53\u524D\u65B9\u6848\u8C03\u6574",
-      "scenario.outline.locationComplete": "\u5730\u5740\u548C\u5750\u6807\u5DF2\u5B8C\u6574\u3002",
-      "scenario.outline.locationIncomplete": "\u4ECD\u6709 {count} \u4E2A\u5730\u5740\u6216\u5750\u6807\u95EE\u9898\u9700\u8981\u8865\u5145\u3002",
       "scenario.field.loadWeightWithUnit": "\u8F7D\u91CD\uFF08\u5428\uFF09",
       "scenario.field.volumeCapacityWithUnit": "\u5BB9\u79EF\uFF08m\xB3\uFF09",
       "scenario.field.weightWithUnit": "\u91CD\u91CF\uFF08\u5428\uFF09",
@@ -16305,18 +16120,6 @@ var VrpScenarioComponentEntry = (() => {
       "scenario.noData": "No data",
       "scenario.availableAgentTrendEmpty": "Save the scenario and provide a valid time range to show available technicians in two-hour windows.",
       "scenario.planningDate": "Planning date",
-      "scenario.outline.scope": "Planning scope",
-      "scenario.outline.scale": "Scenario size",
-      "scenario.outline.timeAndRules": "Time and key rules",
-      "scenario.outline.planningDate": "Planning date",
-      "scenario.outline.timeRange": "Overall time",
-      "scenario.outline.cities": "Main areas",
-      "scenario.outline.shifts": "Technician shifts",
-      "scenario.outline.serviceDuration": "Job service duration",
-      "scenario.outline.minutes": "minutes",
-      "scenario.outline.adjusted": "Adjusted for this scenario",
-      "scenario.outline.locationComplete": "Addresses and coordinates are complete.",
-      "scenario.outline.locationIncomplete": "{count} address or coordinate issues still need attention.",
       "scenario.field.loadWeightWithUnit": "Load weight (t)",
       "scenario.field.volumeCapacityWithUnit": "Volume capacity (m\xB3)",
       "scenario.field.weightWithUnit": "Weight (t)",
@@ -17053,17 +16856,13 @@ var VrpScenarioComponentEntry = (() => {
       isScenarioComponent: true,
       actions,
       context: null,
-      async registerComponent(kind, pageComponent) {
+      registerComponent(kind, pageComponent) {
         activeComponent = pageComponent;
         if (kind === "create") {
-          await deliverCreateData();
+          deliverCreateData();
           return;
         }
-        try {
-          await deliverResult();
-        } catch (error) {
-          this.sendError(error);
-        }
+        deliverResult().catch((error) => this.sendError(error));
       },
       notifyDirty(dirty) {
         lifecycleEvent(component, "scenario-dirty-state-changed", {
@@ -17183,7 +16982,7 @@ var VrpScenarioComponentEntry = (() => {
         field_errors: fieldErrors
       });
     }
-    async function deliverCreateData() {
+    function deliverCreateData() {
       if (disposed || !activeComponent?.applyGatewayCreateData) {
         return;
       }
@@ -17195,13 +16994,11 @@ var VrpScenarioComponentEntry = (() => {
         return;
       }
       try {
-        const result2 = await activeComponent.applyGatewayCreateData(bridge.context.payload);
+        activeComponent.applyGatewayCreateData(bridge.context.payload);
         createDataInitialized = true;
         if (revision != null) {
           appliedDraftRevision = revision;
-          const resolution = result2?.locationResolution || {};
-          const suffix = Number(resolution.resolved || 0) > 0 ? `\uFF0C\u5E76\u81EA\u52A8\u8865\u9F50 ${resolution.resolved} \u6761\u5730\u5740\u6216\u5750\u6807` : "";
-          reportDraftImported(revision, true, `JSON \u8349\u7A3F\u5DF2\u5BFC\u5165\u573A\u666F\u8868\u5355${suffix}\u3002`);
+          reportDraftImported(revision, true, "JSON \u8349\u7A3F\u5DF2\u5BFC\u5165\u573A\u666F\u8868\u5355\u3002");
         }
       } catch (error) {
         if (revision != null) {
@@ -17256,13 +17053,13 @@ var VrpScenarioComponentEntry = (() => {
     function clearScenarioValidationErrors() {
       activeComponent?.clearGatewayValidationErrors?.();
     }
-    async function replaceScenarioDraft(payload) {
+    function replaceScenarioDraft(payload) {
       if (!activeComponent?.applyGatewayCreateData) {
         return;
       }
       const source = firstObject2(payload) || null;
       const hasEnvelope = Boolean(source) && (Object.prototype.hasOwnProperty.call(source, "request_payload") || Object.prototype.hasOwnProperty.call(source, "expected_solve_duration") || Object.prototype.hasOwnProperty.call(source, "solve_options") || Object.prototype.hasOwnProperty.call(source, "constraint_overrides") || Object.prototype.hasOwnProperty.call(source, "scenario_persisted"));
-      await activeComponent.applyGatewayCreateData(hasEnvelope ? source : { request_payload: source });
+      activeComponent.applyGatewayCreateData(hasEnvelope ? source : { request_payload: source });
     }
     function openPlanningDrawer() {
       return activeComponent?.openPlanningDrawer?.() || false;
@@ -17278,7 +17075,6 @@ var VrpScenarioComponentEntry = (() => {
       };
     }
     component.getScenarioDraft = getScenarioDraft;
-    component.getScenarioOutline = () => activeComponent?.buildGatewayScenarioOutline?.() || null;
     component.validateScenarioDraft = validateScenarioDraft;
     component.applyScenarioValidationErrors = applyScenarioValidationErrors;
     component.clearScenarioValidationErrors = clearScenarioValidationErrors;
@@ -17312,7 +17108,6 @@ var VrpScenarioComponentEntry = (() => {
       }
       i18n.disconnect();
       delete component.getScenarioDraft;
-      delete component.getScenarioOutline;
       delete component.validateScenarioDraft;
       delete component.applyScenarioValidationErrors;
       delete component.clearScenarioValidationErrors;
@@ -17336,7 +17131,7 @@ var VrpScenarioComponentEntry = (() => {
         return;
       }
       if (context.view === "create" && activeComponent?.applyGatewayCreateData) {
-        await deliverCreateData();
+        deliverCreateData();
         return;
       }
       if (["result", "map"].includes(context.view)) {

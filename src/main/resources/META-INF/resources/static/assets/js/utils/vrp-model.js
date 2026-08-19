@@ -112,51 +112,18 @@ export function todayString() {
   return date.toISOString().slice(0, 10);
 }
 
-function validDateString(value) {
-  const text = String(value || "").trim();
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) {
-    return "";
-  }
-  const parsed = new Date(`${text}T00:00:00Z`);
-  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === text ? text : "";
-}
-
-function normalizedClock(value) {
-  const match = String(value || "").trim().match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
-  if (!match) {
-    return "";
-  }
-  const hour = Number(match[1]);
-  const minute = Number(match[2]);
-  const second = Number(match[3] || 0);
-  if (hour > 23 || minute > 59 || second > 59) {
-    return "";
-  }
-  return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}:${String(second).padStart(2, "0")}`;
-}
-
-export function datetimeInputValue(value, fallbackDate = "") {
+export function datetimeInputValue(value) {
   if (!value) {
     return "";
   }
-  const clock = normalizedClock(value);
-  const date = validDateString(fallbackDate);
-  if (clock && date) {
-    return `${date}T${clock.slice(0, 5)}`;
-  }
-  return String(value).replace(" ", "T").slice(0, 16);
+  return value.replace(" ", "T").slice(0, 16);
 }
 
-export function datetimeApiValue(value, fallbackDate = "") {
+export function datetimeApiValue(value) {
   if (!value) {
     return null;
   }
-  const clock = normalizedClock(value);
-  const date = validDateString(fallbackDate);
-  if (clock && date) {
-    return `${date} ${clock}`;
-  }
-  const normalized = String(value).includes("T") ? String(value).replace("T", " ") : String(value);
+  const normalized = value.includes("T") ? value.replace("T", " ") : value;
   return normalized.length === 16 ? `${normalized}:00` : normalized;
 }
 
@@ -254,55 +221,6 @@ function poiAddress(poi) {
   return poi?.address || poi?.name || poi?.location || poi?.id || "";
 }
 
-export function generateBusinessId(prefix = "ITEM") {
-  const normalizedPrefix = String(prefix || "ITEM").trim().toUpperCase().replaceAll(/[^A-Z0-9]+/g, "-") || "ITEM";
-  const randomId = globalThis.crypto?.randomUUID?.()
-    || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
-  return `${normalizedPrefix}-${String(randomId).replaceAll("-", "").slice(0, 12).toUpperCase()}`;
-}
-
-function hasResolvedBusinessCoordinate(row, locField) {
-  const location = row?.[locField];
-  if (parseLocationString(row?.poi_location)
-      || parseLocationString(location?.location)
-      || parseLocationString(location?.entr_location)) {
-    return true;
-  }
-  const coordinate = location?.loc || location?.entr_loc;
-  return coordinate?.lat !== null
-    && coordinate?.lat !== undefined
-    && coordinate?.lon !== null
-    && coordinate?.lon !== undefined
-    && Number.isFinite(Number(coordinate.lat))
-    && Number.isFinite(Number(coordinate.lon));
-}
-
-export function gatewayLocationErrors(plan = {}) {
-  const errors = [];
-  const collect = (rows, label, addressField, locField, pathPrefix) => {
-    safeArray(rows).forEach((row, index) => {
-      if (!String(row?.[addressField] || "").trim()) {
-        errors.push({
-          path: `${pathPrefix}[${index}].${addressField}`,
-          code: "REQUIRED",
-          message: `${label}第 ${index + 1} 行缺少地址。`
-        });
-      }
-      if (!hasResolvedBusinessCoordinate(row, locField)) {
-        errors.push({
-          path: `${pathPrefix}[${index}].${locField}`,
-          code: "REQUIRED",
-          message: `${label}第 ${index + 1} 行缺少已解析坐标。`
-        });
-      }
-    });
-  };
-  collect(plan.depos, "仓库", "address", "loc", "request_payload.plan.depos");
-  collect(plan.agents, "车辆/工程师", "start_address", "start_loc", "request_payload.plan.agents");
-  collect(plan.tickets, "工单", "address", "loc", "request_payload.plan.tickets");
-  return errors;
-}
-
 function hasCostParameterData(costParameter) {
   return COST_DATA_FIELDS.some((key) => Number(costParameter?.[key] || 0) > 0);
 }
@@ -359,7 +277,7 @@ export function defaultScenario() {
 function normalizeDepot(depot, poiIndex) {
   const loc = resolvePoiReference(depot?.loc, poiIndex) || {};
   return {
-    id: depot?.id || generateBusinessId("DEPO"),
+    id: depot?.id || "",
     name: depot?.name || "",
     address: poiAddress(loc),
     city: poiCity(loc),
@@ -368,13 +286,13 @@ function normalizeDepot(depot, poiIndex) {
   };
 }
 
-function normalizeAgent(agent, poiIndex, planningDate) {
+function normalizeAgent(agent, poiIndex) {
   const startLoc = resolvePoiReference(agent?.start_loc, poiIndex);
   const isVirtual = Boolean(agent?.virtual || agent?.is_virtual);
   return {
-    id: agent?.id || generateBusinessId("AGENT"),
+    id: agent?.id || "",
     depo_id: agent?.depo_id || "",
-    date: agent?.date || planningDate || todayString(),
+    date: agent?.date || todayString(),
     name: agent?.name || "",
     start_address: poiAddress(startLoc),
     start_city: poiCity(startLoc),
@@ -390,8 +308,8 @@ function normalizeAgent(agent, poiIndex, planningDate) {
     fuel_consumption: agent?.fuel_consumption ?? "",
     rented: Boolean(agent?.rented),
     fix_cost_daily: agent?.fix_cost_daily ?? "",
-    shift_start_time_input: datetimeInputValue(agent?.shift_start_time, agent?.date || planningDate),
-    shift_off_time_input: datetimeInputValue(agent?.shift_off_time, agent?.date || planningDate),
+    shift_start_time_input: datetimeInputValue(agent?.shift_start_time),
+    shift_off_time_input: datetimeInputValue(agent?.shift_off_time),
     max_ticket_num: agent?.max_ticket_num ?? 0,
     tickets: safeArray(agent?.tickets),
     is_virtual: isVirtual
@@ -407,10 +325,10 @@ function normalizeTicketItems(items) {
     .filter((item) => item.sku && item.value > 0);
 }
 
-function normalizeTicket(ticket, poiIndex, planningDate) {
+function normalizeTicket(ticket, poiIndex) {
   const loc = resolvePoiReference(ticket?.loc, poiIndex) || {};
   return {
-    id: ticket?.id || generateBusinessId("TICKET"),
+    id: ticket?.id || "",
     depo_id: ticket?.depo_id || "",
     pinned: Boolean(ticket?.pinned),
     type: ticket?.type || "Delv",
@@ -425,19 +343,19 @@ function normalizeTicket(ticket, poiIndex, planningDate) {
     items: normalizeTicketItems(ticket?.items),
     weight: ticket?.weight ?? 0,
     vol: ticket?.vol ?? 0,
-    min_start_time_input: datetimeInputValue(ticket?.min_start_time, planningDate),
-    max_end_time_input: datetimeInputValue(ticket?.max_end_time, planningDate),
+    min_start_time_input: datetimeInputValue(ticket?.min_start_time),
+    max_end_time_input: datetimeInputValue(ticket?.max_end_time),
     duration_minutes: durationToMinutes(ticket?.duration),
     agent: ticket?.agent || "",
     arrival_time: ticket?.arrival_time || "",
-    create_time_input: datetimeInputValue(ticket?.create_time, planningDate),
+    create_time_input: datetimeInputValue(ticket?.create_time),
     qualification_text: ticket?.qualification_levels_required ? JSON.stringify(ticket.qualification_levels_required) : ""
   };
 }
 
 function normalizeSku(sku) {
   return {
-    id: sku?.id || generateBusinessId("SKU"),
+    id: sku?.id || "",
     name: sku?.name || "",
     weight: sku?.weight ?? 0,
     vol: sku?.vol ?? 0
@@ -451,22 +369,21 @@ export function normalizeScenarioForView(rawScenario) {
   const normalizedPois = safeArray(plan.pois).map((poi) => canonicalizePoi(poi));
   const poiIndex = buildPoiIndex(normalizedPois);
   const costParameter = normalizeCostParameter(plan.cost_parameter);
-  const planningDate = scenario.planning_date || todayString();
   const constraintConfiguration = { ...DEFAULT_CONSTRAINT_CONFIGURATION, ...(plan.constraint_configuration || {}) };
   const normalizedDepos = safeArray(plan.depos).map((depot) => normalizeDepot(depot, poiIndex));
   return {
     ...scenario,
     ...(mapProvider ? { map_provider: mapProvider } : {}),
-    planning_date: planningDate,
-    start_time_input: datetimeInputValue(scenario.start_time, planningDate),
-    end_time_input: datetimeInputValue(scenario.end_time, planningDate),
+    planning_date: scenario.planning_date || todayString(),
+    start_time_input: datetimeInputValue(scenario.start_time),
+    end_time_input: datetimeInputValue(scenario.end_time),
     city_hint: normalizedDepos[0]?.city || "",
     plan: {
       ...plan,
       pois: normalizedPois,
       depos: normalizedDepos,
-      agents: safeArray(plan.agents).map((agent) => normalizeAgent(agent, poiIndex, planningDate)),
-      tickets: safeArray(plan.tickets).map((ticket) => normalizeTicket(ticket, poiIndex, planningDate)),
+      agents: safeArray(plan.agents).map((agent) => normalizeAgent(agent, poiIndex)),
+      tickets: safeArray(plan.tickets).map((ticket) => normalizeTicket(ticket, poiIndex)),
       skus: safeArray(plan.skus).map(normalizeSku),
       cost_parameter: costParameter,
       constraint_configuration: constraintConfiguration
@@ -478,14 +395,13 @@ export function buildScenarioPayload(viewScenario) {
   const scenario = viewScenario || {};
   const mapProvider = normalizeMapProvider(scenario.map_provider ?? scenario.mapProvider);
   const plan = scenario.plan || {};
-  const planningDate = scenario.planning_date || todayString();
   const payload = {
     name: scenario.name || "",
     desc: scenario.desc || "",
     ...(mapProvider ? { map_provider: mapProvider } : {}),
-    planning_date: planningDate,
-    start_time: datetimeApiValue(scenario.start_time_input, planningDate),
-    end_time: datetimeApiValue(scenario.end_time_input, planningDate),
+    planning_date: scenario.planning_date || todayString(),
+    start_time: datetimeApiValue(scenario.start_time_input),
+    end_time: datetimeApiValue(scenario.end_time_input),
     create_time: scenario.create_time || null,
     update_time: scenario.update_time || null,
     plan: {
@@ -503,7 +419,7 @@ export function buildScenarioPayload(viewScenario) {
           const agent = {
             id: row.id || "",
             depo_id: row.depo_id || "",
-            date: row.date || planningDate,
+            date: row.date || todayString(),
             name: row.name || "",
             start_loc: buildRawPoi(row.start_address, row.start_city || scenario.city_hint, row.start_loc),
             skills: splitTags(row.skills_text),
@@ -512,8 +428,8 @@ export function buildScenarioPayload(viewScenario) {
             vol: Number(row.vol || 0),
             vehicle_type: row.vehicle_type || "CAR",
             rented: Boolean(row.rented),
-            shift_start_time: datetimeApiValue(row.shift_start_time_input, row.date || planningDate),
-            shift_off_time: datetimeApiValue(row.shift_off_time_input, row.date || planningDate),
+            shift_start_time: datetimeApiValue(row.shift_start_time_input),
+            shift_off_time: datetimeApiValue(row.shift_off_time_input),
             max_ticket_num: Number(row.max_ticket_num || 0),
             tickets: []
           };
@@ -552,9 +468,9 @@ export function buildScenarioPayload(viewScenario) {
           weight: Number(row.weight || 0),
           vol: Number(row.vol || 0),
           loc: buildRawPoi(row.address, row.city || scenario.city_hint, row.loc),
-          create_time: datetimeApiValue(row.create_time_input, planningDate),
-          min_start_time: datetimeApiValue(row.min_start_time_input, planningDate),
-          max_end_time: datetimeApiValue(row.max_end_time_input, planningDate),
+          create_time: datetimeApiValue(row.create_time_input),
+          min_start_time: datetimeApiValue(row.min_start_time_input),
+          max_end_time: datetimeApiValue(row.max_end_time_input),
           duration: `PT${Math.max(0, Number(row.duration_minutes || 0))}M`,
           agent: row.agent || null,
           arrival_time: row.arrival_time || null
