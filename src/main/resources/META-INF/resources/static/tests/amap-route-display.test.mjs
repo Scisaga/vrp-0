@@ -370,10 +370,14 @@ test("一张图默认隐藏工单长 ID，聚焦后只显示当前工程师标�
   class Marker {
     constructor(options) {
       this.options = options;
+      this.positionUpdates = [];
       createdMarkers.push(this);
     }
     on() {}
-    setPosition(position) { this.options.position = position; }
+    setPosition(position) {
+      this.options.position = position;
+      this.positionUpdates.push(position);
+    }
   }
   global.window = { AMap: { InfoWindow, Pixel, Polyline, CircleMarker, Marker } };
 
@@ -423,13 +427,17 @@ test("一张图默认隐藏工单长 ID，聚焦后只显示当前工程师标�
 
     const polylineCount = createdPolylines.length;
     const markerCount = createdMarkers.length;
+    const staticOverlays = [...map._vrpSimulationState.staticOverlays];
+    const dynamicMarker = map._vrpSimulationState.dynamicMarkersByAgentId[firstAgentId];
     await renderSimulation(container, job, {}, {}, "2026-07-14 08:35:00", {
       focusedAgentId: firstAgentId,
-      fitMode: "preserve",
-      refreshOverlays: true
+      fitMode: "preserve"
     });
-    assert.ok(createdPolylines.length > polylineCount, "播放刷新应重新绘制路线覆盖物");
-    assert.ok(createdMarkers.length > markerCount, "播放刷新应重新绘制当前 Marker");
+    assert.equal(createdPolylines.length, polylineCount, "播放应复用路线覆盖物，避免 HERE 路线闪烁");
+    assert.equal(createdMarkers.length, markerCount, "播放应复用已有 Marker，不得整组移除后重建");
+    assert.deepEqual(map._vrpSimulationState.staticOverlays, staticOverlays);
+    assert.equal(map._vrpSimulationState.dynamicMarkersByAgentId[firstAgentId], dynamicMarker);
+    assert.ok(dynamicMarker.positionUpdates.length > 0, "播放只应原位更新当前 Marker 的位置");
   } finally {
     global.window = originalWindow;
   }

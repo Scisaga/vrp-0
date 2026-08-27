@@ -725,9 +725,6 @@ export async function renderSimulation(mapContainer, job, visibilityMap, routeVi
     && buildDisplayRouteSegments(agent).length > 0
   )).length === 1;
   const simulationState = ensureSimulationState(map);
-  if (options.refreshOverlays) {
-    resetSimulationState(map);
-  }
   const sceneSignature = buildSimulationSignature(job, agents, visibilityMap, routeVisibilityMap, focusedAgentId);
   if (simulationState.signature !== sceneSignature) {
     resetSimulationState(map);

@@ -156,12 +156,12 @@ test("右侧工程师任务值与工程师 ID 使用相同的等宽元信息样�
   assert.equal((agentPanel.match(/identifier-value monospace-meta mt-\[0\.3125rem\]/g) || []).length, 4, "工程师 ID、当前任务、可跳转下一任务和普通下一任务应复用同一字形");
 });
 
-test("播放只强制重绘业务覆盖物并保持深色底图主题", async () => {
+test("播放复用路线覆盖物、原位更新 Marker 并保持深色底图主题", async () => {
   const script = await readFile(path.join(staticRoot, "assets/js/pages/solver-job-map-page.js"), "utf8");
 
   assert.match(script, /mapTheme: "dark"/);
-  assert.match(script, /refreshOverlays: options\.refreshOverlays === true/);
-  assert.match(script, /await this\.renderMap\(\{ refreshOverlays: true \}\);/);
+  assert.doesNotMatch(script, /refreshOverlays/);
+  assert.match(script, /this\.simulationValue = next;\s*await this\.renderMap\(\);/);
 });
 
 test("大屏由 Shadow Host 进入全屏以保留所有指针交互", async () => {
@@ -200,6 +200,6 @@ test("构建后的 Scenario UI 保留地图内降级提醒布局", async () => {
   assert.match(scenario, /absolute inset-x-\[0\.9375rem\] top-\[0\.9375rem\] z-20/);
   assert.match(scenario, /DEFAULT_MAP_STYLE = DARK_MAP_STYLE/);
   assert.match(scenario, /mapTheme: "dark"/);
-  assert.match(scenario, /refreshOverlays: options\.refreshOverlays === true/);
+  assert.doesNotMatch(scenario, /refreshOverlays/);
   assert.match(scenario, /@click="openScenarioTicket\(jumpableNextTicketId\(currentFocusAgent\(\)\)\)"/, "构建产物应保留大屏下一工单定位入口");
 });

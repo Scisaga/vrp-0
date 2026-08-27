@@ -43,8 +43,8 @@ test("地图组件从 map_context 获取图商上下文，并保留 HERE SDK 入
   assert.match(resultPage, /recreatePreviewMapForLocale/);
   assert.match(mapPage, /mapLocaleRequiresRecreation\(map\)/);
   assert.match(mapPage, /mapTheme: "dark"/);
-  assert.match(mapPage, /refreshOverlays: options\.refreshOverlays === true/);
-  assert.match(mapPage, /renderMap\(\{ refreshOverlays: true \}\)/);
+  assert.doesNotMatch(mapPage, /refreshOverlays/);
+  assert.match(mapPage, /this\.simulationValue = next;\s*await this\.renderMap\(\);/);
   assert.ok(here.includes("mapsjs-core"));
   assert.match(here, /loadHereAsAmapCompatibility/);
   assert.match(here, /name === "click" \? "tap" : name/);

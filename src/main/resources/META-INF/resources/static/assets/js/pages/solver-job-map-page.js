@@ -731,8 +731,7 @@ export function solverJobMapPage() {
           focusedAgentId: this.focusAgentId,
           followFocusedAgent: this.followFocusedAgent,
           fitMode,
-          mapTheme: "dark",
-          refreshOverlays: options.refreshOverlays === true
+          mapTheme: "dark"
         }
       );
       this.hasRenderedMap = true;
@@ -791,8 +790,7 @@ export function solverJobMapPage() {
       if (Number(this.simulationValue) >= this.bounds.max) {
         this.simulationValue = this.bounds.min;
         await this.renderMap({
-          fitMode: this.followFocusedAgent && this.focusAgentId ? "focused" : "visible",
-          refreshOverlays: true
+          fitMode: this.followFocusedAgent && this.focusAgentId ? "focused" : "visible"
         });
       }
       const session = this.playbackSession + 1;
@@ -803,7 +801,7 @@ export function solverJobMapPage() {
         }
         const next = Math.min(this.bounds.max, Number(this.simulationValue) + this.playbackStepMs());
         this.simulationValue = next;
-        await this.renderMap({ refreshOverlays: true });
+        await this.renderMap();
         if (this.playbackSession !== session) {
           return;
         }

@@ -9309,9 +9309,6 @@ var VrpScenarioComponentEntry = (() => {
     const focusedAgentId = options.focusedAgentId || "";
     const singleVisibleRoute = agents.filter((agent) => visibilityMap[agent.id] !== false && routeVisibilityMap?.[agent.id] !== false && buildDisplayRouteSegments(agent).length > 0).length === 1;
     const simulationState = ensureSimulationState(map2);
-    if (options.refreshOverlays) {
-      resetSimulationState(map2);
-    }
     const sceneSignature = buildSimulationSignature(job, agents, visibilityMap, routeVisibilityMap, focusedAgentId);
     if (simulationState.signature !== sceneSignature) {
       resetSimulationState(map2);
@@ -15440,8 +15437,7 @@ var VrpScenarioComponentEntry = (() => {
           focusedAgentId: this.focusAgentId,
           followFocusedAgent: this.followFocusedAgent,
           fitMode,
-          mapTheme: "dark",
-          refreshOverlays: options.refreshOverlays === true
+          mapTheme: "dark"
         });
         this.hasRenderedMap = true;
       },
@@ -15495,8 +15491,7 @@ var VrpScenarioComponentEntry = (() => {
         if (Number(this.simulationValue) >= this.bounds.max) {
           this.simulationValue = this.bounds.min;
           await this.renderMap({
-            fitMode: this.followFocusedAgent && this.focusAgentId ? "focused" : "visible",
-            refreshOverlays: true
+            fitMode: this.followFocusedAgent && this.focusAgentId ? "focused" : "visible"
           });
         }
         const session = this.playbackSession + 1;
@@ -15507,7 +15502,7 @@ var VrpScenarioComponentEntry = (() => {
           }
           const next = Math.min(this.bounds.max, Number(this.simulationValue) + this.playbackStepMs());
           this.simulationValue = next;
-          await this.renderMap({ refreshOverlays: true });
+          await this.renderMap();
           if (this.playbackSession !== session) {
             return;
           }
