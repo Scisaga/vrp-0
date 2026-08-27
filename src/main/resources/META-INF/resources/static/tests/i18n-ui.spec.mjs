@@ -765,6 +765,9 @@ test("core pages remain reachable at mobile, tablet, and desktop breakpoints", a
   expect(mapLayout.actionHeight).toBeLessThanOrEqual(55);
   await mapComponent.getByRole("button", { name: /大屏模式/ }).click();
   await expect(mapComponent.locator(".map-bigscreen-layout")).toBeVisible();
+  const bigScreenLogo = mapComponent.locator(".bigscreen-brand-logo");
+  await expect(bigScreenLogo).toHaveAttribute("src", /^data:image\/png;base64,/);
+  await expect.poll(() => bigScreenLogo.evaluate((image) => image.naturalWidth)).toBeGreaterThan(0);
   await expect.poll(() => mapComponent.evaluate((element) => ({
     hostIsFullscreen: document.fullscreenElement === element,
     shadowChildIsFullscreen: Boolean(element.shadowRoot.fullscreenElement)

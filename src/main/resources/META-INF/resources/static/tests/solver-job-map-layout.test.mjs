@@ -193,6 +193,8 @@ test("工程师地图操作使用轻量自定义浮框而非浏览器原生标�
 test("构建后的 Scenario UI 保留地图内降级提醒布局", async () => {
   const scenario = await readFile(path.join(staticRoot, "scenario.html"), "utf8");
 
+  assert.match(scenario, /src="data:image\/png;base64,/, "构建产物应内联大屏 Logo");
+  assert.doesNotMatch(scenario, /src="assets\/img\/vrp-0-logo\.png"/, "构建产物不应依赖 Host 的 Logo 静态路径");
   assert.doesNotMatch(scenario, /当前选中工程师的地图预览/);
   assert.match(scenario, /x-ref="previewMap"/);
   assert.match(scenario, /absolute inset-x-\[0\.9375rem\] top-\[0\.9375rem\] z-20/);

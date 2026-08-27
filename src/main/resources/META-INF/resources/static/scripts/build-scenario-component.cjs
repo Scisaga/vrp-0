@@ -7,6 +7,7 @@ const { buildHostDependencies } = require("./build-scenario-host-dependencies.cj
 const root = path.resolve(__dirname, "..");
 const componentRequirementsFile = path.resolve(root, "..", "..", "..", "scenario-ui", "component-dependencies.json");
 const read = (...parts) => fs.readFileSync(path.join(root, ...parts), "utf8");
+const scenarioLogoFile = path.join(root, "assets", "img", "vrp-0-logo-120.png");
 
 function requiredIndex(source, marker, from = 0) {
   const index = source.indexOf(marker, from);
@@ -74,6 +75,16 @@ function withoutEngineLocalControls(file) {
   return read("pages", file).replace(/<button\b(?=[^>]*\bdata-engine-local-control\b)[\s\S]*?<\/button>/g, "");
 }
 
+function withInlineScenarioLogo(source) {
+  const logoReference = 'src="assets/img/vrp-0-logo.png"';
+  const referenceCount = source.split(logoReference).length - 1;
+  if (referenceCount !== 1) {
+    throw new Error("Scenario map template must contain exactly one VRP-0 logo reference");
+  }
+  const logoDataUrl = `data:image/png;base64,${fs.readFileSync(scenarioLogoFile).toString("base64")}`;
+  return source.replace(logoReference, `src="${logoDataUrl}"`);
+}
+
 function escapeInlineScript(value) {
   return value.replace(/<\/script/gi, "<\\/script");
 }
@@ -107,7 +118,7 @@ async function main() {
   const templates = {
     create: scenarioWorkspaceTemplate(),
     result: withoutEngineLocalControls("solver-job-detail.html"),
-    map: withoutEngineLocalControls("solver-job-map.html")
+    map: withInlineScenarioLogo(withoutEngineLocalControls("solver-job-map.html"))
   };
   const css = [await buildScenarioComponentCss(), read("assets", "css", "scenario-component.css")].join("\n\n");
   const bundle = await buildBundle(templates);

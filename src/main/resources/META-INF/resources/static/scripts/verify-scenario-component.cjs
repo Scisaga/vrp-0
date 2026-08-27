@@ -61,6 +61,8 @@ assert(
 );
 assert(Buffer.byteLength(html) <= 1_000_000, "scenario.html 必须小于 1 MB");
 assert(!/data:font\//i.test(html), "scenario.html 不得内联 Material 字体");
+assert(html.includes('src="data:image/png;base64,'), "scenario.html 必须内联大屏 VRP-0 Logo");
+assert(!html.includes('src="assets/img/vrp-0-logo.png"'), "scenario.html 不得依赖 Host 的 VRP-0 Logo 静态路径");
 assert(!html.includes("new Function(atob("), "scenario.html 不得内联并执行 Plotly");
 assert(html.includes("--font-sans:"), "scenario.html 必须内联构建期生成的 Tailwind CSS");
 assert(html.includes(".w-\\[6\\.25rem\\] {"), "scenario.html 必须包含所用 Tailwind 工具类样式");

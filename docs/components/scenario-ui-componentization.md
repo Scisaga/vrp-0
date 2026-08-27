@@ -58,6 +58,8 @@ npm run build:scenario
 
 `build:css` 只更新 Engine 控制台页面使用的完整 CSS。`build:scenario` 会在构建期编译 Scenario UI 所需的 Tailwind 与业务 CSS，并直接内联到 `scenario.html`；不会生成组件专用的 `scenario-tailwind.compiled.css` 或 `scenario-business.compiled.css` 中间文件。
 
+一张图大屏使用的 VRP-0 Logo 以 `assets/img/vrp-0-logo-120.png` 作为构建输入，`build:scenario` 将其编码为 PNG Data URL 并写入地图模板。生成后的 `scenario.html` 不请求 Engine 或 Gateway 的 Logo 静态资源路径，保持组件交付物单文件、自包含。
+
 | 文件 | 当前职责 |
 | --- | --- |
 | `pages/scenario-detail.html` | 创建视图模板来源；构建时抽取中心工作区，以及可选的“场景概览”“空闲车辆趋势”右侧面板。 |
@@ -278,10 +280,10 @@ npm run test:i18n
 
 当前自动化验证：
 
-* `verify:scenario`：产物结构、依赖注册表、页面边界和结果/地图模板关键片段；
+* `verify:scenario`：产物结构、依赖注册表、页面边界、内联 Logo 和结果/地图模板关键片段；
 * `test:scenario-import`：草稿导入；
 * `test:solver-job-list`：任务列表筛选和轮询；
 * `test:scenario-solve`：首次保存前的提交限制、Engine action 提交、右侧概览/趋势的 context 开关、趋势 action 及右栏收起状态；
 * `test:score-progress`：得分曲线数据处理。
 * `test:i18n`：Engine locale 默认值/持久化、错误码参数本地化、未知错误不泄露服务端消息，以及 `scenario.html` 的组件语言包内联。
-* `test:i18n-ui`：Playwright 以英文 locale 挂载 Engine Host 与 Scenario Shadow DOM，验证 Host/组件关键文案、动态趋势标签、结果页，以及一张图的回放工具栏、时间轴和工程师状态面板；语言切换后组件不重建。
+* `test:i18n-ui`：Playwright 以英文 locale 挂载 Engine Host 与 Scenario Shadow DOM，验证 Host/组件关键文案、动态趋势标签、结果页，以及一张图的回放工具栏、时间轴、工程师状态面板和内联 Logo 可解码性；语言切换后组件不重建。
