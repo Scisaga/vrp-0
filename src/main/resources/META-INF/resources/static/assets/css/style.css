@@ -824,7 +824,27 @@
   }
 
   .bigscreen-band {
-    @apply border-b-[1.25px] border-white/10 bg-[linear-gradient(135deg,rgba(15,23,42,0.95),rgba(15,23,42,0.84))] px-[1.25rem] py-[0.9375rem];
+    @apply border-b-[1.25px] border-white/10 bg-[linear-gradient(135deg,rgba(15,23,42,0.95),rgba(15,23,42,0.84))] py-[0.9375rem];
+  }
+
+  .bigscreen-header {
+    @apply flex flex-wrap items-center justify-between gap-[1.25rem];
+  }
+
+  .bigscreen-brand {
+    @apply flex min-w-0 items-center gap-[0.46875rem] px-[1.25rem];
+  }
+
+  .bigscreen-brand-logo {
+    @apply h-[3.75rem] w-[3.75rem] shrink-0 object-contain;
+  }
+
+  .bigscreen-status {
+    @apply flex min-w-0 flex-1 flex-wrap items-center gap-[0.625rem] px-[1.25rem];
+  }
+
+  .bigscreen-header-actions {
+    @apply flex flex-wrap items-center justify-end gap-[0.625rem] px-[1.25rem];
   }
 
   .bigscreen-panel {
@@ -848,11 +868,12 @@
   }
 
   .bigscreen-agent-card {
-    @apply bg-transparent px-[0.9375rem] py-[0.625rem] transition hover:bg-white/10;
+    @apply bg-transparent px-[0.9375rem] py-[0.46875rem] transition hover:bg-white/10;
   }
 
   .bigscreen-agent-card-active {
     @apply bg-emerald-400/15;
+    box-shadow: inset 0 0 0 1.25px rgb(52 211 153 / 0.24);
   }
 
   .bigscreen-stat-card {
@@ -1378,6 +1399,27 @@
 
   .map-bigscreen-layout {
     grid-template-columns: 275px minmax(0, 1fr) 287.5px;
+  }
+
+  @media (min-width: 1600px) {
+    .bigscreen-header {
+      display: grid;
+      grid-template-columns: 275px minmax(0, 1fr) auto;
+      gap: 0;
+    }
+
+    .bigscreen-brand {
+      height: 3.75rem;
+      border-right: 1.25px solid rgb(255 255 255 / 0.1);
+    }
+
+    .bigscreen-status {
+      padding-right: 0.625rem;
+    }
+
+    .bigscreen-header-actions {
+      padding-left: 0.625rem;
+    }
   }
 
   .map-replay-actions > * {

@@ -500,7 +500,7 @@ export const COMPONENT_MESSAGES = Object.freeze({
     "map.normalDisplay": "Normal display",
     "map.currentTask": "Current task",
     "map.nextTask": "Next task",
-    "map.bigScreen.title": "Solver job map · Big-screen mode",
+    "map.bigScreen.title": "Job map · Big screen",
     "map.bigScreen.playingAtSpeed": "Playing at {speed}x",
     "map.bigScreen.pausedAtSpeed": "Paused at {speed}x",
     "map.bigScreen.visibleObjects": "Visible objects {visible} / {total}",

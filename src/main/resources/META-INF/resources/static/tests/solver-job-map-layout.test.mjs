@@ -61,7 +61,10 @@ test("HERE 归属信息默认跟随深色底图并保留显式浅色兼容", asy
 
 test("大屏快速切换按钮保持纵向卡片布局", async () => {
   const template = await readFile(path.join(staticRoot, "pages/solver-job-map.html"), "utf8");
+  const businessStyles = await readFile(path.join(staticRoot, "assets/css/scenario-business.source.css"), "utf8");
   const cardStart = template.indexOf('class="bigscreen-agent-card w-full text-left"');
+  const cardOpeningEnd = template.indexOf(">", cardStart);
+  const cardOpening = template.slice(cardStart, cardOpeningEnd);
 
   assert.notEqual(cardStart, -1, "大屏左侧应保留整行快速切换按钮");
   assert.doesNotMatch(
@@ -71,9 +74,44 @@ test("大屏快速切换按钮保持纵向卡片布局", async () => {
   );
   assert.match(
     template,
-    /class="mt-\[0\.9375rem\] grid w-full min-w-0 gap-\[0\.625rem\] overflow-hidden text-\[0\.9375rem\]\/\[1\.25rem\] text-slate-300"/,
+    /class="mt-\[0\.46875rem\] grid w-full min-w-0 gap-\[0\.3125rem\] overflow-hidden text-\[13\.75px\]\/\[1\.171875rem\] text-slate-300"/,
     "按钮内的任务摘要应受左侧面板宽度约束"
   );
+  assert.match(template, /text-\[16\.25px\]\/\[1\.40625rem\] font-semibold text-white" x-text="agentDisplayName\(agent\)"/, "对象名称应使用紧凑但清晰的字号");
+  assert.match(template, /<span class="sr-only" x-text="agent\.id"><\/span>/, "对象 ID 应从视觉界面隐藏但保留给辅助技术");
+  assert.doesNotMatch(template, /font-mono text-\[12\.5px\]\/\[1\.09375rem\] text-slate-400" x-text="agent\.id"/, "左侧对象卡片不应持续显示工程师 ID");
+  assert.doesNotMatch(cardOpening, /BusinessIdTooltip/, "隐藏左侧 ID 后，整张对象卡片不应继续触发 ID 浮框");
+  assert.match(template, /:class="jumpableNextTicketId\(agent\) \? 'font-mono text-\[13\.75px\] tabular-nums' : ''"/, "实际下一工单应使用紧凑等宽字形");
+  assert.match(businessStyles, /\.bigscreen-agent-card\s*\{\s*@apply[^;]*py-\[0\.46875rem\]/, "对象行上下内边距应收紧为 7.5px");
+  assert.match(businessStyles, /\.bigscreen-agent-card-active\s*\{[\s\S]*?box-shadow: inset 0 0 0 1\.25px rgb\(52 211 153 \/ 0\.24\);/, "选中对象应使用四边一致的弱内描边");
+});
+
+test("大屏顶栏以 Logo 和系统名称建立品牌入口并与左栏对齐", async () => {
+  const template = await readFile(path.join(staticRoot, "pages/solver-job-map.html"), "utf8");
+  const stylesheets = await Promise.all([
+    readFile(path.join(staticRoot, "assets/css/style.css"), "utf8"),
+    readFile(path.join(staticRoot, "assets/css/scenario-business.source.css"), "utf8")
+  ]);
+  const toolbarStart = template.indexOf('<section class="bigscreen-band">');
+  const toolbarEnd = template.indexOf("</section>", toolbarStart);
+  const toolbar = template.slice(toolbarStart, toolbarEnd);
+  const brandIndex = toolbar.indexOf('class="bigscreen-brand"');
+  const statusIndex = toolbar.indexOf('class="bigscreen-status"');
+  const actionsIndex = toolbar.indexOf('class="bigscreen-header-actions"');
+
+  assert.match(toolbar, /src="assets\/img\/vrp-0-logo\.png"/, "大屏左上角应复用本地 VRP-0 Logo");
+  assert.match(toolbar, />VRP-0<\/div>/, "Logo 旁应显示系统名称");
+  assert.match(toolbar, /x-text="t\('map\.bigScreen\.title'\)"/, "系统名称下方应保留当前页面上下文");
+  assert.ok(brandIndex >= 0 && brandIndex < statusIndex && statusIndex < actionsIndex, "顶栏应按品牌、运行状态、页面操作的顺序组织");
+
+  stylesheets.forEach((stylesheet) => {
+    assert.match(
+      stylesheet,
+      /\.bigscreen-header\s*\{[\s\S]*?grid-template-columns: 275px minmax\(0, 1fr\) auto;/,
+      "宽屏品牌区应与 275px 的快速切换栏对齐"
+    );
+    assert.match(stylesheet, /\.bigscreen-brand\s*\{[\s\S]*?border-right: 1\.25px solid rgb\(255 255 255 \/ 0\.1\);/, "品牌区与运行状态之间应有弱分隔线");
+  });
 });
 
 test("大屏跟随开关紧邻焦点对象并与视角和导航操作分组", async () => {

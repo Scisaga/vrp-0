@@ -260,6 +260,17 @@
   .visible {
     visibility: visible;
   }
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border-width: 0;
+  }
   .absolute {
     position: absolute;
   }
@@ -1247,6 +1258,10 @@
     font-size: 0.9375rem;
     line-height: 1.25rem;
   }
+  .text-\[0\.9375rem\]\/\[1\.40625rem\] {
+    font-size: 0.9375rem;
+    line-height: 1.40625rem;
+  }
   .text-\[1\.25rem\]\/\[1\.25rem\] {
     font-size: 1.25rem;
     line-height: 1.25rem;
@@ -1254,6 +1269,10 @@
   .text-\[1\.25rem\]\/\[1\.875rem\] {
     font-size: 1.25rem;
     line-height: 1.875rem;
+  }
+  .text-\[1\.1875rem\]\/\[1\.5625rem\] {
+    font-size: 1.1875rem;
+    line-height: 1.5625rem;
   }
   .text-\[1\.5625rem\]\/\[2\.1875rem\] {
     font-size: 1.5625rem;
@@ -1274,6 +1293,18 @@
   .text-\[3\.75rem\]\/\[3\.75rem\] {
     font-size: 3.75rem;
     line-height: 3.75rem;
+  }
+  .text-\[13\.75px\]\/\[1\.25rem\] {
+    font-size: 13.75px;
+    line-height: 1.25rem;
+  }
+  .text-\[13\.75px\]\/\[1\.171875rem\] {
+    font-size: 13.75px;
+    line-height: 1.171875rem;
+  }
+  .text-\[16\.25px\]\/\[1\.40625rem\] {
+    font-size: 16.25px;
+    line-height: 1.40625rem;
   }
   .text-\[12\.5px\] {
     font-size: 12.5px;
@@ -1313,6 +1344,10 @@
   .leading-\[1\.5625rem\] {
     --tw-leading: 1.5625rem;
     line-height: 1.5625rem;
+  }
+  .leading-\[1\.09375rem\] {
+    --tw-leading: 1.09375rem;
+    line-height: 1.09375rem;
   }
   .leading-none {
     --tw-leading: 1;
@@ -3651,8 +3686,45 @@
       border-color: color-mix(in oklab, var(--color-white, #fff) 10%, transparent);
     }
     background-image: linear-gradient(135deg,rgba(15,23,42,0.95),rgba(15,23,42,0.84));
-    padding-inline: 1.25rem;
     padding-block: 0.9375rem;
+  }
+  .bigscreen-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.25rem;
+  }
+  .bigscreen-brand {
+    display: flex;
+    min-width: calc(var(--spacing, 0.25rem) * 0);
+    align-items: center;
+    gap: 0.46875rem;
+    padding-inline: 1.25rem;
+  }
+  .bigscreen-brand-logo {
+    height: 3.75rem;
+    width: 3.75rem;
+    flex-shrink: 0;
+    -o-object-fit: contain;
+       object-fit: contain;
+  }
+  .bigscreen-status {
+    display: flex;
+    min-width: calc(var(--spacing, 0.25rem) * 0);
+    flex: 1;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.625rem;
+    padding-inline: 1.25rem;
+  }
+  .bigscreen-header-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.625rem;
+    padding-inline: 1.25rem;
   }
   .bigscreen-panel {
     display: flex;
@@ -3762,7 +3834,7 @@
   .bigscreen-agent-card {
     background-color: transparent;
     padding-inline: 0.9375rem;
-    padding-block: 0.625rem;
+    padding-block: 0.46875rem;
     transition-property: color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to, opacity, box-shadow, transform, translate, scale, rotate, filter, backdrop-filter, display, content-visibility, overlay, pointer-events;
     transition-timing-function: var(--tw-ease, var(--default-transition-timing-function, cubic-bezier(0.4, 0, 0.2, 1)));
     transition-duration: var(--tw-duration, var(--default-transition-duration, 150ms));
@@ -3780,6 +3852,7 @@
     @supports (color: color-mix(in lab, red, red)) {
       background-color: color-mix(in oklab, var(--color-emerald-400, oklch(76.5% 0.177 163.223)) 15%, transparent);
     }
+    box-shadow: inset 0 0 0 1.25px rgb(52 211 153 / 0.24);
   }
   .bigscreen-stat-card {
     border-bottom-style: var(--tw-border-style);
@@ -4661,6 +4734,23 @@
   }
   .map-bigscreen-layout {
     grid-template-columns: 275px minmax(0, 1fr) 287.5px;
+  }
+  @media (min-width: 1600px) {
+    .bigscreen-header {
+      display: grid;
+      grid-template-columns: 275px minmax(0, 1fr) auto;
+      gap: 0;
+    }
+    .bigscreen-brand {
+      height: 3.75rem;
+      border-right: 1.25px solid rgb(255 255 255 / 0.1);
+    }
+    .bigscreen-status {
+      padding-right: 0.625rem;
+    }
+    .bigscreen-header-actions {
+      padding-left: 0.625rem;
+    }
   }
   .map-replay-actions > * {
     flex: 0 0 auto;
@@ -6617,16 +6707,22 @@ var VrpScenarioComponentEntry = (() => {
       <template x-if="isBigScreenMode">
         <div class="flex flex-1 min-h-0 flex-col gap-0">
           <section class="bigscreen-band">
-            <div class="flex flex-wrap items-start justify-between gap-[1.25rem]">
-              <div class="min-w-0">
-                <div class="field-label text-white/70" x-text="t('map.bigScreen.title')"></div>
-                <div class="mt-[0.625rem] flex flex-wrap items-center gap-[0.625rem]">
-                  <span class="bigscreen-chip"><span class="material-symbols-rounded text-[20px]">schedule</span><span x-text="formattedSimulationTime()"></span></span>
-                  <span class="bigscreen-chip"><span class="material-symbols-rounded text-[20px]" x-text="playTimer ? 'pause_circle' : 'play_circle'"></span><span x-text="t(playTimer ? 'map.bigScreen.playingAtSpeed' : 'map.bigScreen.pausedAtSpeed', { speed: playbackSpeed })"></span></span>
-                  <span class="bigscreen-chip"><span class="material-symbols-rounded text-[20px]">groups</span><span x-text="t('map.bigScreen.visibleObjects', { visible: visibleAgentCount(), total: agents().length })"></span></span>
+            <div class="bigscreen-header">
+              <div class="bigscreen-brand">
+                <img src="assets/img/vrp-0-logo.png" alt="" aria-hidden="true" class="bigscreen-brand-logo">
+                <div class="min-w-0">
+                  <div class="truncate text-[1.1875rem]/[1.5625rem] font-semibold text-white">VRP-0</div>
+                  <div class="mt-[0.15625rem] truncate text-[13.75px]/[1.25rem] text-slate-400" x-text="t('map.bigScreen.title')"></div>
                 </div>
               </div>
-              <div class="flex flex-wrap items-center justify-end gap-[0.625rem]">
+
+              <div class="bigscreen-status">
+                <span class="bigscreen-chip"><span class="material-symbols-rounded text-[20px]">schedule</span><span x-text="formattedSimulationTime()"></span></span>
+                <span class="bigscreen-chip"><span class="material-symbols-rounded text-[20px]" x-text="playTimer ? 'pause_circle' : 'play_circle'"></span><span x-text="t(playTimer ? 'map.bigScreen.playingAtSpeed' : 'map.bigScreen.pausedAtSpeed', { speed: playbackSpeed })"></span></span>
+                <span class="bigscreen-chip"><span class="material-symbols-rounded text-[20px]">groups</span><span x-text="t('map.bigScreen.visibleObjects', { visible: visibleAgentCount(), total: agents().length })"></span></span>
+              </div>
+
+              <div class="bigscreen-header-actions">
                 <div class="inline-flex flex-wrap items-center gap-[0.625rem]">
                   <template x-if="currentFocusAgent()">
                     <span class="bigscreen-chip bigscreen-chip-highlight"><span class="material-symbols-rounded text-[20px]">person_pin_circle</span><span x-text="agentDisplayName(currentFocusAgent())"></span></span>
@@ -6653,9 +6749,9 @@ var VrpScenarioComponentEntry = (() => {
 
           <div class="map-bigscreen-layout grid flex-1 min-h-0 gap-0">
             <aside class="bigscreen-panel min-h-0 border-r-[1.25px] border-white/10">
-              <div class="border-b-[1.25px] border-white/10 px-[1.25rem] py-[1.25rem]">
-                <div class="field-label text-white/70" x-text="t('map.bigScreen.quickSwitch')"></div>
-                <div class="mt-[0.625rem] text-[1.09375rem]/[1.5625rem] text-slate-300" x-text="t('map.bigScreen.quickSwitchDescription')"></div>
+              <div class="border-b-[1.25px] border-white/10 px-[0.9375rem] py-[0.9375rem]">
+                <div class="field-label text-[13.75px]/[1.171875rem] text-white/70" x-text="t('map.bigScreen.quickSwitch')"></div>
+                <div class="mt-[0.3125rem] text-[0.9375rem]/[1.40625rem] text-slate-300" x-text="t('map.bigScreen.quickSwitchDescription')"></div>
               </div>
               <div class="panel-scroll px-0 py-0">
                 <template x-if="!agents().length">
@@ -6674,25 +6770,27 @@ var VrpScenarioComponentEntry = (() => {
                         type="button"
                         class="bigscreen-agent-card w-full text-left"
                         :class="isFocused(agent.id) ? 'bigscreen-agent-card-active' : ''"
-                        @mouseenter="showBusinessIdTooltip(agent.id, $event)"
-                        @mouseleave="hideBusinessIdTooltip(agent.id)"
                         @click="selectBigScreenAgent(agent.id)"
                       >
                         <div class="flex items-start justify-between gap-[0.9375rem]">
                           <div class="min-w-0 flex-1">
-                            <div class="identifier-value text-[1.09375rem]/[1.5625rem] font-semibold text-white" x-text="agentDisplayName(agent)"></div>
-                            <div class="identifier-value mt-[0.3125rem] font-mono text-[13.75px] text-slate-400" x-text="agent.id"></div>
+                            <div class="identifier-value text-[16.25px]/[1.40625rem] font-semibold text-white" x-text="agentDisplayName(agent)"></div>
+                            <span class="sr-only" x-text="agent.id"></span>
                           </div>
-                          <span class="shrink-0 whitespace-nowrap rounded-[12498.75px] px-[0.46875rem] py-[0.15625rem] text-[13.75px] font-medium leading-[1.25rem]" :class="agentStatusClass(agent)" x-text="agentStatusLabel(agent)"></span>
+                          <span class="shrink-0 whitespace-nowrap rounded-[12498.75px] px-[0.46875rem] py-[0.15625rem] text-[12.5px] font-medium leading-[1.09375rem]" :class="agentStatusClass(agent)" x-text="agentStatusLabel(agent)"></span>
                         </div>
-                        <div class="mt-[0.9375rem] grid w-full min-w-0 gap-[0.625rem] overflow-hidden text-[0.9375rem]/[1.25rem] text-slate-300">
+                        <div class="mt-[0.46875rem] grid w-full min-w-0 gap-[0.3125rem] overflow-hidden text-[13.75px]/[1.171875rem] text-slate-300">
                           <div class="min-w-0">
-                            <div class="field-label text-white/45" x-text="t('map.currentTask')"></div>
-                            <div class="mt-[0.3125rem] truncate text-[1.09375rem]/[1.5625rem] text-white" x-text="currentStateLabel(currentState(agent).current)"></div>
+                            <div class="field-label text-[13.75px]/[1.171875rem] text-white/45" x-text="t('map.currentTask')"></div>
+                            <div class="truncate text-[0.9375rem]/[1.25rem] text-white" x-text="currentStateLabel(currentState(agent).current)"></div>
                           </div>
                           <div class="min-w-0">
-                            <div class="field-label text-white/45" x-text="t('map.nextTask')"></div>
-                            <div class="mt-[0.3125rem] truncate text-[1.09375rem]/[1.5625rem] text-white" x-text="currentStateLabel(currentState(agent).next)"></div>
+                            <div class="field-label text-[13.75px]/[1.171875rem] text-white/45" x-text="t('map.nextTask')"></div>
+                            <div
+                              class="truncate text-[0.9375rem]/[1.25rem] text-white"
+                              :class="jumpableNextTicketId(agent) ? 'font-mono text-[13.75px] tabular-nums' : ''"
+                              x-text="currentStateLabel(currentState(agent).next)"
+                            ></div>
                           </div>
                         </div>
                       </button>
@@ -16366,7 +16464,7 @@ var VrpScenarioComponentEntry = (() => {
       "map.normalDisplay": "Normal display",
       "map.currentTask": "Current task",
       "map.nextTask": "Next task",
-      "map.bigScreen.title": "Solver job map \xB7 Big-screen mode",
+      "map.bigScreen.title": "Job map \xB7 Big screen",
       "map.bigScreen.playingAtSpeed": "Playing at {speed}x",
       "map.bigScreen.pausedAtSpeed": "Paused at {speed}x",
       "map.bigScreen.visibleObjects": "Visible objects {visible} / {total}",
