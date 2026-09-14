@@ -198,6 +198,81 @@ test("English locale renders semantic Host and Scenario UI copy without rebuildi
   expect(leaked).toEqual([]);
 });
 
+test("all scenario table headers follow English and Chinese locale changes", async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("vrp0.engine.locale", "en-US"));
+  await page.goto(`${baseUrl}/static/index.html#/scenario`);
+  const component = page.locator("vrp-scenario-ui-vrp0");
+  await expect(component.locator('[data-adaptive-table="depos"]')).toBeVisible();
+  const tables = [
+    {
+      id: "depos", tabs: ["Depots", "仓库"],
+      en: ["ID", "Name", "Coordinate", "Address", "City", "Actions"],
+      zh: ["ID", "名称", "坐标", "地址", "城市", "操作"]
+    },
+    {
+      id: "agents", tabs: ["Vehicles / technicians", "车辆/工程师"],
+      en: ["ID", "Date", "Name", "Coordinate", "Initial address", "City", "Skills", "Load weight (t)", "Volume capacity (m³)", "Vehicle type", "Fuel type", "Fuel / electricity consumption", "Leased", "Daily fixed cost", "Start time", "End time", "Assigned tickets", "Actions"],
+      zh: ["ID", "日期", "名称", "坐标", "初始地址", "城市", "技能", "载重（吨）", "容积（m³）", "车辆类型", "燃料类型", "油耗/电耗", "租用", "每日出车费", "开始时间", "结束时间", "已分配工单", "操作"]
+    },
+    {
+      id: "tickets", tabs: ["Tickets", "工单"],
+      en: ["ID", "Type", "Coordinate", "Customer address", "City", "Skills", "Previous ticket", "Next ticket", "Weight (t)", "Volume (m³)", "Earliest start", "Latest end", "Service duration", "Assigned technician", "Arrival time", "Actions"],
+      zh: ["ID", "类型", "坐标", "客户地址", "城市", "技能", "上一级工单", "下一级工单", "重量（吨）", "体积（m³）", "最早开始", "最晚结束", "服务时长", "分配工程师", "到达时间", "操作"]
+    },
+    {
+      id: "skus", tabs: ["SKU", "SKU"],
+      en: ["ID", "Name", "Weight (t)", "Volume (m³)", "Actions"],
+      zh: ["ID", "名称", "重量（吨）", "体积（m³）", "操作"]
+    },
+    {
+      id: "constraints", tabs: ["Scenario constraints", "场景约束"],
+      en: ["Constraint key", "Description", "Hard", "Medium", "Soft"],
+      zh: ["约束键", "说明", "Hard", "Medium", "Soft"]
+    }
+  ];
+  const originalComponent = await component.elementHandle();
+  for (const locale of ["en-US", "zh-CN", "en-US"]) {
+    await page.selectOption("#engine-locale", locale);
+    for (const table of tables) {
+      await component.getByRole("button", { name: table.tabs[locale === "en-US" ? 0 : 1], exact: true }).click();
+      const renderedTable = component.locator(`[data-adaptive-table="${table.id}"]`);
+      await expect(renderedTable).toBeVisible();
+      await expect(renderedTable.locator("thead th")).toHaveText(locale === "en-US" ? table.en : table.zh);
+    }
+    expect(await component.evaluate((element, original) => element === original, originalComponent)).toBe(true);
+  }
+});
+
+test("address resolution buttons translate in preview and editing modes across locale changes", async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("vrp0.engine.locale", "en-US"));
+  await page.goto(`${baseUrl}/static/index.html#/scenario`);
+  const component = page.locator("vrp-scenario-ui-vrp0");
+  const tables = [
+    { id: "depos", tabs: ["Depots", "仓库"], labels: ["Resolve address", "地址解析"] },
+    { id: "agents", tabs: ["Vehicles / technicians", "车辆/工程师"], labels: ["Resolve", "解析"] },
+    { id: "tickets", tabs: ["Tickets", "工单"], labels: ["Resolve", "解析"] }
+  ];
+  for (const locale of ["en-US", "zh-CN", "en-US"]) {
+    await page.selectOption("#engine-locale", locale);
+    const languageIndex = locale === "en-US" ? 0 : 1;
+    for (const table of tables) {
+      await component.getByRole("button", { name: table.tabs[languageIndex], exact: true }).click();
+      const renderedTable = component.locator(`[data-adaptive-table="${table.id}"]`);
+      if (await renderedTable.locator("tbody tr").count() === 0) {
+        await component.getByRole("button", { name: /Add row|新增行/ }).click();
+      }
+      const resolveButton = renderedTable.getByRole("button", { name: table.labels[languageIndex], exact: true });
+      await expect(resolveButton).toHaveCount(1);
+      await expect(resolveButton).toBeVisible();
+      await renderedTable.locator(".table-location-address-button").click();
+      const editor = renderedTable.locator(".table-cell-editor-shell.table-location-cell");
+      await expect(editor.getByRole("button", { name: table.labels[languageIndex], exact: true })).toBeVisible();
+      await editor.locator("input").press("Escape");
+      await expect(resolveButton).toBeVisible();
+    }
+  }
+});
+
 test("scenario toolbar orders workflow actions and keeps descriptions subdued", async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem("vrp0.engine.locale", "en-US"));
   await page.goto(`${baseUrl}/static/index.html#/scenario`);

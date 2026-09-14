@@ -96,6 +96,41 @@ test("semantic Engine and Scenario catalogs stay complete and never use a Chines
   assert.equal(catalog.t("missing.key"), "Text unavailable");
 });
 
+test("scenario table headers use complete semantic translations instead of source-text matching", async () => {
+  const scenario = fs.readFileSync(path.resolve(staticRoot, "pages/scenario-detail.html"), "utf8");
+  const { COMPONENT_MESSAGES } = await loadModule("assets/js/i18n/scenario-component-i18n.js");
+  const tableHeads = [...scenario.matchAll(/<thead>([\s\S]*?)<\/thead>/g)];
+  assert.equal(tableHeads.length, 5);
+  for (const [, tableHead] of tableHeads) {
+    for (const [header, attributes, label] of tableHead.matchAll(/<th\b([^>]*)>([\s\S]*?)<\/th>/g)) {
+      if (["ID", "Hard", "Medium", "Soft"].includes(label)) continue;
+      const key = attributes.match(/x-text="t\('([^']+)'\)"/)?.[1];
+      assert.ok(key, `Header must use a semantic key: ${header}`);
+      assert.ok(COMPONENT_MESSAGES["zh-CN"][key], `Missing Chinese header: ${key}`);
+      assert.ok(COMPONENT_MESSAGES["en-US"][key], `Missing English header: ${key}`);
+      assert.doesNotMatch(COMPONENT_MESSAGES["en-US"][key], /[\u3400-\u9fff]/);
+    }
+  }
+});
+
+test("address resolution buttons use semantic copy in preview and editing modes", async () => {
+  const scenario = fs.readFileSync(path.resolve(staticRoot, "pages/scenario-detail.html"), "utf8");
+  const { createScenarioComponentI18n } = await loadModule("assets/js/i18n/scenario-component-i18n.js");
+  const buttons = [...scenario.matchAll(/<button\b[^>]*@click="lookupPoiForCell\('([^']+)'[^>]*>[\s\S]*?<\/button>/g)];
+  assert.equal(buttons.length, 6);
+  for (const [button, tab] of buttons) {
+    const key = tab === "depos" ? "scenario.resolveAddress" : "scenario.resolve";
+    assert.ok(button.includes(`x-text="t('${key}')"`), `Missing semantic resolution button: ${tab}`);
+  }
+  for (const [locale, expected] of [
+    ["zh-CN", ["解析", "地址解析", "解析中", "解析失败"]],
+    ["en-US", ["Resolve", "Resolve address", "Resolving", "Resolution failed"]]
+  ]) {
+    const i18n = createScenarioComponentI18n(locale, null);
+    assert.deepEqual(["scenario.resolve", "scenario.resolveAddress", "scenario.resolving", "scenario.resolutionFailed"].map((key) => i18n.t(key)), expected);
+  }
+});
+
 test("desktop navigation uses the VRP-0 logo as its only collapse control and the DFST purple highlight", () => {
   const index = fs.readFileSync(path.resolve(staticRoot, "index.html"), "utf8");
   const css = fs.readFileSync(path.resolve(staticRoot, "assets/css/style.css"), "utf8");
@@ -186,9 +221,9 @@ test("仓库、工程师和工单坐标位于地址列之前且支持直接编�
   const appCss = fs.readFileSync(path.resolve(staticRoot, "assets/css/style.css"), "utf8");
   const businessCss = fs.readFileSync(path.resolve(staticRoot, "assets/css/scenario-business.source.css"), "utf8");
   assert.match(scenario, /<table class="data-table data-table-adaptive" data-adaptive-table="depos" x-init="\$nextTick\(\(\) => fitAdaptiveTableColumns\('depos'\)\)">[\s\S]*?data-column-grow="2"[\s\S]*?data-column-min="11\.25rem" data-column-max="12\.5rem" style="width: 11\.25rem;">[\s\S]*?data-column-max="45rem" data-column-grow="4"/);
-  assert.match(scenario, /<thead><tr><th>ID<\/th><th>名称<\/th><th>坐标<\/th><th>地址<\/th>/);
-  assert.match(scenario, /<thead><tr><th>ID<\/th><th>日期<\/th><th>名称<\/th><th>坐标<\/th><th>初始地址<\/th>/);
-  assert.match(scenario, /<thead><tr><th>ID<\/th><th>类型<\/th><th>坐标<\/th><th>客户地址<\/th>/);
+  assert.match(scenario, /<thead><tr><th>ID<\/th><th x-text="t\('scenario\.field\.name'\)"><\/th><th x-text="t\('scenario\.field\.coordinate'\)"><\/th><th x-text="t\('scenario\.field\.address'\)"><\/th>/);
+  assert.match(scenario, /<thead><tr><th>ID<\/th><th x-text="t\('scenario\.field\.date'\)"><\/th><th x-text="t\('scenario\.field\.name'\)"><\/th><th x-text="t\('scenario\.field\.coordinate'\)"><\/th><th x-text="t\('scenario\.field\.initialAddress'\)"><\/th>/);
+  assert.match(scenario, /<thead><tr><th>ID<\/th><th x-text="t\('scenario\.field\.type'\)"><\/th><th x-text="t\('scenario\.field\.coordinate'\)"><\/th><th x-text="t\('scenario\.field\.customerAddress'\)"><\/th>/);
   assert.equal((scenario.match(/class="table-cell-button table-coordinate-cell ui-tooltip"/g) || []).length, 3);
   assert.equal((scenario.match(/beginCoordinateEdit\(/g) || []).length, 3);
   assert.equal((scenario.match(/scenario\.coordinateInputPlaceholder/g) || []).length, 6);
