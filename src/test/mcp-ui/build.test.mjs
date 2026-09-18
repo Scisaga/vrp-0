@@ -5,7 +5,7 @@ import { createRequire } from 'node:module';
 import test from 'node:test';
 
 const require = createRequire(new URL('../../main/resources/META-INF/resources/static/package.json', import.meta.url));
-const { exactOrigins, networkPolicyFromManifest, readNetworkPolicy, standaloneValidator, staticRoot, projectRoot } = require('./scripts/build-mcp-app.cjs');
+const { buildMcpApp, exactOrigins, networkPolicyFromManifest, readNetworkPolicy, standaloneValidator, staticRoot, projectRoot } = require('./scripts/build-mcp-app.cjs');
 const { verifyDocument, verifyInputs, verifyFirstPartySource } = require('./scripts/verify-mcp-app.cjs');
 const { build } = require('esbuild');
 const manifest = () => ({ mcp_ui: {
@@ -86,26 +86,56 @@ test('artifact verifier rejects external first-party dependencies, HTML handlers
   for (const change of changes) assert.throws(() => verifyDocument(change(document())));
 });
 
-test('inert SDK protocol strings and blocked capability probes are not confused with first-party execution', () => {
-  verifyDocument(document('const scheme="file://";try{new Function("")}catch{}'));
+test('Gateway dynamic-code scan rejects even caught capability probes in the final artifact', () => {
+  // Keep these expectations aligned with Gateway's literal, case-insensitive
+  // /\beval\s*\(|\bnew\s+Function\s*\(/i rule, not just executable paths.
+  for (const source of ['eval("payload")', 'new Function("")',
+    'try{new Function("")}catch{}', 'try{eval("")}catch{}',
+    'new\nFunction \t("")', 'EVAL \n ("payload")', 'new FUNCTION("")',
+    'const inert="new Function(";', '// eval("payload")']) {
+    assert.throws(() => verifyDocument(document(source)));
+  }
+  for (const source of ['const scheme="file://";', 'const evaluator = "plain text";',
+    'const Functionality = {};', 'const evaluation = "not dynamic code";']) {
+    verifyDocument(document(source));
+  }
+});
+
+test('first-party code cannot dynamically compile strings or embed credential literals', () => {
   verifyFirstPartySource('const browser_key = context.browser_key; element.textContent = label;');
   for (const value of ['eval("payload")', 'Function("payload")', 'new Function("payload")',
     'new AsyncFunction("payload")', 'const browser_key="synthetic-public-browser-key";',
     'const rest_key="synthetic-server-key";', 'const header="Bearer synthetic-token-value";']) {
     assert.throws(() => verifyFirstPartySource(value));
   }
-  // Actual no-unsafe-eval execution is a browser/CSP test, not this text check.
 });
 
-test('browser dependency closure excludes engine config, old runtime and Ajv compiler', () => {
+test('browser dependency closure excludes engine config, prebundled SDK, old runtime and Ajv compiler', () => {
   const nodeModules = path.relative(projectRoot, path.join(staticRoot,'node_modules')).replaceAll(path.sep,'/');
   verifyInputs(['mcp-contract:mcp-view-validator','mcp-contract:mcp-network-policy',
-    `${nodeModules}/ajv/dist/runtime/ucs2length.js`, `${nodeModules}/@modelcontextprotocol/ext-apps/dist/src/app-with-deps.js`]);
+    `${nodeModules}/ajv/dist/runtime/ucs2length.js`, `${nodeModules}/@modelcontextprotocol/ext-apps/dist/src/app.js`,
+    `${nodeModules}/@modelcontextprotocol/client/dist/client/index.js`, `${nodeModules}/zod/v4/core/core.js`]);
   for (const input of ['.env','src/main/resources/application.properties',
     'src/main/resources/META-INF/resources/static/assets/js/utils/api.js', 'mcp-contract:unknown',
+    `${nodeModules}/@modelcontextprotocol/ext-apps/dist/src/app-with-deps.js`,
+    `${nodeModules}/@modelcontextprotocol/ext-apps/dist/src/react/react-with-deps.js`,
+    `${nodeModules}/@modelcontextprotocol/client/node_modules/zod/v4/core/core.js`,
     `${nodeModules}/ajv/dist/2020.js`, `${nodeModules}/ajv/dist/compile/index.js`,
     `${nodeModules}/alpinejs/dist/module.esm.js`, `${nodeModules}/plotly.js/dist/plotly-basic.min.js`,
     `${nodeModules}/codemirror/dist/index.js`]) assert.throws(() => verifyInputs([input]));
+});
+
+test('actual browser bundle uses the ordinary SDK entry and one shared Zod v4 dependency', async () => {
+  const { html, inputs } = await buildMcpApp();
+  verifyDocument(html);
+  verifyInputs(inputs);
+  const nodeModules = path.relative(projectRoot, path.join(staticRoot,'node_modules')).replaceAll(path.sep,'/');
+  assert.ok(inputs.includes(`${nodeModules}/@modelcontextprotocol/ext-apps/dist/src/app.js`));
+  assert.ok(!inputs.some(input => /(?:app|react)-with-deps/.test(input)));
+  const zodInputs = inputs.filter(input => /(?:^|\/)zod\//.test(input));
+  assert.ok(zodInputs.length > 0);
+  assert.ok(zodInputs.every(input => input.startsWith(`${nodeModules}/zod/v4/`)),
+    'all SDK schemas and the pre-initialization config must share the same Zod v4 module instance');
 });
 
 test('canonical Ajv2020 standalone validator preserves strict shape, null holes and finite numbers', async () => {

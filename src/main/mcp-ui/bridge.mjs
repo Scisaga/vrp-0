@@ -98,7 +98,7 @@ export function readEnvelope(result, {
   return envelope;
 }
 
-const defaultApp = async () => (await import('@modelcontextprotocol/ext-apps/app-with-deps')).App;
+const defaultApp = async () => (await import('./sdk.mjs')).App;
 
 /**
  * Handlers are installed before connect. Each bridge owns its SDK instance,

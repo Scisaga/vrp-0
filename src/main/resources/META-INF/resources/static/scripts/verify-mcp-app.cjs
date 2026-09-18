@@ -14,6 +14,11 @@ function verifyDocument(html) {
   // scheme. Reject concrete file URLs, not that inert protocol schema string.
   assert(!/\/static\/|sourceMappingURL=|file:\/\/[^"'`\s]|-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/.test(html), "MCP App contains a first-party URL, debug source or private key");
   assert(!html.includes(projectRoot), "MCP App cannot expose build machine paths");
+  // Mirror Gateway's import-time check over the entire artifact, including
+  // caught third-party capability probes. CSP runtime fallback is not enough.
+  // This heuristic is not a JavaScript security proof: browser tests also
+  // require zero dynamic-compilation attempts before and after SDK startup.
+  assert(!/\beval\s*\(|\bnew\s+Function\s*\(/i.test(html), "MCP App fails Gateway dynamic-code policy (MCP_UI_HTML_UNSAFE)");
 
   const scripts = [...html.matchAll(/<script\b([^>]*)>[\s\S]*?<\/script\s*>/gi)];
   const styles = [...html.matchAll(/<style\b([^>]*)>[\s\S]*?<\/style\s*>/gi)];
@@ -45,6 +50,8 @@ function verifyInputs(inputs) {
     assert(!/(?:^|\/)(?:\.env(?:\.[^/]*)?|application\.properties)$/.test(normalized), "Credential/configuration files must not enter the browser bundle");
     if (normalized.startsWith(dependencyPrefix)) {
       const dependency = normalized.slice(dependencyPrefix.length);
+      assert(!/^@modelcontextprotocol\/ext-apps\/.*(?:app|react)-with-deps\./.test(dependency), "MCP SDK must share the preconfigured Zod instance, not embed one via with-deps");
+      assert(!/(?:^|\/)node_modules\/zod\//.test(dependency), "MCP SDK must not load a nested, separately configured Zod instance");
       assert(!/^(?:alpinejs(?:-web-components)?|plotly\.js|codemirror|@codemirror|lightweight-charts)\//.test(dependency), "MCP App must not import the legacy UI's runtime dependencies");
       assert(!dependency.startsWith("ajv/") || dependency.startsWith("ajv/dist/runtime/"), "Only standalone Ajv runtime helpers, not the schema compiler, may enter the browser bundle");
     }
@@ -68,9 +75,6 @@ async function verify() {
   assert.equal(fs.readFileSync(outputFile, "utf8"), first.html, "mcp-app.html is stale; run npm run build:mcp-app");
   verifyDocument(first.html);
   verifyInputs(first.inputs);
-  // Third-party SDK bundles contain a blocked/caught Function capability probe.
-  // Do not reject that text or relax CSP: the browser tests enforce that no
-  // dynamic code executes under the actual strict host policy.
   console.log("[verify:mcp-app] deterministic, self-contained artifact and manifest checks passed (no files written)");
 }
 

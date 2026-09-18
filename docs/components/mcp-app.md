@@ -15,6 +15,7 @@
 | [`src/main/mcp-ui/`](../../src/main/mcp-ui/) | 独立页面模板、样式、词典、原生 DOM 入口、View 桥、模型及地图适配；不导入官网 Controller 或 Scenario Runtime |
 | [`model.mjs`](../../src/main/mcp-ui/model.mjs) | canonical 模型的标量校验、只读索引、计数、回放资格和规划位置纯函数；不做原始归档投影 |
 | [`bridge.mjs`](../../src/main/mcp-ui/bridge.mjs) | 官方 MCP Apps SDK 连接、宿主通知、只读刷新、全屏请求、尺寸通知、取消和销毁 |
+| [`sdk.mjs`](../../src/main/mcp-ui/sdk.mjs) / [`sdk-config.mjs`](../../src/main/mcp-ui/sdk-config.mjs) | 使用 SDK 普通入口及共享 Zod，在 SDK 模块初始化前关闭 JIT；不使用内嵌另一份 Zod 的 `app-with-deps` |
 | [`maps.mjs`](../../src/main/mcp-ui/maps.mjs) | AMAP/HERE 原生适配、公开坐标与路线覆盖物、加载错误和生命周期 |
 | [`gateway/image-version.yaml`](../../gateway/image-version.yaml) 的 `mcp_ui` | 固定契约标识、视图与显示模式、待审核精确网络来源；也是构建期网络策略的唯一输入 |
 | [`build-mcp-app.cjs`](../../src/main/resources/META-INF/resources/static/scripts/build-mcp-app.cjs) | 构建期 Tailwind、esbuild 与 Ajv standalone，生成 `static/mcp-app.html` |
@@ -24,6 +25,10 @@
 构建目标是 `src/main/resources/META-INF/resources/static/mcp-app.html`，与 `scenario.html` 位于同一静态资源目录、随同一引擎版本交付，但它是包含 `html/head/body` 的完整 UTF-8 文档，不是 `<script export>` 组件片段。第一方 JavaScript、样式、语言包、图标和 View 桥均内联；浏览器不请求官网第一方静态路径、远程字体或第一方 CDN。图商 SDK 与地图资源是单独申报的外部依赖。
 
 依赖及锁文件沿用 `src/main/resources/META-INF/resources/static/package.json` 和 `package-lock.json`。Node 只参与安装、构建和测试，不成为引擎部署运行依赖。Schema 在构建期编译为静态校验函数，浏览器不执行 Ajv 编译；第一方代码不使用 `eval`、`Function` 或运行时模板编译，View 桥禁止 SDK 动态求值，不为第三方能力探测放宽 CSP。
+
+View 使用官方 `@modelcontextprotocol/ext-apps@2.0.0` 普通入口，与锁定的 Zod 4.6.5 共用同一实例；独立配置模块先执行 `config({ jitless: true })`，随后才初始化 SDK 依赖，App 构造时仍显式设置 `allowUnsafeEval:false`、`strict:true`。只在 App 构造时关闭 JIT 不足以阻止预打包 `app-with-deps` 内旧 Zod 的导入期探测，因此构建依赖检查拒绝该入口。
+
+产物校验对整份 HTML 执行与当前 Gateway 相同的 `eval` / `new Function` 静态拒绝规则，不再豁免被 `catch` 捕获的能力探测。静态扫描不是任意 JavaScript 的安全证明；浏览器回归还需在应用脚本执行前监测动态编译调用与 CSP 事件，要求 SDK 初始化、收发和销毁均无此类调用，不能依靠换调用形式躲过扫描。该检查不代表真实 Gateway 导入、授权和地图联网审核已通过。
 
 构建使用 esbuild `drop: ["console"]` 移除随页面打包的应用代码和 MCP Apps SDK 的 console 调用，产物校验进一步拒绝此类日志入口，避免协议 payload、公开地图配置和业务数据进入应用/桥的日志。这不等于清理浏览器 DevTools 的网络记录、CSP 原生诊断，也不控制运行时加载的外部图商脚本。
 
@@ -120,7 +125,7 @@ Gateway 按其独立 MCP 导入状态审核 HTML、契约和网络策略；`pend
 
 ## 7. 验证记录与未验证项
 
-以下为 2026-09-18 的本轮最终本地记录：MCP 专项构建、测试和模拟验收通过；旧页面浏览器及 JVM 稳定门禁仍有经原始 HEAD 对照确认的基线失败，不能宣称全部门禁通过。相关命令、覆盖分层及离线 fixtures 见[测试说明](../operations/testing.md)，功能覆盖见[覆盖清单](../testing/coverage-inventory.md)。
+以下为 2026-09-18 首轮实现的本地记录，SDK 导入期探测修复后的专项结果另见 §7.1：MCP 专项构建、测试和模拟验收通过；旧页面浏览器及 JVM 稳定门禁仍有经原始 HEAD 对照确认的基线失败，不能宣称全部门禁通过。相关命令、覆盖分层及离线 fixtures 见[测试说明](../operations/testing.md)，功能覆盖见[覆盖清单](../testing/coverage-inventory.md)。
 
 | 验证项 | 本轮结果 |
 | --- | --- |
@@ -132,10 +137,18 @@ Gateway 按其独立 MCP 导入状态审核 HTML、契约和网络策略；`pend
 | 旧 CSS/Scenario 构建与产物校验 | 已通过 |
 | 前端依赖安装 | 独立临时目录执行 `npm ci --include=dev --offline` 成功，安装 353 个包；依赖树仅有 esbuild 0.25.12 |
 | MCP 构建与产物校验 | `build:mcp-app` / `verify:mcp-app` 通过，两次构建字节一致；单文件 HTML 为 546258 字节 |
-| JVM 产物打包 | 隔离工作区执行 `./gradlew quarkusBuild -x test --offline --no-daemon` 成功；JAR 内 `META-INF/resources/static/mcp-app.html` 与当前源产物字节一致，全部 `quarkus-app` JAR 均无 `static/node_modules` |
+| JVM 产物打包 | 隔离工作区执行 `./gradlew quarkusBuild -x test --offline --no-daemon` 成功；JAR 内 `META-INF/resources/static/mcp-app.html` 与当次源产物字节一致，全部 `quarkus-app` JAR 均无 `static/node_modules` |
 | 旧页面浏览器 | 19 项通过、1 项失败；`visual density` 的 `quotaHeaderBottom` 期望 0、实际 1，已在 `git archive HEAD` 创建的隔离基线中复现，记为既有基线失败，不为本次任务修改旧页面 |
 | JVM `allStableTest` | Unit 138/138 通过；App 60/75 通过、15 项失败。当前代码与原始 HEAD 在相同无 `.env`、无地图密钥的隔离环境运行，XML 中失败方法集合完全一致；稳定门禁未通过 |
 
 JVM 对照使用 `allStableTest --offline --no-daemon`，在去除本地环境影响的独立工作区执行。上述 App 失败涉及已有场景 build 和 MCP 测试的地图依赖，在 AMAP 未启用/占位 key 条件下复现；原始 HEAD 对照支持其为既有环境基线限制，不把配置覆盖或跳过测试当作稳定门禁通过。打包时的 `-x test` 仅验证产物交付，不替代测试门禁。
 
 真实 Gateway 导入/鉴权/资源身份、AMAP 后续来源完整性、公开 key 限制、HERE worker/WASM 和四个真实客户端的版本及行为均为**未验证**。模拟宿主、SDK 替身与离线 fixtures 只能证明本仓对应路径，不能替代这些联合验收。
+
+### 7.1 SDK 导入期动态编译探测修复
+
+首轮只验证了严格 CSP 下页面仍可运行，未覆盖 Gateway 对整份 HTML 的动态代码静态拒绝规则；旧 `app-with-deps` 中被捕获的探测仍会导致导入拒绝。本次改为共享 Zod、初始化前关闭 JIT，并取消产物扫描中的探测豁免，不修改 Gateway 或放宽 CSP。
+
+本次专项复验：Python 契约 **17/17**、MCP Node **122/122**、模拟宿主 Chromium **32/32**、旧页面 Node **110/110** 全部通过；`verify:scenario`、`build:mcp-app` 和 `verify:mcp-app` 通过。新 HTML 为 **667006 字节**，构建可重复，Gateway 同款动态代码正则匹配为零。运行时监测确认 SDK 初始化、消息收发、刷新与销毁全程 `Function` / `eval` 调用为零；独立负向控制能够识别被捕获的探测，原生 CSP 禁止动态求值的自测仍通过。
+
+上游库中未执行的编译实现不等于已从依赖源码删除；保证的是配置与执行路径禁用探测/JIT，并由静态与运行时回归共同验证。本次未重跑 JVM 和旧页面浏览器门禁，上表仍为首轮结果；真实 Gateway 导入及外部联调继续列为未验证，不因这次静态规则复验而改变状态。

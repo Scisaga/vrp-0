@@ -24,7 +24,7 @@ window.host={cards,
   request(id,method,params={}){const requestId=++nextId;send(cards.get(id),{jsonrpc:'2.0',id:requestId,method,params});return requestId},
   spoof(id,result){const frame=document.createElement('iframe');frame.name='rogue';frame.style.display='none';frame.srcdoc='<script>addEventListener("message",event=>{parent.frames[event.data.target].postMessage({jsonrpc:"2.0",method:"ui/notifications/tool-result",params:event.data.result},"*")})<\\/script>';frame.onload=()=>frame.contentWindow.postMessage({target:id,result},'*');document.body.append(frame)},
 };
-addEventListener('message',event=>{const card=[...cards.values()].find(item=>item.frame.contentWindow===event.source);if(!card||event.data?.jsonrpc!=='2.0')return;const data=event.data;card.wire.push(data);
+addEventListener('message',event=>{const card=[...cards.values()].find(item=>item.frame.contentWindow===event.source);if(!card)return;if(event.data?.mcpTestDynamicCode){card.dynamicCode=event.data.mcpTestDynamicCode;return}if(event.data?.jsonrpc!=='2.0')return;const data=event.data;card.wire.push(data);
 if(data.method==='ui/initialize'){send(card,{jsonrpc:'2.0',id:data.id,result:{protocolVersion:card.initProtocolOverride||data.params.protocolVersion,hostInfo:{name:'synthetic-host',version:'1'},hostCapabilities:{serverTools:{}},hostContext:card.context}})}
 else if(data.method==='ui/notifications/initialized'){card.initialized=true;if(card.initial!==false){send(card,{jsonrpc:'2.0',method:'ui/notifications/tool-input',params:{arguments:card.input}});if(card.result)send(card,{jsonrpc:'2.0',method:'ui/notifications/tool-result',params:card.result})}}
 else if(data.method==='tools/call'){card.pending.push(data)}
@@ -33,7 +33,39 @@ else if(data.id!==undefined&&(!data.method)){card.acks.push(data)}
 });
 </script></body></html>`;
 
-export async function openHost(page, { mapFailure=false, mapCsp=false, probeCsp=false }={}) {
+// This script must execute through the HTML parser, before any application
+// module initializes. CDP/page.evaluate can bypass CSP and is not evidence of
+// browser enforcement. Throw rather than delegating so even caught capability
+// probes are counted without ever executing their requested source strings.
+const dynamicCodeMonitor = `<script>
+window.__dynamicCodeAttempts={Function:0,eval:0};
+window.__appEvalViolations=[];
+window.__publishDynamicCodeState=()=>parent.postMessage({mcpTestDynamicCode:{
+  attempts:window.__dynamicCodeAttempts,violations:window.__appEvalViolations,
+  caught:window.__caughtDynamicCodeProbe??null,executed:window.__unexpectedDynamicExecution===true
+}},'*');
+document.addEventListener('securitypolicyviolation',event=>{
+  if(event.blockedURI==='eval'){
+    window.__appEvalViolations.push({directive:event.effectiveDirective,blocked:event.blockedURI});
+    window.__publishDynamicCodeState();
+  }
+});
+for(const name of ['Function','eval']){
+  const blocked=()=>{window.__dynamicCodeAttempts[name]++;window.__publishDynamicCodeState();throw new EvalError('Test monitor blocked dynamic compilation')};
+  window[name]=new Proxy(window[name],{apply:blocked,construct:blocked});
+}
+window.__publishDynamicCodeState();
+</script>`;
+const caughtDynamicCodeProbe = `<script>
+window.__caughtDynamicCodeProbe={Function:false,eval:false};
+try{new Function('window.__unexpectedDynamicExecution=true')}catch{window.__caughtDynamicCodeProbe.Function=true}
+try{eval('window.__unexpectedDynamicExecution=true')}catch{window.__caughtDynamicCodeProbe.eval=true}
+window.__publishDynamicCodeState();
+</script>`;
+
+export async function openHost(page, { mapFailure=false, mapCsp=false, probeCsp=false, monitorDynamicCode=false, probeDynamicCode=false }={}) {
+  if (probeDynamicCode && !monitorDynamicCode) throw new Error('Dynamic-code negative control requires the parser-installed monitor');
+  if (probeCsp && monitorDynamicCode) throw new Error('Native CSP self-test must run separately from SDK zero-attempt monitoring');
   const logs=[];const errors=[];const requests=[];const unexpected=[];
   page.on('console',entry=>logs.push({type:entry.type(),text:entry.text(),location:entry.location()}));
   page.on('pageerror',error=>errors.push(error.message));
@@ -49,6 +81,7 @@ export async function openHost(page, { mapFailure=false, mapCsp=false, probeCsp=
       // A parser-executed test-only probe proves unsafe-eval is blocked. A script
       // appended by Playwright's debugger evaluate inherits its CSP bypass.
       if(probeCsp)body=body.replace('<head>','<head><script>try{new Function("window.__unsafeExecuted=true")()}catch{window.__unsafeEvalBlocked=true}</script>');
+      if(monitorDynamicCode)body=body.replace('<head>','<head>'+dynamicCodeMonitor+(probeDynamicCode?caughtDynamicCodeProbe:''));
       return route.fulfill({contentType:'text/html',body,headers:{'content-security-policy':mapCsp?STRICT_CSP.replace(' https://webapi.amap.com',''):STRICT_CSP}});
     }
     if(['https://webapi.amap.com','https://js.api.here.com'].includes(url.origin)){
@@ -73,6 +106,9 @@ export async function openHost(page, { mapFailure=false, mapCsp=false, probeCsp=
     respond:(id,index,result,error)=>page.evaluate(({id,index,result,error})=>window.host.respond(id,index,result,error),{id,index,result,error}),
     wire:(id)=>page.evaluate(id=>window.host.cards.get(id).wire,id),
     pending:(id)=>page.evaluate(id=>window.host.cards.get(id).pending,id),
+    // Read the parser monitor's postMessage snapshot in the uninstrumented
+    // parent realm: frame.evaluate itself invokes eval through Playwright.
+    dynamicCodeState:(id)=>page.evaluate(id=>window.host.cards.get(id).dynamicCode,id),
     async assertHealthy(){
       expect(errors).toEqual([]);expect(unexpected).toEqual([]);
       // Browser-generated CSP diagnostics necessarily quote the blocked public

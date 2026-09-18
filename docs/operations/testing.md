@@ -176,10 +176,12 @@ Node 测试需要可执行的 `python3`：模型 fixture helper 以 `python3 -B`
 | 模型 Node | 人工 fixtures 与 Python 分析 parity；不变异、`null`/空集合、完整 ID、双向归属、标量语义、业务时区轴、回放资格、阶段边界、吸附原折线、跨经度与合成大向量 |
 | View 桥 Node | 官方 SDK 边界替身；先注册处理器再连接、结果身份、白名单错误映射、只读工具名、显式刷新、输入/通知竞态、取消、长 ID、显示模式与 teardown |
 | 地图 Node | AMAP/HERE 上下文及 URL 策略、原段位/坐标轴/几何、不可播放来源、缺失数据、纯文本 marker、AMAP complete 超时、HERE 样式错误、覆盖物与实例释放 |
-| 构建 Node 与产物校验 | manifest 字段/精确 origin、Ajv standalone、第一方依赖闭包、HTML/CSS/JS 自包含、敏感信息/动态编译禁用、确定性与过期产物 |
+| 构建 Node 与产物校验 | manifest 字段/精确 origin、Ajv standalone、第一方依赖闭包、共享 Zod/拒绝 SDK with-deps、HTML/CSS/JS 自包含、敏感信息、Gateway 同款动态代码静态拒绝规则、确定性与过期产物 |
 | 模拟浏览器 | 使用真实构建 HTML 与官方 View SDK，在模拟宿主和图商 SDK 替身中检查布局、选择、显式刷新、地图/Gantt、全屏、回放、安全降级、实例隔离和生命周期；具体执行结果见当次记录 |
 
 浏览器测试以不同合成 origin 的宿主与 App iframe 运行，iframe 使用 `sandbox="allow-scripts"`，不授予同源权限。测试 CSP 禁止普通 `unsafe-eval`，并通过路由拦截提供合成宿主页面及 AMAP/HERE SDK 替身，未知请求中止；不请求真实瓦片、读取 `.env` 或使用真实 key。此配置验证第一方/桥的受限执行，不证明 HERE 真实 worker/WASM 或图商鉴权可用。
+
+SDK 安全回归在最终 HTML 的应用脚本之前，用 parser 执行的测试脚本监测 `Function` / `eval` 调用和 CSP 动态求值违规，覆盖初始化、通知、只读刷新及 teardown，要求调用次数为零；不能仅以异常被捕获或页面仍可用作为通过条件。独立负向控制验证监测能发现被 `catch` 吞掉的探测，宿主 CSP 禁止动态求值的自测与 SDK 零调用断言分开。产物静态规则与运行时断言都不替代真实 Gateway 导入审核。
 
 模拟测试使用 `playwright.config.mjs`，失败 trace/截图写入 `/tmp/vrp0-mcp-ui-playwright`，不进入业务目录或仓库。测试不向产品新增调试 wire 字段，也不把图商替身放入生产构建。CSP 错误、地图失败与数据/授权失败需分别断言；认证或权限失败应检查已渲染文本和视图缓存已清除，而非只检查错误横幅。地图替身覆盖 AMAP complete 超时及 HERE 样式错误/监听解除，但不能证明真实 SDK 的所有瓦片或 HTTP 401 失败都能被观测，具体检测边界见[地图与安全降级](../components/mcp-app.md#5-地图网络与安全降级)。
 

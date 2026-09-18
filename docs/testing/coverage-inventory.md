@@ -79,8 +79,8 @@ Script 测试当前覆盖 `devctl.sh` 的运行环境隔离、`.env` 加载、�
 | `model.test.mjs` | 从人工 canonical goldens 导出的 JavaScript/Python 分析 parity；标量、空集合与未知集合、实体身份、归属、不可播放原因、不变异；无时区业务轴、日历/DST/早期年份与 Java Duration 边界；回放阶段、零距离、零时长、无返程、吸附原几何、跨经度和合成大数据 |
 | `bridge.test.mjs` | 协议处理器注册/连接时序、版本化只读工具调用、外层身份与错误分支、显式刷新、迟到响应、输入和通知覆盖、取消、长 ID、宿主显示模式及资源清理 |
 | `maps.test.mjs` | provider/URL/origin 防错、历史 LOC 转换、原路线索引、路线来源区分、坏几何整段不可用、POI 缺失、纯文本标记、AMAP complete 超时、HERE 样式错误/监听解除及覆盖物生命周期 |
-| `build.test.mjs` 与 `verify:mcp-app` | 严格 manifest 与精确 HTTPS origin、无隐式批准、standalone Schema 校验、浏览器依赖闭包、第一方代码约束、单文件产物、确定性和过期检测 |
-| `bridge.spec.mjs` | Chromium 中生产内联 HTML/官方 SDK 的握手、无普通动态求值 CSP、非父窗口消息拒绝、协议/身份校验、刷新竞态、取消恢复、长 ID、全屏拒绝、teardown ACK、双卡隔离和认证/权限失败清理 |
+| `build.test.mjs` 与 `verify:mcp-app` | 严格 manifest 与精确 HTTPS origin、无隐式批准、standalone Schema 校验、浏览器依赖闭包及拒绝 SDK with-deps/嵌套 Zod、第一方代码约束、Gateway 同款动态代码拒绝规则（不豁免被捕获探测）、单文件产物、确定性和过期检测 |
+| `bridge.spec.mjs` | Chromium 中生产内联 HTML/官方 SDK 的握手、严格 CSP 与初始化/收发/刷新/销毁全过程动态编译零调用、探测监测负向控制、非父窗口消息拒绝、协议/身份校验、刷新竞态、取消恢复、长 ID、全屏拒绝、teardown ACK、双卡隔离和认证/权限失败清理 |
 | `viewer.spec.mjs` | AMAP/HERE SDK 替身中的选择与工单联动、HERE 克隆事件及原几何、规划回放边界/暂停和静态覆盖物复用、地图策略失败保留 Gantt、AMAP complete 超时/HERE 样式错误、SDK 延迟加载与刷新竞态、窄屏/主题/语言/键盘、XSS、已知空/未知集合、Gateway 非就绪/终态无模型展示、不可播放向量与合成大数据 |
 | `edge-cases.spec.mjs` | 部分工程师可播放、缺失引用原序号、零时长服务/零距离段、同任务刷新保留选择/视角/游标、Gantt 滚动保持、浏览器时区/DST 一致、失败手动重试不轮询、缺失工程师与窄屏键盘焦点 |
 

@@ -9,7 +9,37 @@ test('official SDK handshake uses isolated iframe, strict CSP and no payload log
   await expect(page.locator('#card')).toHaveAttribute('sandbox','allow-scripts');
   expect(await frame.evaluate(()=>self.origin)).toBe('null');
   expect(await frame.evaluate(()=>({blocked:window.__unsafeEvalBlocked,executed:window.__unsafeExecuted===true}))).toEqual({blocked:true,executed:false});
+  await expect.poll(()=>frame.evaluate(()=>window.__violations.filter(item=>item.blocked==='eval').length)).toBe(1);
   expect((await host.wire('card')).some(item=>['ui/message','ui/update-model-context'].includes(item.method))).toBe(false);
+  await host.assertHealthy();
+});
+
+test('final artifact never calls Function or eval during SDK initialization, messaging, refresh or teardown',async({page})=>{
+  const host=await openHost(page,{monitorDynamicCode:true});const frame=await host.add();await mapReady(frame);
+  const assertNoDynamicCode=async()=>{
+    expect(await host.dynamicCodeState('card')).toEqual({attempts:{Function:0,eval:0},violations:[],caught:null,executed:false});
+  };
+  await assertNoDynamicCode();
+  const updated=message();updated._meta.gateway_ui.engine_view.solver_job.name='无动态编译的结果通知';
+  await host.result('card',updated);await expect(frame.locator('#task-title')).toHaveText('无动态编译的结果通知');
+  await host.context('card',{locale:'en-US'});await expect(frame.locator('#refresh')).toHaveText('Refresh');
+  await frame.locator('#refresh').click();await expect.poll(async()=>(await host.pending('card')).length).toBe(1);
+  const refreshed=message();refreshed._meta.gateway_ui.engine_view.solver_job.name='无动态编译的刷新结果';
+  await host.respond('card',0,refreshed);await expect(frame.locator('#task-title')).toHaveText('无动态编译的刷新结果');
+  await expect(frame.locator('#refresh')).toBeEnabled();await assertNoDynamicCode();
+  const id=await page.evaluate(()=>window.host.request('card','ui/resource-teardown'));
+  await expect.poll(()=>page.evaluate(id=>window.host.cards.get('card').acks.find(item=>item.id===id),id)).toEqual({jsonrpc:'2.0',id,result:{}});
+  await expect(frame.locator('#app')).toBeEmpty();await assertNoDynamicCode();
+  await host.assertHealthy();
+});
+
+test('parser-installed dynamic-code monitor detects capability probes even when their errors are caught',async({page})=>{
+  const host=await openHost(page,{monitorDynamicCode:true,probeDynamicCode:true});const frame=await host.add();await mapReady(frame);
+  // The monitor rejects before native compilation, so only the separate
+  // native-CSP self-test above should create an unsafe-eval violation event.
+  expect(await host.dynamicCodeState('card')).toEqual({
+    attempts:{Function:1,eval:1},violations:[],caught:{Function:true,eval:true},executed:false,
+  });
   await host.assertHealthy();
 });
 
