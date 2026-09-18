@@ -3,7 +3,7 @@
 ## Authoring Model
 
 Run this metadata-authoring skill in the target VRP0 engine repository tag, release commit, or worktree for the image version being released.
-The generated files belong in that engine commit's `docs/integrations/gateway/` external-integration metadata directory and are later imported by Gateway from the configured Git tag. Gateway's metadata path configuration must point to this directory; moving these files does not update Gateway automatically.
+The three Gateway-imported metadata files belong in that engine commit's `gateway/` directory and are imported from the configured Git tag. Gateway's metadata path configuration must point to this directory. The reference `request-schema.json`, documentation and test fixtures belong in `docs/integrations/gateway/`; Gateway reads the request contract from `docs/openapi.yaml`, not the reference request schema.
 
 This authoring workflow is separate from user-facing runtime Skills. Runtime Skills still use Gateway APIs and the imported ImageVersion metadata; they do not read Registry, Git tags, or engine internals directly.
 

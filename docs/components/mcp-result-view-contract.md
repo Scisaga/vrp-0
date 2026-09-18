@@ -11,7 +11,7 @@
 * [`scripts/tests/test_mcp_result_view_contract.py`](../../scripts/tests/test_mcp_result_view_contract.py)：标准 Schema、语义和 golden mapping 三层离线验证。
 * [`scripts/tests/mcp_result_view_support.py`](../../scripts/tests/mcp_result_view_support.py)：仅用于测试的参考投影与分析，不是生产代码。
 
-第一阶段未修改原 `scenario.html`、引擎 REST/MCP、`docs/openapi.yaml`、既有 [`docs/integrations/gateway/result-summary-schema.json`](../integrations/gateway/result-summary-schema.json)、ImageVersion manifest 或 Gateway 仓库。后续引擎 View 与 `mcp_ui` 构建声明由独立组件文档维护；本文继续只负责安全模型与参考测试，不以浏览器实现替代 Gateway 服务端白名单投影、授权或联合验收。
+第一阶段未修改原 `scenario.html`、引擎 REST/MCP、`docs/openapi.yaml`、既有 [`gateway/result-summary-schema.json`](../../gateway/result-summary-schema.json)、ImageVersion manifest 或 Gateway 仓库。后续引擎 View 与 `mcp_ui` 构建声明由独立组件文档维护；本文继续只负责安全模型与参考测试，不以浏览器实现替代 Gateway 服务端白名单投影、授权或联合验收。
 
 ## 2. 与 Gateway 外层契约的关系
 

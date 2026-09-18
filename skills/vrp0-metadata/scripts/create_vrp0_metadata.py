@@ -738,8 +738,8 @@ def main() -> None:
     parser.add_argument("--version", required=True, help="Image version, e.g. 1.0.0")
     parser.add_argument(
         "--output-dir",
-        default="docs/integrations/gateway",
-        help="Metadata output directory, relative to the current working directory (default: docs/integrations/gateway)",
+        default="gateway",
+        help="Gateway-imported metadata output directory, relative to the current working directory (default: gateway)",
     )
     parser.add_argument("--display-name", default="VRP0 Solver（AMAP / HERE）")
     parser.add_argument(
@@ -801,7 +801,9 @@ def main() -> None:
 
     generated_request_schema = request_schema()
     validate_enum_metadata(generated_request_schema)
-    write_json(output_dir / "request-schema.json", generated_request_schema, args.force)
+    reference_dir = Path("docs/integrations/gateway")
+    reference_dir.mkdir(parents=True, exist_ok=True)
+    write_json(reference_dir / "request-schema.json", generated_request_schema, args.force)
     write_json(output_dir / "result-summary-schema.json", result_summary_schema(), args.force)
     write_json(
         output_dir / "constraint-config.yaml",

@@ -16,7 +16,7 @@
 | [`model.mjs`](../../src/main/mcp-ui/model.mjs) | canonical 模型的标量校验、只读索引、计数、回放资格和规划位置纯函数；不做原始归档投影 |
 | [`bridge.mjs`](../../src/main/mcp-ui/bridge.mjs) | 官方 MCP Apps SDK 连接、宿主通知、只读刷新、全屏请求、尺寸通知、取消和销毁 |
 | [`maps.mjs`](../../src/main/mcp-ui/maps.mjs) | AMAP/HERE 原生适配、公开坐标与路线覆盖物、加载错误和生命周期 |
-| [`docs/integrations/gateway/image-version.yaml`](../integrations/gateway/image-version.yaml) 的 `mcp_ui` | 固定契约标识、视图与显示模式、待审核精确网络来源；也是构建期网络策略的唯一输入 |
+| [`gateway/image-version.yaml`](../../gateway/image-version.yaml) 的 `mcp_ui` | 固定契约标识、视图与显示模式、待审核精确网络来源；也是构建期网络策略的唯一输入 |
 | [`build-mcp-app.cjs`](../../src/main/resources/META-INF/resources/static/scripts/build-mcp-app.cjs) | 构建期 Tailwind、esbuild 与 Ajv standalone，生成 `static/mcp-app.html` |
 | [`verify-mcp-app.cjs`](../../src/main/resources/META-INF/resources/static/scripts/verify-mcp-app.cjs) | 检查产物是否过期、构建确定性、单文件结构、第一方依赖范围和 manifest 来源格式 |
 | [`src/test/mcp-ui/`](../../src/test/mcp-ui/) | 模型、桥接和模拟宿主测试；不读取开发任务目录或真实地图密钥 |
@@ -82,7 +82,7 @@ Gantt 使用已有服务、等待和行程时间，缺少或先后不一致的�
 
 AMAP 与 HERE 使用各自原生适配，不能把 HERE 伪装为全局 AMap。图商以任务快照及 Gateway 的 `map_context` 为准，配置与任务不一致时拒绝加载。AMAP 坐标按 GCJ-02、HERE 按 WGS84 解释；不新增 wire 坐标字段，不擅自转换或根据数值大小交换轴。第一方入口只接受 manifest 允许的 HTTPS origin，不能由任务文本控制任意脚本加载。
 
-当前 [`mcp_ui.csp`](../integrations/gateway/image-version.yaml) 是**待审核候选**，不是完整真实地图网络验收：
+当前 [`mcp_ui.csp`](../../gateway/image-version.yaml) 是**待审核候选**，不是完整真实地图网络验收：
 
 | 精确 origin | 候选需求及证据 |
 | --- | --- |

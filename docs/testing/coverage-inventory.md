@@ -53,6 +53,8 @@ Manual 测试用于报表、求解样例和人工观察，不计入稳定门禁�
 
 Script 测试当前覆盖 `devctl.sh` 的运行环境隔离、`.env` 加载、非 daemon Gradle 启动参数，以及 PID 文件被 `gradle clean` 删除后扫描并清理 Gradle 启动链和 Quarkus 开发 JVM。
 
+`scripts/tests/test_gateway_metadata_layout.py` 验证 Gateway 导入文件与文档资料的目录分离，以及生成器默认目录和自定义元数据目录输出；测试使用临时目录，不读写业务数据。
+
 `scripts/tests/test_mcp_result_view_contract.py` 单独验证 Issue #183 的 MCP 结果展示契约，覆盖标准 JSON Schema、跨字段语义和 test-only 参考投影的 golden mapping。样例位于 `docs/integrations/gateway/fixtures/mcp-result-view/`，重点包括白名单及未知字段隔离、ID 与引用完整性、`null`/空集合、历史坐标口径、计划时间、路线段位和回放资格、可确定的只读计数与缺失数据降级；范围及外部未决项见 [MCP 结果展示投影契约](../components/mcp-result-view-contract.md)。该离线契约本身不执行页面或生产 Gateway；页面的独立模拟验证见 §6.1，Python 运行命令见[测试说明](../operations/testing.md#41-mcp-结果展示离线契约)。
 
 ## 6. Static UI 覆盖

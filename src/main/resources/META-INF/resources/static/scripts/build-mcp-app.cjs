@@ -13,7 +13,7 @@ const staticRoot = path.resolve(__dirname, "..");
 const projectRoot = path.resolve(staticRoot, "../../../../../..");
 const sourceRoot = path.join(projectRoot, "src/main/mcp-ui");
 const outputFile = path.join(staticRoot, "mcp-app.html");
-const manifestFile = path.join(projectRoot, "docs/integrations/gateway/image-version.yaml");
+const manifestFile = path.join(projectRoot, "gateway/image-version.yaml");
 const schemaFile = path.join(projectRoot, "docs/integrations/gateway/mcp-result-view-schema.json");
 
 function exactKeys(value, keys, label) {

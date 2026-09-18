@@ -66,6 +66,14 @@ deactivate
 
 修改 Schema、映射规则、参考 projector 或此目录 Fixture 时运行上述命令。CI 中独立的 `mcp-result-view-contract` job 执行相同命令；该测试不加入 JVM 默认稳定门禁，不修改 REST/OpenAPI 或旧结果摘要契约。**离线契约本身不执行页面**；独立 View 的 Node/模拟浏览器验证另见 §8.1，两者不能互相替代。通过其中任一组测试均不表示 Gateway 生产投影、导入、鉴权、真实地图网络或四个真实宿主联调通过，未执行的外部验证须标为“未验证”。
 
+### 4.2 Gateway 元数据目录
+
+`scripts/tests/test_gateway_metadata_layout.py` 验证根目录 `gateway/` 仅包含 Gateway 导入的三份元数据，参考 Schema、说明和 fixtures 留在 `docs/integrations/gateway/`；生成器默认输出及显式 `--output-dir` 均在临时目录验证，不覆盖仓库文件。
+
+```bash
+python3 -B -m unittest discover -s scripts/tests -p 'test_gateway_metadata_layout.py' -v
+```
+
 ## 5. 求解器测试
 
 ### 5.1 约束

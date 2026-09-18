@@ -12,7 +12,7 @@ Use this skill inside a VRP0 engine repository to create or update the Gateway m
 1. Work in the target VRP0 engine Git tag, release commit, or worktree for the exact image version being released.
 2. Read `references/vrp0-contract.md` before changing field names, request shape, or constraint semantics.
 3. Generate metadata with this skill's `scripts/create_vrp0_metadata.py`, passing `--engine-root . --require-engine-source`.
-4. Write generated files into the engine repository's external-integration metadata directory, normally `docs/integrations/gateway/`; these are Gateway handoff artifacts, not engine source files.
+4. Write the three Gateway-imported metadata files into `gateway/`. Keep reference schemas, documentation and test fixtures in `docs/integrations/gateway/`; these are handoff artifacts, not engine source files.
 5. Keep `constraint-config.yaml` JSON-compatible. The current Gateway importer parses it as JSON even though the filename is `.yaml`.
 6. If the user asks for only JSON Schema, still regenerate and check whether `constraint-config.yaml` must stay aligned with the current engine constraints.
 
@@ -39,18 +39,18 @@ python "$SKILL_DIR/scripts/create_vrp0_metadata.py" \
   --require-engine-source \
   --image-name x-force/vrp-0 \
   --version 1.0.1-alpha-SNAPSHOT \
-  --output-dir docs/integrations/gateway \
+  --output-dir gateway \
   --force
 ```
 
 The script writes:
 
-- `image-version.yaml`
-- `request-schema.json`
-- `result-summary-schema.json`
-- `constraint-config.yaml`
+- `gateway/image-version.yaml`
+- `gateway/result-summary-schema.json`
+- `gateway/constraint-config.yaml`
+- `docs/integrations/gateway/request-schema.json` (reference only; Gateway reads `docs/openapi.yaml`)
 
-The default output directory is `docs/integrations/gateway/`, relative to the current working directory. Use `--output-dir` to override it and `--force` to overwrite existing files.
+The three Gateway-imported files default to `gateway/`, relative to the current working directory. Use `--output-dir` to override their directory and `--force` to overwrite existing files. The reference request schema stays in `docs/integrations/gateway/`, relative to the current working directory, even when `--output-dir` is specified.
 
 ## Map Provider Capabilities
 
@@ -96,8 +96,8 @@ After generating or editing:
 
 ```bash
 python -m json.tool docs/integrations/gateway/request-schema.json >/dev/null
-python -m json.tool docs/integrations/gateway/result-summary-schema.json >/dev/null
-python -m json.tool docs/integrations/gateway/constraint-config.yaml >/dev/null
+python -m json.tool gateway/result-summary-schema.json >/dev/null
+python -m json.tool gateway/constraint-config.yaml >/dev/null
 ```
 
 Also validate that `constraint-config.yaml` keys match the score fields declared by the target engine's

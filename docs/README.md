@@ -48,7 +48,7 @@
 | --- | --- |
 | [`openapi.yaml`](./openapi.yaml) | REST API 的精确机器可读路径、参数、请求体、响应和 Schema |
 | [`integrations/README.md`](./integrations/README.md) | 外部系统对接资料的目录入口、职责边界与维护规则 |
-| [`integrations/gateway/README.md`](./integrations/gateway/README.md) | 引擎交付给外部 Gateway 的元数据、Schema 与合成契约样例目录；不是 Gateway 源码或引擎运行时模块 |
+| [`integrations/gateway/README.md`](./integrations/gateway/README.md) | Gateway 对接说明、参考 Schema 与合成契约样例；版本导入元数据位于根目录 `gateway/`，不是 Gateway 源码或引擎运行时模块 |
 | [`reference/mcp.md`](./reference/mcp.md) | MCP 传输、认证、Tool 名称、参数和返回约定 |
 | [`testing/coverage-inventory.md`](./testing/coverage-inventory.md) | 当前测试层级、功能域覆盖和已识别缺口的清单 |
 | [`components/scenario-ui-componentization.md`](./components/scenario-ui-componentization.md) | Scenario UI 构建产物、Engine Host 集成边界和组件化维护细节 |
