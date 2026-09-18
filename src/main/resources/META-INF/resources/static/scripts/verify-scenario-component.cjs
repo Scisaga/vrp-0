@@ -21,7 +21,7 @@ const resultTemplate = fs.readFileSync(path.join(root, "pages/solver-job-detail.
 const mapPage = fs.readFileSync(path.join(root, "assets/js/pages/solver-job-map-page.js"), "utf8");
 const projectRoot = path.resolve(root, "..", "..", "..", "..", "..", "..");
 const buildGradle = fs.readFileSync(path.join(projectRoot, "build.gradle.kts"), "utf8");
-const imageVersionMetadata = fs.readFileSync(path.join(projectRoot, "gateway", "image-version.yaml"), "utf8");
+const imageVersionMetadata = fs.readFileSync(path.join(projectRoot, "docs", "integrations", "gateway", "image-version.yaml"), "utf8");
 
 function escaped(value) {
   return [...value]
@@ -51,7 +51,7 @@ const buildVersion = buildGradle.match(/^version\s*=\s*"([^"]+)"$/m)?.[1];
 const imageVersion = imageVersionMetadata.match(/^\s+version:\s*(\S+)\s*$/m)?.[1];
 assert(
   buildVersion && imageVersion === buildVersion,
-  "gateway/image-version.yaml 的 image.version 必须与 build.gradle.kts 的版本一致"
+  "docs/integrations/gateway/image-version.yaml 的 image.version 必须与 build.gradle.kts 的版本一致"
 );
 
 const manifest = JSON.stringify(JSON.parse(componentRequirements), null, 2);

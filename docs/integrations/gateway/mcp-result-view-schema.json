@@ -1,0 +1,282 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://servforce.local/schemas/vrp0/mcp-result-view-schema.json",
+  "title": "VRP0 MCP Apps 只读结果展示契约",
+  "description": "第一阶段固定的安全展示契约；当前独立引擎 View 的实现与验收边界见 docs/components/mcp-app.md，不表示 Gateway 生产投影或真实宿主验收完成。本 Schema 仅校验非空 engine_view 对象，不包含 Gateway 结果信封；外层 engine_view 可以为 null，但 null 不属于本 Schema 的根类型。所有对象按字段白名单封闭，所有声明字段均必须存在；允许未知的值显式为 null。引用完整性、工单顺序、日历有效性与路线关联须另行进行语义校验，不能仅以 Schema 校验通过作为安全投影完成的依据。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["kind", "schema_version", "display_model", "solver_job"],
+  "properties": {
+    "kind": {
+      "const": "vrp0",
+      "description": "引擎展示契约标识。"
+    },
+    "schema_version": {
+      "const": 2,
+      "description": "安全展示契约版本；不表示生产 Gateway 已实现或验收此版本。"
+    },
+    "display_model": {
+      "const": "vrp0_solver_job",
+      "description": "只读求解任务展示模型标识。"
+    },
+    "solver_job": {
+      "$ref": "#/$defs/solverJob"
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "完整、不透明、非空标识；不要求 UUID，不截断，不设置长度上限。"
+    },
+    "nullableId": {
+      "anyOf": [
+        { "$ref": "#/$defs/id" },
+        { "type": "null" }
+      ],
+      "description": "完整标识引用；未知或无关联时为 null。引用是否存在由语义校验判断。"
+    },
+    "nullableString": {
+      "type": ["string", "null"],
+      "description": "仅作为纯文本展示；未知时为 null，不解释为 HTML。"
+    },
+    "localDate": {
+      "type": ["string", "null"],
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+      "maxLength": 10,
+      "description": "无时区本地日期，固定为 yyyy-MM-dd；未知时为 null。正则只约束文本形状，实际日历有效性须另行语义校验。"
+    },
+    "localDateTime": {
+      "type": ["string", "null"],
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}$",
+      "maxLength": 19,
+      "description": "无时区本地日期时间，固定为 yyyy-MM-dd HH:mm:ss；未知时为 null。不附加 Z、偏移或推测时区。正则只约束文本形状，实际日历和时分秒有效性须另行语义校验。"
+    },
+    "javaDuration": {
+      "type": ["string", "null"],
+      "pattern": "^P(?=[0-9]|T[0-9])(?:[0-9]+D)?(?:T(?=[0-9])(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+(?:\\.[0-9]{1,9})?S)?)?$(?![\\s\\S])",
+      "description": "非负 ISO-8601 Java Duration 字符串；支持日、小时、分钟、秒，秒小数最多 9 位，例如 PT30M、PT0S、PT0.000000001S。不接受分钟数字、年、月、负值或空持续时间；未知时为 null。Java Duration 的范围等解析语义另行校验。"
+    },
+    "safeNonNegativeInteger": {
+      "type": ["integer", "null"],
+      "minimum": 0,
+      "maximum": 9007199254740991,
+      "description": "非负 JavaScript 安全整数；未知、非法、超出安全范围或 Long.MAX_VALUE 不可达哨兵均投影为 null，不伪造为零，不输出哨兵原值。"
+    },
+    "solverStatus": {
+      "enum": ["SOLVING_SCHEDULED", "SOLVING_ACTIVE", "NOT_SOLVING", "SOLVING_FINISHED", "ERROR", null],
+      "description": "引擎求解状态，枚举与 solver.Status 一致；未知为 null，不自行推断终态。"
+    },
+    "ticketType": {
+      "enum": ["Delv", "Delv_BH", "Inst", null],
+      "description": "工单类型，枚举与 Ticket.Type 一致；未知为 null。"
+    },
+    "ticketStatus": {
+      "enum": ["New", "Assigned", "Accepted", "Transit", "Working", "Agent_Done", "Done", null],
+      "description": "原始业务工单状态，枚举与 Ticket.Status 一致；未知为 null，不以回放时间改写此状态。"
+    },
+    "routeSource": {
+      "enum": [
+        "AMAP_TRUCK",
+        "AMAP_DRIVING",
+        "AMAP_BICYCLE",
+        "HERE_TRUCK",
+        "HERE_DRIVING",
+        "HERE_BICYCLE",
+        "CAR_FALLBACK",
+        "ESTIMATED",
+        "ZERO_DISTANCE",
+        null
+      ],
+      "description": "枚举与 RouteSource 一致。CAR_FALLBACK 是货车失败后的驾车道路路线；ESTIMATED 是无道路轨迹的引擎估算；ZERO_DISTANCE 是起终点相同的零距离路线。未知或历史缺来源时为 null；不能因缺几何而伪造 ESTIMATED，不增加 LEGACY 等来源枚举。"
+    },
+    "solverJob": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "status", "start_date_time", "end_date_time", "plan"],
+      "description": "设计中的最小只读任务投影；不暴露完整引擎任务、矩阵、异常、内部配置或求解过程。",
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "name": { "$ref": "#/$defs/nullableString" },
+        "status": { "$ref": "#/$defs/solverStatus" },
+        "start_date_time": { "$ref": "#/$defs/localDateTime" },
+        "end_date_time": { "$ref": "#/$defs/localDateTime" },
+        "plan": { "$ref": "#/$defs/plan" }
+      }
+    },
+    "plan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["agents", "tickets", "pois"],
+      "description": "设计中的展示计划。集合未知时为 null，已知为空时为 []；不把未知集合改为空数组。实体 ID 的唯一性与引用关系另行语义校验。",
+      "properties": {
+        "agents": {
+          "type": ["array", "null"],
+          "items": { "$ref": "#/$defs/agent" }
+        },
+        "tickets": {
+          "type": ["array", "null"],
+          "items": { "$ref": "#/$defs/ticket" }
+        },
+        "pois": {
+          "type": ["array", "null"],
+          "items": { "$ref": "#/$defs/poi" }
+        }
+      }
+    },
+    "agent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id", "name", "date", "virtual", "shift_start_time", "shift_off_time",
+        "tickets_done_time", "start_loc", "tickets", "routes"
+      ],
+      "description": "设计中的工程师每日排程投影，不包含技能、成本、车辆配置、矩阵或新增休息模型。",
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "name": { "$ref": "#/$defs/nullableString" },
+        "date": { "$ref": "#/$defs/localDate" },
+        "virtual": {
+          "type": ["boolean", "null"],
+          "description": "虚拟工程师标志；未知为 null，不能当作 false。"
+        },
+        "shift_start_time": { "$ref": "#/$defs/localDateTime" },
+        "shift_off_time": { "$ref": "#/$defs/localDateTime" },
+        "tickets_done_time": {
+          "$ref": "#/$defs/localDateTime",
+          "description": "保留引擎原始派生完成时间；该值可能包含返程或来自引擎回退，不无条件证明实际返仓完成。未知时为 null。"
+        },
+        "start_loc": {
+          "$ref": "#/$defs/nullableId",
+          "description": "起点 POI 的完整 ID，引用 plan.pois；无有效引用时为 null，不内嵌 POI 对象。"
+        },
+        "tickets": {
+          "type": ["array", "null"],
+          "items": { "$ref": "#/$defs/id" },
+          "description": "原始有序工单 ID 列表，引用 plan.tickets；未知为 null，空排程为 []。保留顺序，不排序或去重；重复、跨工程师重复或悬空引用交给语义校验，不以 uniqueItems 掩盖非法排程。"
+        },
+        "routes": {
+          "type": ["array", "null"],
+          "items": {
+            "anyOf": [
+              { "$ref": "#/$defs/route" },
+              { "type": "null" }
+            ]
+          },
+          "description": "原始顺序的路线段列表；未知为 null，已知为空为 []。段位损坏或缺失保留 null 占位，不过滤后压缩下标。长度不保证等于工单数加一；路线与停靠点的关联另行语义校验，不按压缩下标猜配对。"
+        }
+      }
+    },
+    "ticket": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id", "type", "status", "agent", "loc", "min_start_time", "max_end_time",
+        "arrival_time", "start_service_time", "departure_time", "duration"
+      ],
+      "description": "设计中的只读工单投影；缺时间保持 null，不补造服务时长或回放时间。",
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "type": { "$ref": "#/$defs/ticketType" },
+        "status": { "$ref": "#/$defs/ticketStatus" },
+        "agent": {
+          "$ref": "#/$defs/nullableId",
+          "description": "原始指派工程师 ID，引用 plan.agents；未指派或未知为 null。与工程师有序工单列表的一致性另行语义校验。"
+        },
+        "loc": {
+          "$ref": "#/$defs/nullableId",
+          "description": "工单地点 POI 的完整 ID，引用 plan.pois；无有效引用时为 null，不内嵌 POI 对象。"
+        },
+        "min_start_time": { "$ref": "#/$defs/localDateTime" },
+        "max_end_time": { "$ref": "#/$defs/localDateTime" },
+        "arrival_time": { "$ref": "#/$defs/localDateTime" },
+        "start_service_time": { "$ref": "#/$defs/localDateTime" },
+        "departure_time": { "$ref": "#/$defs/localDateTime" },
+        "duration": { "$ref": "#/$defs/javaDuration" }
+      }
+    },
+    "poi": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "address", "location"],
+      "description": "设计中的最小地点投影；不输出朝向存在历史歧义的 loc 对象，也不输出 entr_location 或入口坐标。",
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "name": { "$ref": "#/$defs/nullableString" },
+        "address": { "$ref": "#/$defs/nullableString" },
+        "location": {
+          "type": ["string", "null"],
+          "description": "普通 POI 的经度,纬度文本；未知或非法为 null。须语义校验恰好两个有限数值及经纬度范围；不从 loc 对象猜坐标朝向，不改用入口位置。"
+        }
+      }
+    },
+    "route": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["origin", "destination", "polyline", "route_source", "transit"],
+      "description": "设计中的只读路线段投影。仅保留端点、道路几何、来源及距离时长；不携带图商失败记录或内部接口信息。每个字段必填，未知值为 null。",
+      "properties": {
+        "origin": {
+          "anyOf": [
+            { "$ref": "#/$defs/legacyLoc" },
+            { "type": "null" }
+          ]
+        },
+        "destination": {
+          "anyOf": [
+            { "$ref": "#/$defs/legacyLoc" },
+            { "type": "null" }
+          ]
+        },
+        "polyline": {
+          "type": ["array", "null"],
+          "items": { "$ref": "#/$defs/legacyLoc" },
+          "description": "保留原始点序的道路几何，坐标采用 Route.LOC 历史约定。未知为 null；空数组仍表示无可用道路几何。点不可为 null；任一点非法时整条 polyline 投影为 null，不能删除坏点后连接两端。零距离和估算路线可以无道路几何。"
+        },
+        "route_source": { "$ref": "#/$defs/routeSource" },
+        "transit": {
+          "anyOf": [
+            { "$ref": "#/$defs/transit" },
+            { "type": "null" }
+          ]
+        }
+      }
+    },
+    "transit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["distance", "duration"],
+      "description": "设计中的路线度量投影，不包含 create_time；数值未知时为 null，已知零值保留零。",
+      "properties": {
+        "distance": {
+          "$ref": "#/$defs/safeNonNegativeInteger",
+          "description": "路线距离，单位米。未知、非法、超出安全整数范围或 Long.MAX_VALUE 不可达哨兵均为 null。"
+        },
+        "duration": {
+          "$ref": "#/$defs/safeNonNegativeInteger",
+          "description": "路线在途时长，单位秒；与工单的 ISO-8601 duration 字符串不同。未知、非法、超出安全整数范围或 Long.MAX_VALUE 不可达哨兵均为 null。"
+        }
+      }
+    },
+    "legacyLoc": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["lat", "lon"],
+      "description": "仅用于 Route 的历史 LOC 格式：lat 存经度、lon 存纬度，不适用于 POI.loc。两项必须是有限 JSON number，不允许 null、NaN 或 Infinity；合法整数坐标也属于 number。",
+      "properties": {
+        "lat": {
+          "type": "number",
+          "minimum": -180,
+          "maximum": 180,
+          "description": "历史字段名 lat，实际表示经度。"
+        },
+        "lon": {
+          "type": "number",
+          "minimum": -90,
+          "maximum": 90,
+          "description": "历史字段名 lon，实际表示纬度。"
+        }
+      }
+    }
+  }
+}

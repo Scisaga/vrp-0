@@ -1,0 +1,15 @@
+{
+  "description": "Deterministic synthetic stress vector, not a product limit. Never queries a map provider.",
+  "engineer_count": 200,
+  "tickets_per_engineer": 5,
+  "dense_polyline_points": 4097,
+  "expected": {
+    "engineer_schedule_count": 200,
+    "assigned_ticket_count": 1000,
+    "unassigned_ticket_count": 0,
+    "route_count": 1200,
+    "poi_count": 1200,
+    "replay_start": "2026-09-17 08:00:00",
+    "replay_end": "2026-09-17 09:40:00"
+  }
+}

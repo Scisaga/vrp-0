@@ -1,4 +1,7 @@
 @import "tailwindcss";
+@source not "../../mcp-app.html";
+@source not "../../scripts/build-mcp-app.cjs";
+@source not "../../scripts/verify-mcp-app.cjs";
 
 @layer base {
   :root {

@@ -736,7 +736,11 @@ def main() -> None:
         help="Gateway Registry image_name exactly as synced, e.g. x-force/vrp-0; do not pass only vrp-0 when Gateway stores x-force/vrp-0",
     )
     parser.add_argument("--version", required=True, help="Image version, e.g. 1.0.0")
-    parser.add_argument("--output-dir", default="gateway", help="Metadata output directory")
+    parser.add_argument(
+        "--output-dir",
+        default="docs/integrations/gateway",
+        help="Metadata output directory, relative to the current working directory (default: docs/integrations/gateway)",
+    )
     parser.add_argument("--display-name", default="VRP0 Solver（AMAP / HERE）")
     parser.add_argument(
         "--description",

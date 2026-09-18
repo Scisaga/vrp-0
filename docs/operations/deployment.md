@@ -118,6 +118,32 @@ MCP 使用 Streamable HTTP，默认路径和完整接入参数见 [MCP 参考](.
 * JVM 镜像中保留 `docs/reference/mcp.md`，使参考文档端点可用；
 * 不在日志、页面或客户端仓库配置中明文保存真实 Token。
 
+### 10.1 独立 MCP Apps 产物
+
+Issue #183 的引擎交付增加独立完整 `mcp-app.html`，与 `scenario.html` 位于同一静态资源目录、随同一版本交付，但不替换原组件。源码、运行边界及当前待验收项见[独立 MCP Apps 查看器](../components/mcp-app.md)。它不是引擎新增的 REST/MCP 写接口，浏览器也不直接调用引擎任务 API。
+
+在构建 JVM/native/container 产物之前，先完成前端构建和校验：
+
+```bash
+cd src/main/resources/META-INF/resources/static
+npm ci --include=dev
+npm run build:mcp-app
+npm run verify:mcp-app
+```
+
+返回仓库根目录后再执行本文件原有引擎构建步骤。Node 仅为构建/测试依赖；不要假定 Gradle 打包会自动重建 MCP HTML。校验发现产物过期时应从对应源码重建，不手改压缩 HTML。第一方资源自包含，部署不需要另设第一方 CDN。
+
+[`docs/integrations/gateway/image-version.yaml`](../integrations/gateway/image-version.yaml) 中的 `mcp_ui` 与单文件产物需一起交接。其精确 HTTPS origin 清单只是待审核网络申请，当前 AMAP 后续来源完整性、HERE worker/WASM 能力及真实宿主配置仍未验证；不能使用空 CSP、通配域名或网络代理绕过校验，也不能把构建成功当作地图可用证明。
+
+元数据资料已由根目录 `gateway/` 迁入 `docs/integrations/gateway/`。Gateway 导入新布局 tag 前须按[目录交接说明](../integrations/gateway/README.md#3-gateway-导入交接)对齐其元数据根配置，并评估实例级配置对其他引擎及历史 tag 重导入的影响；仅移动本仓文件不会自动更新外部部署。
+
+Gateway 负责服务端安全投影、资源导入、批准 CSP、不可变资源身份、版本启用及用户授权。本轮未实现或验证这些外部链路。未完成审核时不得宣称 UI ready；只读界面遇到地图配置、SDK 或网络失败应保留 Gantt 与对象详情。具体发布前检查包括：
+
+1. 固定引擎版本、HTML 与 manifest 一致，不覆盖已发布 tag。
+2. Gateway 完成 canonical 展示字段的生产白名单投影和同组 fixtures 校验。
+3. 批准实际 SDK/瓦片/鉴权 origin 及宿主运行能力；使用受限公开 browser key，不嵌入服务器私钥。
+4. 记录真实 Gateway 与 ChatGPT、Claude、Quick Desktop、WorkBuddy 的客户端版本、权限、全屏、刷新、地图及降级结果；未执行项标为“未验证”。
+
 ## 11. Metrics 与启动验证
 
 应用包含 Micrometer Prometheus registry，指标入口为 `/q/metrics`。Swagger UI 在当前配置中随应用提供，可用于开发联调，不应替代契约文件或生产访问控制。

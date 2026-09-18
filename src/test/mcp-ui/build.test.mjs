@@ -1,0 +1,137 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { createRequire } from 'node:module';
+import test from 'node:test';
+
+const require = createRequire(new URL('../../main/resources/META-INF/resources/static/package.json', import.meta.url));
+const { exactOrigins, networkPolicyFromManifest, readNetworkPolicy, standaloneValidator, staticRoot, projectRoot } = require('./scripts/build-mcp-app.cjs');
+const { verifyDocument, verifyInputs, verifyFirstPartySource } = require('./scripts/verify-mcp-app.cjs');
+const { build } = require('esbuild');
+const manifest = () => ({ mcp_ui: {
+  contract_version: 'gateway_mcp_result_v1', result_view_kind: 'vrp0', result_view_schema_version: 2,
+  views: ['map','gantt'], display_modes: ['inline','fullscreen'],
+  csp: { connect_domains: ['https://z.example','https://a.example'], resource_domains: ['https://sdk.example:8443'] }
+} });
+const document = (script = '"use strict";') => `<!doctype html><html><head><meta charset="utf-8"><style>body{color:red}</style></head><body><script>${script}</script></body></html>`;
+
+test('manifest build policy is a strict, normalized copy, not an implicit approval', () => {
+  const original = manifest(), snapshot = structuredClone(original);
+  assert.deepEqual(networkPolicyFromManifest(original), {
+    connectDomains: ['https://a.example','https://z.example'], resourceDomains: ['https://sdk.example:8443']
+  });
+  assert.deepEqual(original, snapshot);
+  const empty = manifest(); empty.mcp_ui.csp = {connect_domains:[],resource_domains:[]};
+  assert.deepEqual(networkPolicyFromManifest(empty), {connectDomains:[],resourceDomains:[]}, 'empty arrays express a valid declaration, not a working map');
+  assert.ok(readNetworkPolicy().resourceDomains.includes('https://js.api.here.com'));
+  for (const change of [
+    value => { delete value.mcp_ui; },
+    value => { value.mcp_ui.entry_path = '/other.html'; },
+    value => { delete value.mcp_ui.views; },
+    value => { value.mcp_ui.contract_version = 'unknown'; },
+    value => { value.mcp_ui.result_view_kind = 'other'; },
+    value => { value.mcp_ui.result_view_schema_version = '2'; },
+    value => { value.mcp_ui.views = ['map']; },
+    value => { value.mcp_ui.views = ['map','gantt','map']; },
+    value => { value.mcp_ui.display_modes = ['inline','fullscreen','pip']; },
+    value => { value.mcp_ui.csp = null; },
+    value => { value.mcp_ui.csp.frame_domains = ['https://evil.example']; },
+    value => { value.mcp_ui.csp.connect_domains = 'https://api.example'; },
+    value => { value.mcp_ui.csp.resource_domains = ['https://sdk.example/path']; }
+  ]) {
+    const value = manifest(); change(value);
+    assert.throws(() => networkPolicyFromManifest(value));
+  }
+});
+
+test('network origin declarations reject credentials, URL suffixes, wildcard and non-HTTPS schemes', () => {
+  for (const value of [null, {}, 'https://a.example', [null], [42],
+    ['http://a.example'], ['//a.example'], ['https://a.example/'], ['https://a.example/path'],
+    ['https://a.example?key=value'], ['https://a.example#fragment'], ['https://user:secret@a.example'],
+    ['https://*.example'], ['https://a.example','https://a.example'], ['javascript:alert(1)'],
+    ['https://a.example:443']]) assert.throws(() => exactOrigins(value, 'fixture'));
+  assert.deepEqual(exactOrigins(['https://a.example:8443'], 'fixture'), ['https://a.example:8443']);
+});
+
+test('artifact verifier rejects external first-party dependencies, HTML handlers and sensitive output', () => {
+  verifyDocument(document());
+  verifyDocument(document().replace('<body>', '<body><img src="data:image/png;base64,AA=="><a href="#details">Details</a>'));
+  const changes = [
+    value => value.replace('<!doctype html>', ''),
+    value => value.replace('<meta charset="utf-8">', ''),
+    value => value.replace('<body>', '<body><iframe></iframe>'),
+    value => value.replace('<body>', '<body><base href="https://evil.example">'),
+    value => value.replace('<body>', '<body><link rel="stylesheet" href="asset.css">'),
+    value => value.replace('<body>', '<body><img src=asset.png>'),
+    value => value.replace('<body>', '<body><img src="https://example.com/logo.png">'),
+    value => value.replace('<body>', '<body><img srcset="asset.png 2x">'),
+    value => value.replace('<body>', '<body onload="alert(1)">'),
+    value => value.replace('color:red', 'background:url(asset.png)'),
+    value => value.replace('color:red', 'background:url("../asset.png")'),
+    value => value.replace('color:red', 'background:url(https://example.com/asset.png)'),
+    value => value.replace('body{color:red}', '@import "asset.css";'),
+    value => value.replace('<script>', '<script src="asset.js">'),
+    value => value.replace('<script>', '<script export>'),
+    value => value.replace('<body>', '<body><!-- MCP_SCRIPT -->'),
+    value => value.replace('"use strict";', 'window.VrpScenarioGateway;'),
+    value => value.replace('"use strict";', 'const path="/static/private.json";'),
+    value => value.replace('"use strict";', 'const path="file:///home/private.json";'),
+    value => value.replace('"use strict";', 'const key="-----BEGIN PRIVATE KEY-----";'),
+    value => value.replace('"use strict";', '// sourceMappingURL=app.js.map'),
+    value => value.replace('"use strict";', `const path=${JSON.stringify(projectRoot)};`),
+    value => value.replace('"use strict";', 'console.debug({browser_key:"synthetic-value"});'),
+    value => value.replace('"use strict";', 'console?.log("payload");'),
+    value => value.replace('"use strict";', 'console["log"]("payload");')
+  ];
+  for (const change of changes) assert.throws(() => verifyDocument(change(document())));
+});
+
+test('inert SDK protocol strings and blocked capability probes are not confused with first-party execution', () => {
+  verifyDocument(document('const scheme="file://";try{new Function("")}catch{}'));
+  verifyFirstPartySource('const browser_key = context.browser_key; element.textContent = label;');
+  for (const value of ['eval("payload")', 'Function("payload")', 'new Function("payload")',
+    'new AsyncFunction("payload")', 'const browser_key="synthetic-public-browser-key";',
+    'const rest_key="synthetic-server-key";', 'const header="Bearer synthetic-token-value";']) {
+    assert.throws(() => verifyFirstPartySource(value));
+  }
+  // Actual no-unsafe-eval execution is a browser/CSP test, not this text check.
+});
+
+test('browser dependency closure excludes engine config, old runtime and Ajv compiler', () => {
+  const nodeModules = path.relative(projectRoot, path.join(staticRoot,'node_modules')).replaceAll(path.sep,'/');
+  verifyInputs(['mcp-contract:mcp-view-validator','mcp-contract:mcp-network-policy',
+    `${nodeModules}/ajv/dist/runtime/ucs2length.js`, `${nodeModules}/@modelcontextprotocol/ext-apps/dist/src/app-with-deps.js`]);
+  for (const input of ['.env','src/main/resources/application.properties',
+    'src/main/resources/META-INF/resources/static/assets/js/utils/api.js', 'mcp-contract:unknown',
+    `${nodeModules}/ajv/dist/2020.js`, `${nodeModules}/ajv/dist/compile/index.js`,
+    `${nodeModules}/alpinejs/dist/module.esm.js`, `${nodeModules}/plotly.js/dist/plotly-basic.min.js`,
+    `${nodeModules}/codemirror/dist/index.js`]) assert.throws(() => verifyInputs([input]));
+});
+
+test('canonical Ajv2020 standalone validator preserves strict shape, null holes and finite numbers', async () => {
+  const source = standaloneValidator();
+  assert.ok(!/\b(?:eval|Function|AsyncFunction)\s*\(/.test(source));
+  const bundle = await build({stdin:{contents:source,resolveDir:staticRoot,sourcefile:'standalone-validator.mjs'},
+    bundle:true,write:false,platform:'node',format:'esm',target:['es2020'],metafile:true});
+  assert.ok(Object.keys(bundle.metafile.inputs).every(input => !/ajv\/dist\/(?:compile|core|2020)/.test(input)));
+  const {default:validate} = await import(`data:text/javascript;base64,${Buffer.from(bundle.outputFiles[0].text).toString('base64')}`);
+  const base = JSON.parse(fs.readFileSync(new URL('../../../docs/integrations/gateway/fixtures/mcp-result-view/base-expected.json', import.meta.url), 'utf8'));
+  assert.equal(validate(base), true);
+  assert.equal(validate(null), false);
+  const hole = structuredClone(base); hole.solver_job.plan.agents[0].routes[1] = null;
+  assert.equal(validate(hole), true);
+  for (const change of [
+    value => { value.unknown = true; },
+    value => { delete value.display_model; },
+    value => { value.solver_job.id = ''; },
+    value => { value.solver_job.plan.agents[0].tickets.push(null); },
+    value => { value.solver_job.plan.agents[0].routes[0].polyline[1] = null; },
+    value => { value.solver_job.plan.agents[0].routes[0].origin.lat = Infinity; },
+    value => { value.solver_job.plan.agents[0].routes[0].origin.lon = NaN; },
+    value => { value.solver_job.plan.agents[0].routes[0].transit.distance = Number.MAX_SAFE_INTEGER + 1; }
+  ]) {
+    const value = structuredClone(base); change(value); assert.equal(validate(value), false);
+  }
+  const calendar = structuredClone(base); calendar.solver_job.plan.agents[0].date = '2026-02-30';
+  assert.equal(validate(calendar), true, 'calendar semantics belong to the additional semantic validator, not JSON Schema regex');
+});

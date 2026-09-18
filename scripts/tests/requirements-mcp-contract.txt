@@ -1,0 +1,2 @@
+# Isolated, test-only JSON Schema Draft 2020-12 validator.
+jsonschema==4.10.3

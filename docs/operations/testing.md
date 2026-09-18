@@ -14,8 +14,9 @@
 | App | `src/test/java/app`，`@Tag("app")` | 进程内 Quarkus、Repository、REST、MCP 和门面流程 | 是 |
 | External | `src/test/java/integration`，`@Tag("external")` | 真实地图服务和远程服务调用 | 否，显式启用 |
 | Manual | `src/test/java/manual`，`@Tag("manual")` | 人工运行脚本、报表和观察性样例 | 否 |
-| Script | `scripts/tests` | 本地开发运维脚本的环境隔离和进程生命周期 | 按相关脚本改动运行 |
+| Script | `scripts/tests` | 本地开发运维脚本的环境隔离、进程生命周期，以及 MCP 结果展示离线契约 | 按相关脚本或契约改动运行 |
 | Static UI | `src/main/resources/META-INF/resources/static/tests` | 页面逻辑、布局契约、地图上下文和 i18n | 按前端改动运行 |
+| MCP Apps UI | `src/test/mcp-ui` | 独立 View 的模型/桥/地图/构建 Node 测试与隔离浏览器中的模拟宿主测试 | 按 MCP View 改动运行；CI `static-ui` job 单独执行 |
 
 ## 3. Gradle 任务
 
@@ -45,6 +46,25 @@
 * test profile 将场景和任务仓库指向 `build/test-data/scenarios/` 与 `build/test-data/solver_jobs/`。
 * 测试在开始和结束时清理自己创建的数据，不依赖执行顺序，不读取开发环境的 `data/`。
 * 测试所需 token 或地图配置使用测试值、环境变量或临时配置文件，不能写入仓库。
+
+### 4.1 MCP 结果展示离线契约
+
+Issue #183 的独立契约样例放在 `docs/integrations/gateway/fixtures/mcp-result-view/`，使用人工合成数据，不读取真实任务归档、开发环境数据、Gateway 服务或地图服务。字段设计与外部对接边界见 [MCP 结果展示投影契约](../components/mcp-result-view-contract.md)。该目录不改变上述 JVM Fixture 约定。
+
+运行前安装 `scripts/tests/requirements-mcp-contract.txt` 中锁定的 `jsonschema==4.10.3`。推荐使用仓库外的临时虚拟环境：
+
+```bash
+MCP_CONTRACT_VENV="$(mktemp -d /tmp/vrp0-mcp-contract.XXXXXX)"
+python3 -m venv "$MCP_CONTRACT_VENV"
+. "$MCP_CONTRACT_VENV/bin/activate"
+python -m pip install -r scripts/tests/requirements-mcp-contract.txt
+python -B -m unittest discover -s scripts/tests -p 'test_mcp_result_view_contract.py' -v
+deactivate
+```
+
+测试分三层：标准 Draft 2020-12 JSON Schema 校验、跨字段语义校验、原始引擎结果到人工编写期望投影的 golden mapping。`scripts/tests/mcp_result_view_support.py` 是 **test-only reference projector**，只帮助验证契约，不是 Gateway 生产投影实现；期望结果不能由同一 projector 自动生成后再与自身比较。
+
+修改 Schema、映射规则、参考 projector 或此目录 Fixture 时运行上述命令。CI 中独立的 `mcp-result-view-contract` job 执行相同命令；该测试不加入 JVM 默认稳定门禁，不修改 REST/OpenAPI 或旧结果摘要契约。**离线契约本身不执行页面**；独立 View 的 Node/模拟浏览器验证另见 §8.1，两者不能互相替代。通过其中任一组测试均不表示 Gateway 生产投影、导入、鉴权、真实地图网络或四个真实宿主联调通过，未执行的外部验证须标为“未验证”。
 
 ## 5. 求解器测试
 
@@ -126,6 +146,39 @@ npm run verify:scenario
 
 场景导入测试还应覆盖：车辆燃料/油耗/每日成本缺失时界面留空且请求省略字段。
 
+### 8.1 独立 MCP Apps View
+
+源码和构建边界见[独立 MCP Apps 查看器](../components/mcp-app.md)，测试位于 `src/test/mcp-ui/`，不复用官网页面测试作为替代验收。运行目录仍为 `src/main/resources/META-INF/resources/static/`：
+
+```bash
+npm ci --include=dev
+npx playwright install --with-deps chromium
+npm run build:mcp-app
+npm run verify:mcp-app
+npm run test:mcp-unit
+npm run test:mcp-ui
+```
+
+Node 测试需要可执行的 `python3`：模型 fixture helper 以 `python3 -B` 从已有人工编写的 canonical goldens 和测试参考分析导出数据，使用 Python 标准库，不调用 projector 生成期望值。§4.1 的完整 Python Schema 测试仍须独立安装其锁定依赖并运行。缺工具或依赖应明确失败，不静默跳过校验。
+
+验证职责分开：
+
+| 层次 | 主要职责 |
+| --- | --- |
+| 模型 Node | 人工 fixtures 与 Python 分析 parity；不变异、`null`/空集合、完整 ID、双向归属、标量语义、业务时区轴、回放资格、阶段边界、吸附原折线、跨经度与合成大向量 |
+| View 桥 Node | 官方 SDK 边界替身；先注册处理器再连接、结果身份、白名单错误映射、只读工具名、显式刷新、输入/通知竞态、取消、长 ID、显示模式与 teardown |
+| 地图 Node | AMAP/HERE 上下文及 URL 策略、原段位/坐标轴/几何、不可播放来源、缺失数据、纯文本 marker、AMAP complete 超时、HERE 样式错误、覆盖物与实例释放 |
+| 构建 Node 与产物校验 | manifest 字段/精确 origin、Ajv standalone、第一方依赖闭包、HTML/CSS/JS 自包含、敏感信息/动态编译禁用、确定性与过期产物 |
+| 模拟浏览器 | 使用真实构建 HTML 与官方 View SDK，在模拟宿主和图商 SDK 替身中检查布局、选择、显式刷新、地图/Gantt、全屏、回放、安全降级、实例隔离和生命周期；具体执行结果见当次记录 |
+
+浏览器测试以不同合成 origin 的宿主与 App iframe 运行，iframe 使用 `sandbox="allow-scripts"`，不授予同源权限。测试 CSP 禁止普通 `unsafe-eval`，并通过路由拦截提供合成宿主页面及 AMAP/HERE SDK 替身，未知请求中止；不请求真实瓦片、读取 `.env` 或使用真实 key。此配置验证第一方/桥的受限执行，不证明 HERE 真实 worker/WASM 或图商鉴权可用。
+
+模拟测试使用 `playwright.config.mjs`，失败 trace/截图写入 `/tmp/vrp0-mcp-ui-playwright`，不进入业务目录或仓库。测试不向产品新增调试 wire 字段，也不把图商替身放入生产构建。CSP 错误、地图失败与数据/授权失败需分别断言；认证或权限失败应检查已渲染文本和视图缓存已清除，而非只检查错误横幅。地图替身覆盖 AMAP complete 超时及 HERE 样式错误/监听解除，但不能证明真实 SDK 的所有瓦片或 HTTP 401 失败都能被观测，具体检测边界见[地图与安全降级](../components/mcp-app.md#5-地图网络与安全降级)。
+
+修改源码、模板、样式、词典、Schema、依赖锁文件或 `mcp_ui` 后都需重建并运行产物校验。`verify:mcp-app` 不写文件；CI 在重建后还执行 `git diff --exit-code -- mcp-app.html`，防止提交的单文件落后于源码。MCP 构建独立于 `build:scenario`，共享前端工具链变化还需回归原 Node、Scenario 构建校验和 i18n 浏览器测试；不能因新增 View 通过而省略旧页面回归。
+
+当次通过数量与执行状态只记录在[组件验证记录](../components/mcp-app.md#7-验证记录与未验证项)或测试报告，不在本文固定。真实 Gateway 与四宿主联合验收必须单列客户端版本、批准策略和受限 key 条件；模拟宿主通过不能将外部未验证项标为通过。
+
 ## 9. 完成标准
 
 * 纯后端行为变更：相关定向测试通过，`./gradlew allStableTest` 通过。
@@ -133,6 +186,7 @@ npm run verify:scenario
 * 求解变更：约束或生命周期测试覆盖触发与边界路径。
 * 本地开发脚本变更：运行 `scripts/tests` 下对应的 Shell 回归测试。
 * 页面变更：相关 Node/Playwright 测试和组件校验通过。
+* 独立 MCP Apps 变更：按受影响范围运行 Python 契约、MCP Node、构建/产物校验及模拟浏览器测试；涉及共享工具链时同时回归旧 UI。真实 Gateway/图商/四宿主结果单列，不用模拟结果宣称生产 UI ready。
 * 外部能力变更：稳定测试使用替身或纯逻辑测试；真实联调结果单独说明。
 * 纯文档变更：Markdown 链接、标题、术语和 `git diff --check` 通过，不强制运行代码测试。
 * 实际覆盖变化后更新[测试覆盖清单](../testing/coverage-inventory.md)。

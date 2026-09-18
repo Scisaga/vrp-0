@@ -2,7 +2,7 @@
 openapi: 3.0.3
 info:
   title: vrp-0 API
-  version: 1.0.6-alpha-SNAPSHOT
+  version: 1.1.0-alpha-SNAPSHOT
 tags:
 - name: VRP求解引擎
   description: 维护单例当前场景、求解任务历史和最新任务指针的 VRP 求解引擎

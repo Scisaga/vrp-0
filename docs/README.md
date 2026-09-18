@@ -47,9 +47,13 @@
 | 文件 | 权威范围 |
 | --- | --- |
 | [`openapi.yaml`](./openapi.yaml) | REST API 的精确机器可读路径、参数、请求体、响应和 Schema |
+| [`integrations/README.md`](./integrations/README.md) | 外部系统对接资料的目录入口、职责边界与维护规则 |
+| [`integrations/gateway/README.md`](./integrations/gateway/README.md) | 引擎交付给外部 Gateway 的元数据、Schema 与合成契约样例目录；不是 Gateway 源码或引擎运行时模块 |
 | [`reference/mcp.md`](./reference/mcp.md) | MCP 传输、认证、Tool 名称、参数和返回约定 |
 | [`testing/coverage-inventory.md`](./testing/coverage-inventory.md) | 当前测试层级、功能域覆盖和已识别缺口的清单 |
 | [`components/scenario-ui-componentization.md`](./components/scenario-ui-componentization.md) | Scenario UI 构建产物、Engine Host 集成边界和组件化维护细节 |
+| [`components/mcp-result-view-contract.md`](./components/mcp-result-view-contract.md) | Issue #183 的安全展示 Schema、字段映射与本仓离线契约；不是 Gateway 生产投影实现 |
+| [`components/mcp-app.md`](./components/mcp-app.md) | 独立 MCP Apps 引擎 View、构建声明、模拟验收边界与真实 Gateway/地图/宿主待联调项；不表示生产 UI ready |
 
 `功能描述.md`、`vrp-0-详细设计文档.md` 和 `测试代码指南.md` 是迁移前保留的旧文档，不再作为当前事实源。若其内容与本页列出的专题文档、代码或生成契约冲突，以当前专题事实源和实现为准。
 
@@ -63,6 +67,7 @@ product ──> requirements ──> architecture/domain/solver/storage/security
                                       └──> 测试与部署
 
 MCP 语义 ──> reference/mcp.md
+MCP Apps View ──> components/mcp-app.md ──> components/mcp-result-view-contract.md
 测试规则 ──> operations/testing.md ──> testing/coverage-inventory.md
 ```
 
@@ -76,6 +81,7 @@ MCP 语义 ──> reference/mcp.md
 | 当前场景生命周期 | `overview/requirements.md`、`design/domain-model.md`、`interfaces/api.md`、`interfaces/frontend.md`、测试 |
 | 求解约束、状态或生命周期 | `overview/requirements.md`、`design/solver.md`、`design/domain-model.md`、API/前端说明、测试 |
 | 页面行为 | `interfaces/frontend.md` 和对应页面测试 |
+| 独立 MCP Apps View、产物或声明 | `components/mcp-app.md`、受影响的前端/主题/部署说明及对应测试；wire 变化另联动安全展示契约与 Schema，不据此扩展 REST/OpenAPI |
 | 视觉样式 | `ui/theme.md` 和必要的页面测试 |
 | 文件存储 | `design/data-storage.md`、部署与存储测试 |
 | 认证、密钥或访问边界 | `design/security.md`、`operations/deployment.md` 和安全测试 |

@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>VRP-0 · MCP</title>
+  <!-- MCP_STYLE -->
+</head>
+<body>
+  <main id="app" class="mcp-root" aria-busy="true">
+    <header class="app-header">
+      <div class="brand" aria-label="VRP-0"><svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true"><path d="M5 8h8l6 16h8M5 24l7-16h15" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><circle cx="5" cy="8" r="3" fill="currentColor"/><circle cx="27" cy="24" r="3" fill="currentColor"/></svg><span>VRP-0</span></div>
+      <div class="task-heading"><h1 id="task-title">等待任务结果</h1><div id="task-meta" class="metadata"></div></div>
+      <div class="header-actions"><button type="button" id="refresh" disabled>刷新</button><button type="button" id="fullscreen" disabled>全屏查看</button></div>
+    </header>
+    <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+    <div class="toolbar">
+      <div class="view-tabs" role="tablist" aria-label="结果视图"><button type="button" id="tab-map" role="tab" aria-selected="true" aria-controls="map-panel" data-view="map">地图</button><button type="button" id="tab-gantt" role="tab" aria-selected="false" aria-controls="gantt-panel" data-view="gantt" tabindex="-1">排程</button></div>
+      <label class="engineer-filter"><span id="engineer-label">工程师</span><select id="engineer" aria-labelledby="engineer-label"><option value="">全部工程师</option></select></label>
+      <button type="button" id="sidebar-toggle" aria-expanded="false" aria-controls="sidebar" hidden>对象列表</button>
+      <button type="button" id="fit-map">适配路线</button>
+      <div id="gantt-tools" class="gantt-tools" hidden><button type="button" id="gantt-out" aria-label="缩小时间轴">−</button><button type="button" id="gantt-in" aria-label="放大时间轴">＋</button></div>
+    </div>
+    <div id="summary" class="summary-strip" aria-label="任务总计"></div>
+    <div class="workspace">
+      <aside id="sidebar" class="sidebar" hidden>
+        <div class="side-tabs" role="tablist" aria-label="对象类型"><button type="button" id="side-agents" role="tab" aria-selected="true" aria-controls="side-list">工程师</button><button type="button" id="side-tickets" role="tab" aria-selected="false" aria-controls="side-list" tabindex="-1">工单</button></div>
+        <label class="search-label"><span class="sr-only" id="search-label">按名称或 ID 检索</span><input id="search" type="search" aria-labelledby="search-label" placeholder="按名称或 ID 检索" autocomplete="off"></label>
+        <div id="side-list" class="side-list" role="tabpanel"></div>
+        <div id="side-detail" class="side-detail"></div>
+      </aside>
+      <div class="stage">
+        <section id="map-panel" class="map-panel" role="tabpanel" aria-labelledby="tab-map">
+          <div id="map-canvas" class="map-canvas" aria-label="规划路线地图"></div>
+          <div id="map-state" class="map-state"><p id="map-message">等待任务结果</p><button type="button" id="map-retry" hidden>重试地图</button></div>
+          <div id="map-legend" class="map-legend" aria-label="工程师图例"></div>
+        </section>
+        <section id="gantt-panel" class="gantt-panel" role="tabpanel" aria-labelledby="tab-gantt" hidden><div id="gantt-scroll" class="gantt-scroll" tabindex="0" aria-label="只读排程时间轴"><div id="gantt-chart"></div></div></section>
+        <section id="inline-detail" class="inline-detail" aria-label="选中对象"></section>
+        <section id="ordered-tickets" class="ordered-tickets" hidden></section>
+      </div>
+    </div>
+    <section id="playback" class="playback" aria-label="规划回放" hidden>
+      <div class="playback-heading"><strong id="playback-label">规划回放 · 非实时位置</strong><span id="playback-scope"></span></div>
+      <div class="playback-controls"><button type="button" id="play" disabled>播放</button><label class="speed-label"><span id="speed-label">速度</span><select id="speed" aria-labelledby="speed-label"><option value="1">1×</option><option value="10">10×</option><option value="60">60×</option><option value="300">300×</option></select></label><input id="cursor" type="range" min="0" max="1000" value="0" aria-label="规划时间" disabled><output id="playback-time" class="metadata">—</output></div>
+      <div id="playback-states" class="playback-states" aria-live="off"></div>
+    </section>
+    <footer id="footer" class="app-footer">只读结果 · 业务计划时间</footer>
+  </main>
+  <!-- MCP_SCRIPT -->
+</body>
+</html>

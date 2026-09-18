@@ -1,0 +1,167 @@
+{
+  "kind": "vrp0",
+  "schema_version": 2,
+  "display_model": "vrp0_solver_job",
+  "solver_job": {
+    "id": "00000000000000000000000000000001",
+    "name": "合成结果",
+    "status": "SOLVING_FINISHED",
+    "start_date_time": "2026-09-17 08:00:00",
+    "end_date_time": "2026-09-17 18:00:00",
+    "plan": {
+      "agents": [
+        {
+          "id": "engineer-a-260917",
+          "name": "合成工程师 A",
+          "date": "2026-09-17",
+          "virtual": false,
+          "shift_start_time": "2026-09-17 08:00:00",
+          "shift_off_time": "2026-09-17 17:00:00",
+          "tickets_done_time": "2026-09-17 09:40:00",
+          "start_loc": "poi-home",
+          "tickets": [
+            "ticket-b",
+            "ticket-a"
+          ],
+          "routes": [
+            {
+              "origin": {
+                "lat": 120,
+                "lon": 30
+              },
+              "destination": {
+                "lat": 120.01,
+                "lon": 30.01
+              },
+              "polyline": [
+                {
+                  "lat": 120,
+                  "lon": 30
+                },
+                {
+                  "lat": 120.005,
+                  "lon": 30.005
+                },
+                {
+                  "lat": 120.01,
+                  "lon": 30.01
+                }
+              ],
+              "route_source": "AMAP_DRIVING",
+              "transit": {
+                "distance": 1500,
+                "duration": 1200
+              }
+            },
+            {
+              "origin": {
+                "lat": 120.01,
+                "lon": 30.01
+              },
+              "destination": {
+                "lat": 120.02,
+                "lon": 30.02
+              },
+              "polyline": [
+                {
+                  "lat": 120.01,
+                  "lon": 30.01
+                },
+                {
+                  "lat": 120.015,
+                  "lon": 30.015
+                },
+                {
+                  "lat": 120.02,
+                  "lon": 30.02
+                }
+              ],
+              "route_source": "AMAP_DRIVING",
+              "transit": {
+                "distance": 1000,
+                "duration": 600
+              }
+            },
+            {
+              "origin": {
+                "lat": 120.02,
+                "lon": 30.02
+              },
+              "destination": {
+                "lat": 120,
+                "lon": 30
+              },
+              "polyline": [
+                {
+                  "lat": 120.02,
+                  "lon": 30.02
+                },
+                {
+                  "lat": 120.01,
+                  "lon": 30.01
+                },
+                {
+                  "lat": 120,
+                  "lon": 30
+                }
+              ],
+              "route_source": "AMAP_DRIVING",
+              "transit": {
+                "distance": 2500,
+                "duration": 900
+              }
+            }
+          ]
+        }
+      ],
+      "tickets": [
+        {
+          "id": "ticket-b",
+          "type": "Inst",
+          "status": "Assigned",
+          "agent": "engineer-a-260917",
+          "loc": "poi-a",
+          "min_start_time": "2026-09-17 08:30:00",
+          "max_end_time": "2026-09-17 10:00:00",
+          "arrival_time": "2026-09-17 08:20:00",
+          "start_service_time": "2026-09-17 08:30:00",
+          "departure_time": "2026-09-17 09:00:00",
+          "duration": "PT30M"
+        },
+        {
+          "id": "ticket-a",
+          "type": "Inst",
+          "status": "Assigned",
+          "agent": "engineer-a-260917",
+          "loc": "poi-b",
+          "min_start_time": "2026-09-17 09:10:00",
+          "max_end_time": "2026-09-17 10:00:00",
+          "arrival_time": "2026-09-17 09:10:00",
+          "start_service_time": "2026-09-17 09:10:00",
+          "departure_time": "2026-09-17 09:25:00",
+          "duration": "PT15M"
+        }
+      ],
+      "pois": [
+        {
+          "id": "poi-home",
+          "name": "合成起点",
+          "address": "合成测试地址，非真实业务数据",
+          "location": "120,30"
+        },
+        {
+          "id": "poi-a",
+          "name": "合成地点 A",
+          "address": "合成测试地址，非真实业务数据",
+          "location": "120.01,30.01"
+        },
+        {
+          "id": "poi-b",
+          "name": "合成地点 B",
+          "address": "合成测试地址，非真实业务数据",
+          "location": "120.02,30.02"
+        }
+      ]
+    }
+  }
+}

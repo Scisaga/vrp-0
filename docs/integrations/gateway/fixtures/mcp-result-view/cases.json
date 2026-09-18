@@ -1,0 +1,3312 @@
+[
+  {
+    "name": "ready-amap-single",
+    "source_patch": [],
+    "expected_patch": [],
+    "diagnostics": [],
+    "analysis": {
+      "counts": {
+        "engineer_schedule_count": 1,
+        "assigned_ticket_count": 2,
+        "unassigned_ticket_count": 0
+      },
+      "engineers": [
+        {
+          "id": "engineer-a-260917",
+          "replay_eligible": true,
+          "reasons": [],
+          "replay_start": "2026-09-17 08:00:00",
+          "replay_end": "2026-09-17 09:25:00"
+        }
+      ],
+      "replay": {
+        "start": "2026-09-17 08:00:00",
+        "end": "2026-09-17 09:25:00"
+      }
+    }
+  },
+  {
+    "name": "ready-here-single",
+    "source_patch": [
+      {
+        "op": "replace",
+        "path": "/plan/agents/0/routes/0/route_source",
+        "value": "HERE_DRIVING"
+      },
+      {
+        "op": "replace",
+        "path": "/plan/agents/0/routes/1/route_source",
+        "value": "HERE_DRIVING"
+      },
+      {
+        "op": "replace",
+        "path": "/plan/agents/0/routes/2/route_source",
+        "value": "HERE_DRIVING"
+      }
+    ],
+    "expected_patch": [
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/agents/0/routes/0/route_source",
+        "value": "HERE_DRIVING"
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/agents/0/routes/1/route_source",
+        "value": "HERE_DRIVING"
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/agents/0/routes/2/route_source",
+        "value": "HERE_DRIVING"
+      }
+    ],
+    "diagnostics": [],
+    "analysis": {
+      "counts": {
+        "engineer_schedule_count": 1,
+        "assigned_ticket_count": 2,
+        "unassigned_ticket_count": 0
+      },
+      "engineers": [
+        {
+          "id": "engineer-a-260917",
+          "replay_eligible": true,
+          "reasons": [],
+          "replay_start": "2026-09-17 08:00:00",
+          "replay_end": "2026-09-17 09:25:00"
+        }
+      ],
+      "replay": {
+        "start": "2026-09-17 08:00:00",
+        "end": "2026-09-17 09:25:00"
+      }
+    }
+  },
+  {
+    "name": "car-fallback-real-geometry",
+    "source_patch": [
+      {
+        "op": "replace",
+        "path": "/plan/agents/0/routes/0/route_source",
+        "value": "CAR_FALLBACK"
+      },
+      {
+        "op": "add",
+        "path": "/plan/agents/0/routes/0/routing_failures",
+        "value": [
+          {
+            "endpoint": "TEST_ONLY_PRIVATE_ENDPOINT",
+            "message": "TEST_ONLY_FAILURE"
+          }
+        ]
+      }
+    ],
+    "expected_patch": [
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/agents/0/routes/0/route_source",
+        "value": "CAR_FALLBACK"
+      }
+    ],
+    "diagnostics": [],
+    "analysis": {
+      "counts": {
+        "engineer_schedule_count": 1,
+        "assigned_ticket_count": 2,
+        "unassigned_ticket_count": 0
+      },
+      "engineers": [
+        {
+          "id": "engineer-a-260917",
+          "replay_eligible": true,
+          "reasons": [],
+          "replay_start": "2026-09-17 08:00:00",
+          "replay_end": "2026-09-17 09:25:00"
+        }
+      ],
+      "replay": {
+        "start": "2026-09-17 08:00:00",
+        "end": "2026-09-17 09:25:00"
+      }
+    }
+  },
+  {
+    "name": "estimated-no-road",
+    "source_patch": [
+      {
+        "op": "replace",
+        "path": "/plan/agents/0/routes/0/route_source",
+        "value": "ESTIMATED"
+      },
+      {
+        "op": "replace",
+        "path": "/plan/agents/0/routes/0/polyline",
+        "value": null
+      }
+    ],
+    "expected_patch": [
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/agents/0/routes/0/route_source",
+        "value": "ESTIMATED"
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/agents/0/routes/0/polyline",
+        "value": null
+      }
+    ],
+    "diagnostics": [],
+    "analysis": {
+      "counts": {
+        "engineer_schedule_count": 1,
+        "assigned_ticket_count": 2,
+        "unassigned_ticket_count": 0
+      },
+      "engineers": [
+        {
+          "id": "engineer-a-260917",
+          "replay_eligible": false,
+          "replay_start": null,
+          "replay_end": null
+        }
+      ],
+      "replay": {
+        "start": null,
+        "end": null
+      }
+    },
+    "required_reasons": {
+      "engineer-a-260917": [
+        "unsupported_route_source"
+      ]
+    }
+  },
+  {
+    "name": "legacy-unknown-route-source",
+    "source_patch": [
+      {
+        "op": "remove",
+        "path": "/plan/agents/0/routes/0/route_source"
+      }
+    ],
+    "expected_patch": [
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/agents/0/routes/0/route_source",
+        "value": null
+      }
+    ],
+    "diagnostics": [],
+    "analysis": {
+      "counts": {
+        "engineer_schedule_count": 1,
+        "assigned_ticket_count": 2,
+        "unassigned_ticket_count": 0
+      },
+      "engineers": [
+        {
+          "id": "engineer-a-260917",
+          "replay_eligible": false,
+          "replay_start": null,
+          "replay_end": null
+        }
+      ],
+      "replay": {
+        "start": null,
+        "end": null
+      }
+    },
+    "required_reasons": {
+      "engineer-a-260917": [
+        "unsupported_route_source"
+      ]
+    }
+  },
+  {
+    "name": "legacy-unknown-no-geometry",
+    "source_patch": [
+      {
+        "op": "replace",
+        "path": "/plan/agents/0/routes/0/route_source",
+        "value": null
+      },
+      {
+        "op": "replace",
+        "path": "/plan/agents/0/routes/0/polyline",
+        "value": null
+      }
+    ],
+    "expected_patch": [
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/agents/0/routes/0/route_source",
+        "value": null
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/agents/0/routes/0/polyline",
+        "value": null
+      }
+    ],
+    "diagnostics": [],
+    "analysis": {
+      "counts": {
+        "engineer_schedule_count": 1,
+        "assigned_ticket_count": 2,
+        "unassigned_ticket_count": 0
+      },
+      "engineers": [
+        {
+          "id": "engineer-a-260917",
+          "replay_eligible": false,
+          "replay_start": null,
+          "replay_end": null
+        }
+      ],
+      "replay": {
+        "start": null,
+        "end": null
+      }
+    }
+  },
+  {
+    "name": "routes-not-provided",
+    "source_patch": [
+      {
+        "op": "remove",
+        "path": "/plan/agents/0/routes"
+      }
+    ],
+    "expected_patch": [
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/agents/0/routes",
+        "value": null
+      }
+    ],
+    "diagnostics": [],
+    "analysis": {
+      "counts": {
+        "engineer_schedule_count": 1,
+        "assigned_ticket_count": 2,
+        "unassigned_ticket_count": 0
+      },
+      "engineers": [
+        {
+          "id": "engineer-a-260917",
+          "replay_eligible": false,
+          "replay_start": null,
+          "replay_end": null
+        }
+      ],
+      "replay": {
+        "start": null,
+        "end": null
+      }
+    },
+    "required_reasons": {
+      "engineer-a-260917": [
+        "missing_routes"
+      ]
+    }
+  },
+  {
+    "name": "missing-middle-route-not-reindexed",
+    "source_patch": [
+      {
+        "op": "remove",
+        "path": "/plan/agents/0/routes/1"
+      }
+    ],
+    "expected_patch": [
+      {
+        "op": "remove",
+        "path": "/solver_job/plan/agents/0/routes/1"
+      }
+    ],
+    "diagnostics": [],
+    "analysis": {
+      "counts": {
+        "engineer_schedule_count": 1,
+        "assigned_ticket_count": 2,
+        "unassigned_ticket_count": 0
+      },
+      "engineers": [
+        {
+          "id": "engineer-a-260917",
+          "replay_eligible": false,
+          "replay_start": null,
+          "replay_end": null
+        }
+      ],
+      "replay": {
+        "start": null,
+        "end": null
+      }
+    },
+    "required_reasons": {
+      "engineer-a-260917": [
+        "route_count_mismatch"
+      ]
+    }
+  },
+  {
+    "name": "route-hole-keeps-original-index",
+    "source_patch": [
+      {
+        "op": "replace",
+        "path": "/plan/agents/0/routes/1",
+        "value": null
+      }
+    ],
+    "expected_patch": [
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/agents/0/routes/1",
+        "value": null
+      }
+    ],
+    "diagnostics": [],
+    "analysis": {
+      "counts": {
+        "engineer_schedule_count": 1,
+        "assigned_ticket_count": 2,
+        "unassigned_ticket_count": 0
+      },
+      "engineers": [
+        {
+          "id": "engineer-a-260917",
+          "replay_eligible": false,
+          "replay_start": null,
+          "replay_end": null
+        }
+      ],
+      "replay": {
+        "start": null,
+        "end": null
+      }
+    }
+  },
+  {
+    "name": "invalid-polyline-never-bridges-gap",
+    "source_patch": [
+      {
+        "op": "replace",
+        "path": "/plan/agents/0/routes/0/polyline/1/lat",
+        "value": 181
+      }
+    ],
+    "expected_patch": [
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/agents/0/routes/0/polyline",
+        "value": null
+      }
+    ],
+    "diagnostics": [
+      {
+        "code": "invalid_coordinate"
+      }
+    ],
+    "analysis": {
+      "counts": {
+        "engineer_schedule_count": 1,
+        "assigned_ticket_count": 2,
+        "unassigned_ticket_count": 0
+      },
+      "engineers": [
+        {
+          "id": "engineer-a-260917",
+          "replay_eligible": false,
+          "replay_start": null,
+          "replay_end": null
+        }
+      ],
+      "replay": {
+        "start": null,
+        "end": null
+      }
+    }
+  },
+  {
+    "name": "invalid-poi-no-guessed-position",
+    "source_patch": [
+      {
+        "op": "replace",
+        "path": "/plan/pois/1/location",
+        "value": "181,30"
+      }
+    ],
+    "expected_patch": [
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/pois/1/location",
+        "value": null
+      }
+    ],
+    "diagnostics": [
+      {
+        "code": "invalid_coordinate"
+      }
+    ],
+    "analysis": {
+      "counts": {
+        "engineer_schedule_count": 1,
+        "assigned_ticket_count": 2,
+        "unassigned_ticket_count": 0
+      },
+      "engineers": [
+        {
+          "id": "engineer-a-260917",
+          "replay_eligible": false,
+          "replay_start": null,
+          "replay_end": null
+        }
+      ],
+      "replay": {
+        "start": null,
+        "end": null
+      }
+    }
+  },
+  {
+    "name": "poi-loc-only-is-not-inferred",
+    "source_patch": [
+      {
+        "op": "remove",
+        "path": "/plan/pois/1/location"
+      },
+      {
+        "op": "add",
+        "path": "/plan/pois/1/loc",
+        "value": {
+          "lat": 30.01,
+          "lon": 120.01
+        }
+      }
+    ],
+    "expected_patch": [
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/pois/1/location",
+        "value": null
+      }
+    ],
+    "diagnostics": [],
+    "analysis": {
+      "counts": {
+        "engineer_schedule_count": 1,
+        "assigned_ticket_count": 2,
+        "unassigned_ticket_count": 0
+      },
+      "engineers": [
+        {
+          "id": "engineer-a-260917",
+          "replay_eligible": false,
+          "replay_start": null,
+          "replay_end": null
+        }
+      ],
+      "replay": {
+        "start": null,
+        "end": null
+      }
+    }
+  },
+  {
+    "name": "poi-location-authoritative",
+    "source_patch": [
+      {
+        "op": "add",
+        "path": "/plan/pois/1/loc",
+        "value": {
+          "lat": 30.01,
+          "lon": 120.01
+        }
+      },
+      {
+        "op": "add",
+        "path": "/plan/pois/2/loc",
+        "value": {
+          "lat": 120.02,
+          "lon": 30.02
+        }
+      },
+      {
+        "op": "add",
+        "path": "/plan/pois/1/entr_location",
+        "value": "121,31"
+      }
+    ],
+    "expected_patch": [],
+    "diagnostics": [],
+    "analysis": {
+      "counts": {
+        "engineer_schedule_count": 1,
+        "assigned_ticket_count": 2,
+        "unassigned_ticket_count": 0
+      },
+      "engineers": [
+        {
+          "id": "engineer-a-260917",
+          "replay_eligible": true,
+          "reasons": [],
+          "replay_start": "2026-09-17 08:00:00",
+          "replay_end": "2026-09-17 09:25:00"
+        }
+      ],
+      "replay": {
+        "start": "2026-09-17 08:00:00",
+        "end": "2026-09-17 09:25:00"
+      }
+    }
+  },
+  {
+    "name": "transit-max-is-unknown-not-zero",
+    "source_patch": [
+      {
+        "op": "replace",
+        "path": "/plan/agents/0/routes/0/transit/distance",
+        "value": 9223372036854775807
+      },
+      {
+        "op": "replace",
+        "path": "/plan/agents/0/routes/0/transit/duration",
+        "value": 9223372036854775807
+      }
+    ],
+    "expected_patch": [
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/agents/0/routes/0/transit/distance",
+        "value": null
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/agents/0/routes/0/transit/duration",
+        "value": null
+      }
+    ],
+    "diagnostics": [
+      {
+        "code": "invalid_transit"
+      }
+    ],
+    "analysis": {
+      "counts": {
+        "engineer_schedule_count": 1,
+        "assigned_ticket_count": 2,
+        "unassigned_ticket_count": 0
+      },
+      "engineers": [
+        {
+          "id": "engineer-a-260917",
+          "replay_eligible": true,
+          "reasons": [],
+          "replay_start": "2026-09-17 08:00:00",
+          "replay_end": "2026-09-17 09:25:00"
+        }
+      ],
+      "replay": {
+        "start": "2026-09-17 08:00:00",
+        "end": "2026-09-17 09:25:00"
+      }
+    }
+  },
+  {
+    "name": "missing-times-no-made-up-duration",
+    "source_patch": [
+      {
+        "op": "remove",
+        "path": "/plan/tickets/0/arrival_time"
+      },
+      {
+        "op": "remove",
+        "path": "/plan/tickets/0/start_service_time"
+      },
+      {
+        "op": "remove",
+        "path": "/plan/tickets/0/departure_time"
+      }
+    ],
+    "expected_patch": [
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/tickets/0/arrival_time",
+        "value": null
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/tickets/0/start_service_time",
+        "value": null
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/tickets/0/departure_time",
+        "value": null
+      }
+    ],
+    "diagnostics": [],
+    "analysis": {
+      "counts": {
+        "engineer_schedule_count": 1,
+        "assigned_ticket_count": 2,
+        "unassigned_ticket_count": 0
+      },
+      "engineers": [
+        {
+          "id": "engineer-a-260917",
+          "replay_eligible": false,
+          "replay_start": null,
+          "replay_end": null
+        }
+      ],
+      "replay": {
+        "start": null,
+        "end": null
+      }
+    },
+    "required_reasons": {
+      "engineer-a-260917": [
+        "invalid_schedule_time"
+      ]
+    }
+  },
+  {
+    "name": "invalid-calendar-day",
+    "source_patch": [
+      {
+        "op": "replace",
+        "path": "/plan/tickets/0/arrival_time",
+        "value": "2026-02-30 08:20:00"
+      }
+    ],
+    "expected_patch": [
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/tickets/0/arrival_time",
+        "value": null
+      }
+    ],
+    "diagnostics": [
+      {
+        "code": "invalid_time"
+      }
+    ],
+    "analysis": {
+      "counts": {
+        "engineer_schedule_count": 1,
+        "assigned_ticket_count": 2,
+        "unassigned_ticket_count": 0
+      },
+      "engineers": [
+        {
+          "id": "engineer-a-260917",
+          "replay_eligible": false,
+          "replay_start": null,
+          "replay_end": null
+        }
+      ],
+      "replay": {
+        "start": null,
+        "end": null
+      }
+    }
+  },
+  {
+    "name": "timezone-bearing-engine-time-rejected",
+    "source_patch": [
+      {
+        "op": "replace",
+        "path": "/plan/tickets/0/arrival_time",
+        "value": "2026-09-17T08:20:00Z"
+      }
+    ],
+    "expected_patch": [
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/tickets/0/arrival_time",
+        "value": null
+      }
+    ],
+    "diagnostics": [
+      {
+        "code": "invalid_time"
+      }
+    ],
+    "analysis": {
+      "counts": {
+        "engineer_schedule_count": 1,
+        "assigned_ticket_count": 2,
+        "unassigned_ticket_count": 0
+      },
+      "engineers": [
+        {
+          "id": "engineer-a-260917",
+          "replay_eligible": false,
+          "replay_start": null,
+          "replay_end": null
+        }
+      ],
+      "replay": {
+        "start": null,
+        "end": null
+      }
+    }
+  },
+  {
+    "name": "non-monotonic-travel-time",
+    "source_patch": [
+      {
+        "op": "replace",
+        "path": "/plan/tickets/1/arrival_time",
+        "value": "2026-09-17 08:00:00"
+      }
+    ],
+    "expected_patch": [
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/tickets/1/arrival_time",
+        "value": "2026-09-17 08:00:00"
+      }
+    ],
+    "diagnostics": [],
+    "analysis": {
+      "counts": {
+        "engineer_schedule_count": 1,
+        "assigned_ticket_count": 2,
+        "unassigned_ticket_count": 0
+      },
+      "engineers": [
+        {
+          "id": "engineer-a-260917",
+          "replay_eligible": false,
+          "replay_start": null,
+          "replay_end": null
+        }
+      ],
+      "replay": {
+        "start": null,
+        "end": null
+      }
+    },
+    "required_reasons": {
+      "engineer-a-260917": [
+        "non_monotonic_schedule"
+      ]
+    }
+  },
+  {
+    "name": "zero-service-duration",
+    "source_patch": [
+      {
+        "op": "replace",
+        "path": "/plan/tickets/0/duration",
+        "value": "PT0S"
+      },
+      {
+        "op": "replace",
+        "path": "/plan/tickets/0/departure_time",
+        "value": "2026-09-17 08:30:00"
+      }
+    ],
+    "expected_patch": [
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/tickets/0/duration",
+        "value": "PT0S"
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/tickets/0/departure_time",
+        "value": "2026-09-17 08:30:00"
+      }
+    ],
+    "diagnostics": [],
+    "analysis": {
+      "counts": {
+        "engineer_schedule_count": 1,
+        "assigned_ticket_count": 2,
+        "unassigned_ticket_count": 0
+      },
+      "engineers": [
+        {
+          "id": "engineer-a-260917",
+          "replay_eligible": true,
+          "reasons": [],
+          "replay_start": "2026-09-17 08:00:00",
+          "replay_end": "2026-09-17 09:25:00"
+        }
+      ],
+      "replay": {
+        "start": "2026-09-17 08:00:00",
+        "end": "2026-09-17 09:25:00"
+      }
+    }
+  },
+  {
+    "name": "java-duration-fractional-seconds",
+    "source_patch": [
+      {
+        "op": "replace",
+        "path": "/plan/tickets/0/duration",
+        "value": "PT1M30.123456789S"
+      }
+    ],
+    "expected_patch": [
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/tickets/0/duration",
+        "value": "PT1M30.123456789S"
+      }
+    ],
+    "diagnostics": [],
+    "analysis": {
+      "counts": {
+        "engineer_schedule_count": 1,
+        "assigned_ticket_count": 2,
+        "unassigned_ticket_count": 0
+      },
+      "engineers": [
+        {
+          "id": "engineer-a-260917",
+          "replay_eligible": true,
+          "reasons": [],
+          "replay_start": "2026-09-17 08:00:00",
+          "replay_end": "2026-09-17 09:25:00"
+        }
+      ],
+      "replay": {
+        "start": "2026-09-17 08:00:00",
+        "end": "2026-09-17 09:25:00"
+      }
+    }
+  },
+  {
+    "name": "return-time-fallback-does-not-extend-replay",
+    "source_patch": [
+      {
+        "op": "replace",
+        "path": "/plan/agents/0/tickets_done_time",
+        "value": "2026-09-17 08:00:00"
+      }
+    ],
+    "expected_patch": [
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/agents/0/tickets_done_time",
+        "value": "2026-09-17 08:00:00"
+      }
+    ],
+    "diagnostics": [],
+    "analysis": {
+      "counts": {
+        "engineer_schedule_count": 1,
+        "assigned_ticket_count": 2,
+        "unassigned_ticket_count": 0
+      },
+      "engineers": [
+        {
+          "id": "engineer-a-260917",
+          "replay_eligible": true,
+          "reasons": [],
+          "replay_start": "2026-09-17 08:00:00",
+          "replay_end": "2026-09-17 09:25:00"
+        }
+      ],
+      "replay": {
+        "start": "2026-09-17 08:00:00",
+        "end": "2026-09-17 09:25:00"
+      }
+    }
+  },
+  {
+    "name": "return-geometry-unavailable-does-not-invent-return-playback",
+    "source_patch": [
+      {
+        "op": "replace",
+        "path": "/plan/agents/0/routes/2/polyline",
+        "value": null
+      }
+    ],
+    "expected_patch": [
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/agents/0/routes/2/polyline",
+        "value": null
+      }
+    ],
+    "diagnostics": [],
+    "analysis": {
+      "counts": {
+        "engineer_schedule_count": 1,
+        "assigned_ticket_count": 2,
+        "unassigned_ticket_count": 0
+      },
+      "engineers": [
+        {
+          "id": "engineer-a-260917",
+          "replay_eligible": true,
+          "reasons": [],
+          "replay_start": "2026-09-17 08:00:00",
+          "replay_end": "2026-09-17 09:25:00"
+        }
+      ],
+      "replay": {
+        "start": "2026-09-17 08:00:00",
+        "end": "2026-09-17 09:25:00"
+      }
+    }
+  },
+  {
+    "name": "zero-distance-stationary-leg",
+    "source_patch": [
+      {
+        "op": "replace",
+        "path": "/plan/pois/1/location",
+        "value": "120,30"
+      },
+      {
+        "op": "replace",
+        "path": "/plan/agents/0/routes/0",
+        "value": {
+          "origin": {
+            "lat": 120,
+            "lon": 30
+          },
+          "destination": {
+            "lat": 120,
+            "lon": 30
+          },
+          "polyline": null,
+          "route_source": "ZERO_DISTANCE",
+          "transit": {
+            "distance": 0,
+            "duration": 0
+          }
+        }
+      },
+      {
+        "op": "replace",
+        "path": "/plan/agents/0/routes/1/origin",
+        "value": {
+          "lat": 120,
+          "lon": 30
+        }
+      },
+      {
+        "op": "replace",
+        "path": "/plan/agents/0/routes/1/polyline/0",
+        "value": {
+          "lat": 120,
+          "lon": 30
+        }
+      }
+    ],
+    "expected_patch": [
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/pois/1/location",
+        "value": "120,30"
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/agents/0/routes/0",
+        "value": {
+          "origin": {
+            "lat": 120,
+            "lon": 30
+          },
+          "destination": {
+            "lat": 120,
+            "lon": 30
+          },
+          "polyline": null,
+          "route_source": "ZERO_DISTANCE",
+          "transit": {
+            "distance": 0,
+            "duration": 0
+          }
+        }
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/agents/0/routes/1/origin",
+        "value": {
+          "lat": 120,
+          "lon": 30
+        }
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/agents/0/routes/1/polyline/0",
+        "value": {
+          "lat": 120,
+          "lon": 30
+        }
+      }
+    ],
+    "diagnostics": [],
+    "analysis": {
+      "counts": {
+        "engineer_schedule_count": 1,
+        "assigned_ticket_count": 2,
+        "unassigned_ticket_count": 0
+      },
+      "engineers": [
+        {
+          "id": "engineer-a-260917",
+          "replay_eligible": true,
+          "reasons": [],
+          "replay_start": "2026-09-17 08:00:00",
+          "replay_end": "2026-09-17 09:25:00"
+        }
+      ],
+      "replay": {
+        "start": "2026-09-17 08:00:00",
+        "end": "2026-09-17 09:25:00"
+      }
+    }
+  },
+  {
+    "name": "missing-ticket-reference-keeps-sequence",
+    "source_patch": [
+      {
+        "op": "replace",
+        "path": "/plan/agents/0/tickets/0",
+        "value": "missing-ticket"
+      }
+    ],
+    "expected_patch": [
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/agents/0/tickets/0",
+        "value": "missing-ticket"
+      }
+    ],
+    "diagnostics": [
+      {
+        "code": "unknown_reference"
+      }
+    ],
+    "analysis": {
+      "counts": {
+        "engineer_schedule_count": null,
+        "assigned_ticket_count": null,
+        "unassigned_ticket_count": null
+      },
+      "engineers": [
+        {
+          "id": "engineer-a-260917",
+          "replay_eligible": false,
+          "replay_start": null,
+          "replay_end": null
+        }
+      ],
+      "replay": {
+        "start": null,
+        "end": null
+      }
+    },
+    "required_reasons": {
+      "engineer-a-260917": [
+        "missing_ticket"
+      ]
+    }
+  },
+  {
+    "name": "missing-poi-reference-keeps-id",
+    "source_patch": [
+      {
+        "op": "replace",
+        "path": "/plan/tickets/0/loc",
+        "value": "missing-poi"
+      }
+    ],
+    "expected_patch": [
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/tickets/0/loc",
+        "value": "missing-poi"
+      }
+    ],
+    "diagnostics": [
+      {
+        "code": "unknown_reference"
+      }
+    ],
+    "analysis": {
+      "counts": {
+        "engineer_schedule_count": 1,
+        "assigned_ticket_count": 2,
+        "unassigned_ticket_count": 0
+      },
+      "engineers": [
+        {
+          "id": "engineer-a-260917",
+          "replay_eligible": false,
+          "replay_start": null,
+          "replay_end": null
+        }
+      ],
+      "replay": {
+        "start": null,
+        "end": null
+      }
+    },
+    "required_reasons": {
+      "engineer-a-260917": [
+        "missing_location"
+      ]
+    }
+  },
+  {
+    "name": "unknown-owner-is-not-unassigned",
+    "source_patch": [
+      {
+        "op": "replace",
+        "path": "/plan/tickets/0/agent",
+        "value": "missing-engineer"
+      }
+    ],
+    "expected_patch": [
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/tickets/0/agent",
+        "value": "missing-engineer"
+      }
+    ],
+    "diagnostics": [
+      {
+        "code": "unknown_reference"
+      }
+    ],
+    "analysis": {
+      "counts": {
+        "engineer_schedule_count": null,
+        "assigned_ticket_count": null,
+        "unassigned_ticket_count": null
+      },
+      "engineers": [
+        {
+          "id": "engineer-a-260917",
+          "replay_eligible": false,
+          "replay_start": null,
+          "replay_end": null
+        }
+      ],
+      "replay": {
+        "start": null,
+        "end": null
+      }
+    }
+  },
+  {
+    "name": "virtual-agent-is-not-real-assignment",
+    "source_patch": [
+      {
+        "op": "replace",
+        "path": "/plan/agents/0/virtual",
+        "value": true
+      }
+    ],
+    "expected_patch": [
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/agents/0/virtual",
+        "value": true
+      }
+    ],
+    "diagnostics": [],
+    "analysis": {
+      "counts": {
+        "engineer_schedule_count": 0,
+        "assigned_ticket_count": 0,
+        "unassigned_ticket_count": 2
+      },
+      "engineers": [
+        {
+          "id": "engineer-a-260917",
+          "replay_eligible": false,
+          "replay_start": null,
+          "replay_end": null
+        }
+      ],
+      "replay": {
+        "start": null,
+        "end": null
+      }
+    }
+  },
+  {
+    "name": "unknown-virtual-flag-is-not-false",
+    "source_patch": [
+      {
+        "op": "remove",
+        "path": "/plan/agents/0/virtual"
+      }
+    ],
+    "expected_patch": [
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/agents/0/virtual",
+        "value": null
+      }
+    ],
+    "diagnostics": [],
+    "analysis": {
+      "counts": {
+        "engineer_schedule_count": null,
+        "assigned_ticket_count": null,
+        "unassigned_ticket_count": null
+      },
+      "engineers": [
+        {
+          "id": "engineer-a-260917",
+          "replay_eligible": false,
+          "replay_start": null,
+          "replay_end": null
+        }
+      ],
+      "replay": {
+        "start": null,
+        "end": null
+      }
+    }
+  },
+  {
+    "name": "unassigned-tickets-idle-engineer",
+    "source_patch": [
+      {
+        "op": "replace",
+        "path": "/plan/agents/0/tickets",
+        "value": []
+      },
+      {
+        "op": "replace",
+        "path": "/plan/agents/0/routes",
+        "value": []
+      },
+      {
+        "op": "replace",
+        "path": "/plan/tickets/0/agent",
+        "value": null
+      },
+      {
+        "op": "replace",
+        "path": "/plan/tickets/1/agent",
+        "value": null
+      }
+    ],
+    "expected_patch": [
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/agents/0/tickets",
+        "value": []
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/agents/0/routes",
+        "value": []
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/tickets/0/agent",
+        "value": null
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/tickets/1/agent",
+        "value": null
+      }
+    ],
+    "diagnostics": [],
+    "analysis": {
+      "counts": {
+        "engineer_schedule_count": 1,
+        "assigned_ticket_count": 0,
+        "unassigned_ticket_count": 2
+      },
+      "engineers": [
+        {
+          "id": "engineer-a-260917",
+          "replay_eligible": false,
+          "replay_start": null,
+          "replay_end": null
+        }
+      ],
+      "replay": {
+        "start": null,
+        "end": null
+      }
+    },
+    "required_reasons": {
+      "engineer-a-260917": [
+        "no_tickets"
+      ]
+    }
+  },
+  {
+    "name": "ready-empty-is-real-zero",
+    "source_patch": [
+      {
+        "op": "replace",
+        "path": "/plan",
+        "value": {
+          "agents": [],
+          "tickets": [],
+          "pois": []
+        }
+      }
+    ],
+    "expected_patch": [
+      {
+        "op": "replace",
+        "path": "/solver_job/plan",
+        "value": {
+          "agents": [],
+          "tickets": [],
+          "pois": []
+        }
+      }
+    ],
+    "diagnostics": [],
+    "analysis": {
+      "counts": {
+        "engineer_schedule_count": 0,
+        "assigned_ticket_count": 0,
+        "unassigned_ticket_count": 0
+      },
+      "engineers": [],
+      "replay": {
+        "start": null,
+        "end": null
+      }
+    }
+  },
+  {
+    "name": "missing-collections-are-not-empty",
+    "source_patch": [
+      {
+        "op": "replace",
+        "path": "/plan",
+        "value": {}
+      }
+    ],
+    "expected_patch": [
+      {
+        "op": "replace",
+        "path": "/solver_job/plan",
+        "value": {
+          "agents": null,
+          "tickets": null,
+          "pois": null
+        }
+      }
+    ],
+    "diagnostics": [],
+    "analysis": {
+      "counts": {
+        "engineer_schedule_count": null,
+        "assigned_ticket_count": null,
+        "unassigned_ticket_count": null
+      },
+      "engineers": [],
+      "replay": {
+        "start": null,
+        "end": null
+      }
+    }
+  },
+  {
+    "name": "missing-plan-no-model",
+    "source_patch": [
+      {
+        "op": "remove",
+        "path": "/plan"
+      }
+    ],
+    "expected_patch": [],
+    "diagnostics": [
+      {
+        "code": "missing_plan"
+      }
+    ],
+    "analysis": {},
+    "expected_null": true
+  },
+  {
+    "name": "invalid-gateway-identity",
+    "source_patch": [],
+    "expected_patch": [],
+    "diagnostics": [
+      {
+        "code": "invalid_gateway_job_id"
+      }
+    ],
+    "analysis": {},
+    "gateway_job_id": "",
+    "expected_null": true
+  },
+  {
+    "name": "duplicate-agent-id-rejected",
+    "source_patch": [
+      {
+        "op": "add",
+        "path": "/plan/agents/-",
+        "value": {
+          "id": "engineer-a-260917",
+          "name": "合成工程师 A",
+          "date": "2026-09-17",
+          "virtual": false,
+          "shift_start_time": "2026-09-17 08:00:00",
+          "shift_off_time": "2026-09-17 17:00:00",
+          "tickets_done_time": "2026-09-17 09:40:00",
+          "start_loc": "poi-home",
+          "tickets": [
+            "ticket-b",
+            "ticket-a"
+          ],
+          "routes": [
+            {
+              "origin": {
+                "lat": 120,
+                "lon": 30
+              },
+              "destination": {
+                "lat": 120.01,
+                "lon": 30.01
+              },
+              "polyline": [
+                {
+                  "lat": 120,
+                  "lon": 30
+                },
+                {
+                  "lat": 120.005,
+                  "lon": 30.005
+                },
+                {
+                  "lat": 120.01,
+                  "lon": 30.01
+                }
+              ],
+              "route_source": "AMAP_DRIVING",
+              "transit": {
+                "distance": 1500,
+                "duration": 1200
+              }
+            },
+            {
+              "origin": {
+                "lat": 120.01,
+                "lon": 30.01
+              },
+              "destination": {
+                "lat": 120.02,
+                "lon": 30.02
+              },
+              "polyline": [
+                {
+                  "lat": 120.01,
+                  "lon": 30.01
+                },
+                {
+                  "lat": 120.015,
+                  "lon": 30.015
+                },
+                {
+                  "lat": 120.02,
+                  "lon": 30.02
+                }
+              ],
+              "route_source": "AMAP_DRIVING",
+              "transit": {
+                "distance": 1000,
+                "duration": 600
+              }
+            },
+            {
+              "origin": {
+                "lat": 120.02,
+                "lon": 30.02
+              },
+              "destination": {
+                "lat": 120,
+                "lon": 30
+              },
+              "polyline": [
+                {
+                  "lat": 120.02,
+                  "lon": 30.02
+                },
+                {
+                  "lat": 120.01,
+                  "lon": 30.01
+                },
+                {
+                  "lat": 120,
+                  "lon": 30
+                }
+              ],
+              "route_source": "AMAP_DRIVING",
+              "transit": {
+                "distance": 2500,
+                "duration": 900
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "expected_patch": [],
+    "diagnostics": [
+      {
+        "code": "duplicate_entity_id"
+      }
+    ],
+    "analysis": {},
+    "expected_null": true
+  },
+  {
+    "name": "duplicate-ticket-id-rejected",
+    "source_patch": [
+      {
+        "op": "add",
+        "path": "/plan/tickets/-",
+        "value": {
+          "id": "ticket-b",
+          "type": "Inst",
+          "status": "Assigned",
+          "agent": "engineer-a-260917",
+          "loc": "poi-a",
+          "min_start_time": "2026-09-17 08:30:00",
+          "max_end_time": "2026-09-17 10:00:00",
+          "arrival_time": "2026-09-17 08:20:00",
+          "start_service_time": "2026-09-17 08:30:00",
+          "departure_time": "2026-09-17 09:00:00",
+          "duration": "PT30M"
+        }
+      }
+    ],
+    "expected_patch": [],
+    "diagnostics": [
+      {
+        "code": "duplicate_entity_id"
+      }
+    ],
+    "analysis": {},
+    "expected_null": true
+  },
+  {
+    "name": "duplicate-poi-id-rejected",
+    "source_patch": [
+      {
+        "op": "add",
+        "path": "/plan/pois/-",
+        "value": {
+          "id": "poi-home",
+          "name": "合成起点",
+          "address": "合成测试地址，非真实业务数据",
+          "location": "120,30"
+        }
+      }
+    ],
+    "expected_patch": [],
+    "diagnostics": [
+      {
+        "code": "duplicate_entity_id"
+      }
+    ],
+    "analysis": {},
+    "expected_null": true
+  },
+  {
+    "name": "missing-entity-id-rejected",
+    "source_patch": [
+      {
+        "op": "remove",
+        "path": "/plan/tickets/0/id"
+      }
+    ],
+    "expected_patch": [],
+    "diagnostics": [
+      {
+        "code": "missing_entity_id"
+      }
+    ],
+    "analysis": {},
+    "expected_null": true
+  },
+  {
+    "name": "inline-and-id-poi-coalesce",
+    "source_patch": [
+      {
+        "op": "replace",
+        "path": "/plan/agents/0/start_loc",
+        "value": {
+          "id": "poi-home",
+          "name": "合成起点",
+          "address": "合成测试地址，非真实业务数据",
+          "location": "120,30"
+        }
+      },
+      {
+        "op": "replace",
+        "path": "/plan/tickets/0/loc",
+        "value": {
+          "id": "poi-a",
+          "name": "合成地点 A",
+          "address": "合成测试地址，非真实业务数据",
+          "location": "120.01,30.01"
+        }
+      }
+    ],
+    "expected_patch": [],
+    "diagnostics": [],
+    "analysis": {
+      "counts": {
+        "engineer_schedule_count": 1,
+        "assigned_ticket_count": 2,
+        "unassigned_ticket_count": 0
+      },
+      "engineers": [
+        {
+          "id": "engineer-a-260917",
+          "replay_eligible": true,
+          "reasons": [],
+          "replay_start": "2026-09-17 08:00:00",
+          "replay_end": "2026-09-17 09:25:00"
+        }
+      ],
+      "replay": {
+        "start": "2026-09-17 08:00:00",
+        "end": "2026-09-17 09:25:00"
+      }
+    }
+  },
+  {
+    "name": "inline-pois-collected-once",
+    "source_patch": [
+      {
+        "op": "replace",
+        "path": "/plan/pois",
+        "value": []
+      },
+      {
+        "op": "replace",
+        "path": "/plan/agents/0/start_loc",
+        "value": {
+          "id": "poi-home",
+          "name": "合成起点",
+          "address": "合成测试地址，非真实业务数据",
+          "location": "120,30"
+        }
+      },
+      {
+        "op": "replace",
+        "path": "/plan/tickets/0/loc",
+        "value": {
+          "id": "poi-a",
+          "name": "合成地点 A",
+          "address": "合成测试地址，非真实业务数据",
+          "location": "120.01,30.01"
+        }
+      },
+      {
+        "op": "replace",
+        "path": "/plan/tickets/1/loc",
+        "value": {
+          "id": "poi-b",
+          "name": "合成地点 B",
+          "address": "合成测试地址，非真实业务数据",
+          "location": "120.02,30.02"
+        }
+      }
+    ],
+    "expected_patch": [],
+    "diagnostics": [],
+    "analysis": {
+      "counts": {
+        "engineer_schedule_count": 1,
+        "assigned_ticket_count": 2,
+        "unassigned_ticket_count": 0
+      },
+      "engineers": [
+        {
+          "id": "engineer-a-260917",
+          "replay_eligible": true,
+          "reasons": [],
+          "replay_start": "2026-09-17 08:00:00",
+          "replay_end": "2026-09-17 09:25:00"
+        }
+      ],
+      "replay": {
+        "start": "2026-09-17 08:00:00",
+        "end": "2026-09-17 09:25:00"
+      }
+    }
+  },
+  {
+    "name": "conflicting-inline-poi-rejected",
+    "source_patch": [
+      {
+        "op": "replace",
+        "path": "/plan/agents/0/start_loc",
+        "value": {
+          "id": "poi-home",
+          "name": "合成起点",
+          "address": "合成测试地址，非真实业务数据",
+          "location": "119,29"
+        }
+      }
+    ],
+    "expected_patch": [],
+    "diagnostics": [
+      {
+        "code": "conflicting_poi"
+      }
+    ],
+    "analysis": {},
+    "expected_null": true
+  },
+  {
+    "name": "opaque-engineer-id-128",
+    "source_patch": [
+      {
+        "op": "replace",
+        "path": "/plan/agents/0/id",
+        "value": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee-260917"
+      },
+      {
+        "op": "replace",
+        "path": "/plan/tickets/0/agent",
+        "value": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee-260917"
+      },
+      {
+        "op": "replace",
+        "path": "/plan/tickets/1/agent",
+        "value": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee-260917"
+      }
+    ],
+    "expected_patch": [
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/agents/0/id",
+        "value": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee-260917"
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/tickets/0/agent",
+        "value": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee-260917"
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/tickets/1/agent",
+        "value": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee-260917"
+      }
+    ],
+    "diagnostics": [],
+    "analysis": {
+      "counts": {
+        "engineer_schedule_count": 1,
+        "assigned_ticket_count": 2,
+        "unassigned_ticket_count": 0
+      },
+      "engineers": [
+        {
+          "id": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee-260917",
+          "replay_eligible": true,
+          "reasons": [],
+          "replay_start": "2026-09-17 08:00:00",
+          "replay_end": "2026-09-17 09:25:00"
+        }
+      ],
+      "replay": {
+        "start": "2026-09-17 08:00:00",
+        "end": "2026-09-17 09:25:00"
+      }
+    }
+  },
+  {
+    "name": "opaque-engineer-id-129",
+    "source_patch": [
+      {
+        "op": "replace",
+        "path": "/plan/agents/0/id",
+        "value": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee-260917"
+      },
+      {
+        "op": "replace",
+        "path": "/plan/tickets/0/agent",
+        "value": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee-260917"
+      },
+      {
+        "op": "replace",
+        "path": "/plan/tickets/1/agent",
+        "value": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee-260917"
+      }
+    ],
+    "expected_patch": [
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/agents/0/id",
+        "value": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee-260917"
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/tickets/0/agent",
+        "value": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee-260917"
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/tickets/1/agent",
+        "value": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee-260917"
+      }
+    ],
+    "diagnostics": [],
+    "analysis": {
+      "counts": {
+        "engineer_schedule_count": 1,
+        "assigned_ticket_count": 2,
+        "unassigned_ticket_count": 0
+      },
+      "engineers": [
+        {
+          "id": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee-260917",
+          "replay_eligible": true,
+          "reasons": [],
+          "replay_start": "2026-09-17 08:00:00",
+          "replay_end": "2026-09-17 09:25:00"
+        }
+      ],
+      "replay": {
+        "start": "2026-09-17 08:00:00",
+        "end": "2026-09-17 09:25:00"
+      }
+    }
+  },
+  {
+    "name": "opaque-engineer-id-no-date-parsing",
+    "source_patch": [
+      {
+        "op": "replace",
+        "path": "/plan/agents/0/id",
+        "value": "base-260917-not-a-date"
+      },
+      {
+        "op": "replace",
+        "path": "/plan/tickets/0/agent",
+        "value": "base-260917-not-a-date"
+      },
+      {
+        "op": "replace",
+        "path": "/plan/tickets/1/agent",
+        "value": "base-260917-not-a-date"
+      }
+    ],
+    "expected_patch": [
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/agents/0/id",
+        "value": "base-260917-not-a-date"
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/tickets/0/agent",
+        "value": "base-260917-not-a-date"
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/tickets/1/agent",
+        "value": "base-260917-not-a-date"
+      }
+    ],
+    "diagnostics": [],
+    "analysis": {
+      "counts": {
+        "engineer_schedule_count": 1,
+        "assigned_ticket_count": 2,
+        "unassigned_ticket_count": 0
+      },
+      "engineers": [
+        {
+          "id": "base-260917-not-a-date",
+          "replay_eligible": true,
+          "reasons": [],
+          "replay_start": "2026-09-17 08:00:00",
+          "replay_end": "2026-09-17 09:25:00"
+        }
+      ],
+      "replay": {
+        "start": "2026-09-17 08:00:00",
+        "end": "2026-09-17 09:25:00"
+      }
+    }
+  },
+  {
+    "name": "multi-day-same-name-shared-pois",
+    "source_patch": [
+      {
+        "op": "add",
+        "path": "/plan/agents/-",
+        "value": {
+          "id": "engineer-a-260918",
+          "name": "合成工程师 A",
+          "date": "2026-09-18",
+          "virtual": false,
+          "shift_start_time": "2026-09-18 08:00:00",
+          "shift_off_time": "2026-09-18 17:00:00",
+          "tickets_done_time": "2026-09-18 09:20:00",
+          "start_loc": "poi-home",
+          "tickets": [
+            "ticket-next-day"
+          ],
+          "routes": [
+            {
+              "origin": {
+                "lat": 120,
+                "lon": 30
+              },
+              "destination": {
+                "lat": 120.01,
+                "lon": 30.01
+              },
+              "polyline": [
+                {
+                  "lat": 120,
+                  "lon": 30
+                },
+                {
+                  "lat": 120.005,
+                  "lon": 30.005
+                },
+                {
+                  "lat": 120.01,
+                  "lon": 30.01
+                }
+              ],
+              "route_source": "AMAP_DRIVING",
+              "transit": {
+                "distance": 1500,
+                "duration": 1200
+              }
+            },
+            {
+              "origin": {
+                "lat": 120.01,
+                "lon": 30.01
+              },
+              "destination": {
+                "lat": 120,
+                "lon": 30
+              },
+              "polyline": [
+                {
+                  "lat": 120.01,
+                  "lon": 30.01
+                },
+                {
+                  "lat": 120.005,
+                  "lon": 30.005
+                },
+                {
+                  "lat": 120,
+                  "lon": 30
+                }
+              ],
+              "route_source": "AMAP_DRIVING",
+              "transit": {
+                "distance": 1500,
+                "duration": 1200
+              }
+            }
+          ]
+        }
+      },
+      {
+        "op": "add",
+        "path": "/plan/tickets/-",
+        "value": {
+          "id": "ticket-next-day",
+          "type": "Inst",
+          "status": "Assigned",
+          "agent": "engineer-a-260918",
+          "loc": "poi-a",
+          "min_start_time": "2026-09-18 08:30:00",
+          "max_end_time": "2026-09-18 10:00:00",
+          "arrival_time": "2026-09-18 08:20:00",
+          "start_service_time": "2026-09-18 08:30:00",
+          "departure_time": "2026-09-18 09:00:00",
+          "duration": "PT30M"
+        }
+      }
+    ],
+    "expected_patch": [
+      {
+        "op": "add",
+        "path": "/solver_job/plan/agents/-",
+        "value": {
+          "id": "engineer-a-260918",
+          "name": "合成工程师 A",
+          "date": "2026-09-18",
+          "virtual": false,
+          "shift_start_time": "2026-09-18 08:00:00",
+          "shift_off_time": "2026-09-18 17:00:00",
+          "tickets_done_time": "2026-09-18 09:20:00",
+          "start_loc": "poi-home",
+          "tickets": [
+            "ticket-next-day"
+          ],
+          "routes": [
+            {
+              "origin": {
+                "lat": 120,
+                "lon": 30
+              },
+              "destination": {
+                "lat": 120.01,
+                "lon": 30.01
+              },
+              "polyline": [
+                {
+                  "lat": 120,
+                  "lon": 30
+                },
+                {
+                  "lat": 120.005,
+                  "lon": 30.005
+                },
+                {
+                  "lat": 120.01,
+                  "lon": 30.01
+                }
+              ],
+              "route_source": "AMAP_DRIVING",
+              "transit": {
+                "distance": 1500,
+                "duration": 1200
+              }
+            },
+            {
+              "origin": {
+                "lat": 120.01,
+                "lon": 30.01
+              },
+              "destination": {
+                "lat": 120,
+                "lon": 30
+              },
+              "polyline": [
+                {
+                  "lat": 120.01,
+                  "lon": 30.01
+                },
+                {
+                  "lat": 120.005,
+                  "lon": 30.005
+                },
+                {
+                  "lat": 120,
+                  "lon": 30
+                }
+              ],
+              "route_source": "AMAP_DRIVING",
+              "transit": {
+                "distance": 1500,
+                "duration": 1200
+              }
+            }
+          ]
+        }
+      },
+      {
+        "op": "add",
+        "path": "/solver_job/plan/tickets/-",
+        "value": {
+          "id": "ticket-next-day",
+          "type": "Inst",
+          "status": "Assigned",
+          "agent": "engineer-a-260918",
+          "loc": "poi-a",
+          "min_start_time": "2026-09-18 08:30:00",
+          "max_end_time": "2026-09-18 10:00:00",
+          "arrival_time": "2026-09-18 08:20:00",
+          "start_service_time": "2026-09-18 08:30:00",
+          "departure_time": "2026-09-18 09:00:00",
+          "duration": "PT30M"
+        }
+      }
+    ],
+    "diagnostics": [],
+    "analysis": {
+      "counts": {
+        "engineer_schedule_count": 2,
+        "assigned_ticket_count": 3,
+        "unassigned_ticket_count": 0
+      },
+      "engineers": [
+        {
+          "id": "engineer-a-260917",
+          "replay_eligible": true,
+          "reasons": [],
+          "replay_start": "2026-09-17 08:00:00",
+          "replay_end": "2026-09-17 09:25:00"
+        },
+        {
+          "id": "engineer-a-260918",
+          "replay_eligible": true,
+          "reasons": [],
+          "replay_start": "2026-09-18 08:00:00",
+          "replay_end": "2026-09-18 09:00:00"
+        }
+      ],
+      "replay": {
+        "start": "2026-09-17 08:00:00",
+        "end": "2026-09-18 09:00:00"
+      }
+    }
+  },
+  {
+    "name": "partly-playable-engineers",
+    "source_patch": [
+      {
+        "op": "add",
+        "path": "/plan/agents/-",
+        "value": {
+          "id": "engineer-a-260918",
+          "name": "合成工程师 A",
+          "date": "2026-09-18",
+          "virtual": false,
+          "shift_start_time": "2026-09-18 08:00:00",
+          "shift_off_time": "2026-09-18 17:00:00",
+          "tickets_done_time": "2026-09-18 09:20:00",
+          "start_loc": "poi-home",
+          "tickets": [
+            "ticket-next-day"
+          ],
+          "routes": null
+        }
+      },
+      {
+        "op": "add",
+        "path": "/plan/tickets/-",
+        "value": {
+          "id": "ticket-next-day",
+          "type": "Inst",
+          "status": "Assigned",
+          "agent": "engineer-a-260918",
+          "loc": "poi-a",
+          "min_start_time": "2026-09-18 08:30:00",
+          "max_end_time": "2026-09-18 10:00:00",
+          "arrival_time": "2026-09-18 08:20:00",
+          "start_service_time": "2026-09-18 08:30:00",
+          "departure_time": "2026-09-18 09:00:00",
+          "duration": "PT30M"
+        }
+      }
+    ],
+    "expected_patch": [
+      {
+        "op": "add",
+        "path": "/solver_job/plan/agents/-",
+        "value": {
+          "id": "engineer-a-260918",
+          "name": "合成工程师 A",
+          "date": "2026-09-18",
+          "virtual": false,
+          "shift_start_time": "2026-09-18 08:00:00",
+          "shift_off_time": "2026-09-18 17:00:00",
+          "tickets_done_time": "2026-09-18 09:20:00",
+          "start_loc": "poi-home",
+          "tickets": [
+            "ticket-next-day"
+          ],
+          "routes": null
+        }
+      },
+      {
+        "op": "add",
+        "path": "/solver_job/plan/tickets/-",
+        "value": {
+          "id": "ticket-next-day",
+          "type": "Inst",
+          "status": "Assigned",
+          "agent": "engineer-a-260918",
+          "loc": "poi-a",
+          "min_start_time": "2026-09-18 08:30:00",
+          "max_end_time": "2026-09-18 10:00:00",
+          "arrival_time": "2026-09-18 08:20:00",
+          "start_service_time": "2026-09-18 08:30:00",
+          "departure_time": "2026-09-18 09:00:00",
+          "duration": "PT30M"
+        }
+      }
+    ],
+    "diagnostics": [],
+    "analysis": {
+      "counts": {
+        "engineer_schedule_count": 2,
+        "assigned_ticket_count": 3,
+        "unassigned_ticket_count": 0
+      },
+      "engineers": [
+        {
+          "id": "engineer-a-260917",
+          "replay_eligible": true,
+          "reasons": [],
+          "replay_start": "2026-09-17 08:00:00",
+          "replay_end": "2026-09-17 09:25:00"
+        },
+        {
+          "id": "engineer-a-260918",
+          "replay_eligible": false,
+          "replay_start": null,
+          "replay_end": null
+        }
+      ],
+      "replay": {
+        "start": "2026-09-17 08:00:00",
+        "end": "2026-09-17 09:25:00"
+      }
+    },
+    "required_reasons": {
+      "engineer-a-260918": [
+        "missing_routes"
+      ]
+    }
+  },
+  {
+    "name": "nested-private-fields-never-forwarded",
+    "source_patch": [
+      {
+        "op": "add",
+        "path": "/exception",
+        "value": {
+          "message": "TEST_ONLY_INTERNAL_ERROR",
+          "stack": "TEST_ONLY_STACK"
+        }
+      },
+      {
+        "op": "add",
+        "path": "/request_payload",
+        "value": {
+          "token": "TEST_ONLY_TOKEN"
+        }
+      },
+      {
+        "op": "add",
+        "path": "/archive_ref",
+        "value": "TEST_ONLY_ARCHIVE"
+      },
+      {
+        "op": "add",
+        "path": "/scenario_id",
+        "value": "TEST_ONLY_INTERNAL_ID"
+      },
+      {
+        "op": "add",
+        "path": "/plan/matrix",
+        "value": {
+          "secret": "TEST_ONLY_MATRIX"
+        }
+      },
+      {
+        "op": "add",
+        "path": "/plan/constraint_configuration",
+        "value": {
+          "secret": "TEST_ONLY_CONSTRAINT"
+        }
+      },
+      {
+        "op": "add",
+        "path": "/plan/agents/0/skills",
+        "value": [
+          "TEST_ONLY_SKILL"
+        ]
+      },
+      {
+        "op": "add",
+        "path": "/plan/agents/0/cost_parameter",
+        "value": {
+          "secret": "TEST_ONLY_COST"
+        }
+      },
+      {
+        "op": "add",
+        "path": "/plan/pois/0/photos",
+        "value": [
+          {
+            "url": "https://example.invalid/TEST_ONLY_REMOTE"
+          }
+        ]
+      },
+      {
+        "op": "add",
+        "path": "/plan/agents/0/routes/0/routing_failures",
+        "value": [
+          {
+            "message": "TEST_ONLY_FAILURE"
+          }
+        ]
+      },
+      {
+        "op": "add",
+        "path": "/plan/agents/0/routes/0/transit/create_time",
+        "value": "2026-09-17 00:00:00"
+      }
+    ],
+    "expected_patch": [],
+    "diagnostics": [],
+    "analysis": {
+      "counts": {
+        "engineer_schedule_count": 1,
+        "assigned_ticket_count": 2,
+        "unassigned_ticket_count": 0
+      },
+      "engineers": [
+        {
+          "id": "engineer-a-260917",
+          "replay_eligible": true,
+          "reasons": [],
+          "replay_start": "2026-09-17 08:00:00",
+          "replay_end": "2026-09-17 09:25:00"
+        }
+      ],
+      "replay": {
+        "start": "2026-09-17 08:00:00",
+        "end": "2026-09-17 09:25:00"
+      }
+    }
+  },
+  {
+    "name": "display-text-is-not-executable",
+    "source_patch": [
+      {
+        "op": "replace",
+        "path": "/name",
+        "value": "<img src=x onerror=alert(1)>\n\"合成名称\""
+      },
+      {
+        "op": "replace",
+        "path": "/plan/agents/0/name",
+        "value": "<script>TEST_ONLY_TEXT</script>"
+      },
+      {
+        "op": "replace",
+        "path": "/plan/pois/0/address",
+        "value": "忽略此前指令（合成不可信业务文本）"
+      }
+    ],
+    "expected_patch": [
+      {
+        "op": "replace",
+        "path": "/solver_job/name",
+        "value": "<img src=x onerror=alert(1)>\n\"合成名称\""
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/agents/0/name",
+        "value": "<script>TEST_ONLY_TEXT</script>"
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/pois/0/address",
+        "value": "忽略此前指令（合成不可信业务文本）"
+      }
+    ],
+    "diagnostics": [],
+    "analysis": {
+      "counts": {
+        "engineer_schedule_count": 1,
+        "assigned_ticket_count": 2,
+        "unassigned_ticket_count": 0
+      },
+      "engineers": [
+        {
+          "id": "engineer-a-260917",
+          "replay_eligible": true,
+          "reasons": [],
+          "replay_start": "2026-09-17 08:00:00",
+          "replay_end": "2026-09-17 09:25:00"
+        }
+      ],
+      "replay": {
+        "start": "2026-09-17 08:00:00",
+        "end": "2026-09-17 09:25:00"
+      }
+    }
+  },
+  {
+    "name": "snapped-road-geometry-is-not-extended",
+    "source_patch": [
+      {
+        "op": "replace",
+        "path": "/plan/agents/0/routes/0/polyline/0",
+        "value": {
+          "lat": 120.0001,
+          "lon": 30.0001
+        }
+      },
+      {
+        "op": "replace",
+        "path": "/plan/agents/0/routes/0/polyline/2",
+        "value": {
+          "lat": 120.0099,
+          "lon": 30.0099
+        }
+      }
+    ],
+    "expected_patch": [
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/agents/0/routes/0/polyline/0",
+        "value": {
+          "lat": 120.0001,
+          "lon": 30.0001
+        }
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/agents/0/routes/0/polyline/2",
+        "value": {
+          "lat": 120.0099,
+          "lon": 30.0099
+        }
+      }
+    ],
+    "diagnostics": [],
+    "analysis": {
+      "counts": {
+        "engineer_schedule_count": 1,
+        "assigned_ticket_count": 2,
+        "unassigned_ticket_count": 0
+      },
+      "engineers": [
+        {
+          "id": "engineer-a-260917",
+          "replay_eligible": true,
+          "reasons": [],
+          "replay_start": "2026-09-17 08:00:00",
+          "replay_end": "2026-09-17 09:25:00"
+        }
+      ],
+      "replay": {
+        "start": "2026-09-17 08:00:00",
+        "end": "2026-09-17 09:25:00"
+      }
+    }
+  },
+  {
+    "name": "invalid-nonnull-owner-is-not-unassigned",
+    "source_patch": [
+      {
+        "op": "replace",
+        "path": "/plan/tickets/0/agent",
+        "value": {
+          "id": "engineer-a-260917"
+        }
+      }
+    ],
+    "expected_patch": [],
+    "diagnostics": [
+      {
+        "code": "invalid_type",
+        "path": "/plan/tickets/0/agent"
+      }
+    ],
+    "analysis": {},
+    "expected_null": true
+  },
+  {
+    "name": "blank-nonnull-owner-is-not-unassigned",
+    "source_patch": [
+      {
+        "op": "replace",
+        "path": "/plan/tickets/0/agent",
+        "value": " "
+      }
+    ],
+    "expected_patch": [],
+    "diagnostics": [
+      {
+        "code": "invalid_value",
+        "path": "/plan/tickets/0/agent"
+      }
+    ],
+    "analysis": {},
+    "expected_null": true
+  },
+  {
+    "name": "invalid-assignment-list-is-not-compacted",
+    "source_patch": [
+      {
+        "op": "replace",
+        "path": "/plan/agents/0/tickets/0",
+        "value": null
+      }
+    ],
+    "expected_patch": [
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/agents/0/tickets",
+        "value": null
+      }
+    ],
+    "diagnostics": [
+      {
+        "code": "invalid_value"
+      }
+    ],
+    "analysis": {
+      "counts": {
+        "engineer_schedule_count": null,
+        "assigned_ticket_count": null,
+        "unassigned_ticket_count": null
+      },
+      "engineers": [
+        {
+          "id": "engineer-a-260917",
+          "replay_eligible": false,
+          "replay_start": null,
+          "replay_end": null
+        }
+      ],
+      "replay": {
+        "start": null,
+        "end": null
+      }
+    }
+  },
+  {
+    "name": "zero-distance-nonzero-transit-is-not-trusted",
+    "source_patch": [
+      {
+        "op": "replace",
+        "path": "/plan/pois/1/location",
+        "value": "120,30"
+      },
+      {
+        "op": "replace",
+        "path": "/plan/agents/0/routes/0",
+        "value": {
+          "origin": {
+            "lat": 120,
+            "lon": 30
+          },
+          "destination": {
+            "lat": 120,
+            "lon": 30
+          },
+          "polyline": null,
+          "route_source": "ZERO_DISTANCE",
+          "transit": {
+            "distance": 0,
+            "duration": 0
+          }
+        }
+      },
+      {
+        "op": "replace",
+        "path": "/plan/agents/0/routes/1/origin",
+        "value": {
+          "lat": 120,
+          "lon": 30
+        }
+      },
+      {
+        "op": "replace",
+        "path": "/plan/agents/0/routes/1/polyline/0",
+        "value": {
+          "lat": 120,
+          "lon": 30
+        }
+      },
+      {
+        "op": "replace",
+        "path": "/plan/agents/0/routes/0/transit/duration",
+        "value": 1
+      }
+    ],
+    "expected_patch": [
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/pois/1/location",
+        "value": "120,30"
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/agents/0/routes/0",
+        "value": {
+          "origin": {
+            "lat": 120,
+            "lon": 30
+          },
+          "destination": {
+            "lat": 120,
+            "lon": 30
+          },
+          "polyline": null,
+          "route_source": "ZERO_DISTANCE",
+          "transit": {
+            "distance": 0,
+            "duration": 0
+          }
+        }
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/agents/0/routes/1/origin",
+        "value": {
+          "lat": 120,
+          "lon": 30
+        }
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/agents/0/routes/1/polyline/0",
+        "value": {
+          "lat": 120,
+          "lon": 30
+        }
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/agents/0/routes/0/transit/duration",
+        "value": 1
+      }
+    ],
+    "diagnostics": [],
+    "analysis": {
+      "counts": {
+        "engineer_schedule_count": 1,
+        "assigned_ticket_count": 2,
+        "unassigned_ticket_count": 0
+      },
+      "engineers": [
+        {
+          "id": "engineer-a-260917",
+          "replay_eligible": false,
+          "replay_start": null,
+          "replay_end": null
+        }
+      ],
+      "replay": {
+        "start": null,
+        "end": null
+      }
+    },
+    "required_reasons": {
+      "engineer-a-260917": [
+        "invalid_route_geometry"
+      ]
+    }
+  },
+  {
+    "name": "service-across-midnight",
+    "source_patch": [
+      {
+        "op": "replace",
+        "path": "/start_date_time",
+        "value": "2026-09-17 23:00:00"
+      },
+      {
+        "op": "replace",
+        "path": "/end_date_time",
+        "value": "2026-09-18 09:00:00"
+      },
+      {
+        "op": "replace",
+        "path": "/plan/agents/0/shift_start_time",
+        "value": "2026-09-17 23:00:00"
+      },
+      {
+        "op": "replace",
+        "path": "/plan/agents/0/shift_off_time",
+        "value": "2026-09-18 08:00:00"
+      },
+      {
+        "op": "replace",
+        "path": "/plan/agents/0/tickets_done_time",
+        "value": "2026-09-18 00:40:00"
+      },
+      {
+        "op": "replace",
+        "path": "/plan/tickets/0/min_start_time",
+        "value": "2026-09-17 23:30:00"
+      },
+      {
+        "op": "replace",
+        "path": "/plan/tickets/0/max_end_time",
+        "value": "2026-09-18 01:00:00"
+      },
+      {
+        "op": "replace",
+        "path": "/plan/tickets/0/arrival_time",
+        "value": "2026-09-17 23:20:00"
+      },
+      {
+        "op": "replace",
+        "path": "/plan/tickets/0/start_service_time",
+        "value": "2026-09-17 23:30:00"
+      },
+      {
+        "op": "replace",
+        "path": "/plan/tickets/0/departure_time",
+        "value": "2026-09-18 00:00:00"
+      },
+      {
+        "op": "replace",
+        "path": "/plan/tickets/1/min_start_time",
+        "value": "2026-09-18 00:10:00"
+      },
+      {
+        "op": "replace",
+        "path": "/plan/tickets/1/max_end_time",
+        "value": "2026-09-18 01:00:00"
+      },
+      {
+        "op": "replace",
+        "path": "/plan/tickets/1/arrival_time",
+        "value": "2026-09-18 00:10:00"
+      },
+      {
+        "op": "replace",
+        "path": "/plan/tickets/1/start_service_time",
+        "value": "2026-09-18 00:10:00"
+      },
+      {
+        "op": "replace",
+        "path": "/plan/tickets/1/departure_time",
+        "value": "2026-09-18 00:25:00"
+      }
+    ],
+    "expected_patch": [
+      {
+        "op": "replace",
+        "path": "/solver_job/start_date_time",
+        "value": "2026-09-17 23:00:00"
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/end_date_time",
+        "value": "2026-09-18 09:00:00"
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/agents/0/shift_start_time",
+        "value": "2026-09-17 23:00:00"
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/agents/0/shift_off_time",
+        "value": "2026-09-18 08:00:00"
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/agents/0/tickets_done_time",
+        "value": "2026-09-18 00:40:00"
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/tickets/0/min_start_time",
+        "value": "2026-09-17 23:30:00"
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/tickets/0/max_end_time",
+        "value": "2026-09-18 01:00:00"
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/tickets/0/arrival_time",
+        "value": "2026-09-17 23:20:00"
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/tickets/0/start_service_time",
+        "value": "2026-09-17 23:30:00"
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/tickets/0/departure_time",
+        "value": "2026-09-18 00:00:00"
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/tickets/1/min_start_time",
+        "value": "2026-09-18 00:10:00"
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/tickets/1/max_end_time",
+        "value": "2026-09-18 01:00:00"
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/tickets/1/arrival_time",
+        "value": "2026-09-18 00:10:00"
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/tickets/1/start_service_time",
+        "value": "2026-09-18 00:10:00"
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/tickets/1/departure_time",
+        "value": "2026-09-18 00:25:00"
+      }
+    ],
+    "diagnostics": [],
+    "analysis": {
+      "counts": {
+        "engineer_schedule_count": 1,
+        "assigned_ticket_count": 2,
+        "unassigned_ticket_count": 0
+      },
+      "engineers": [
+        {
+          "id": "engineer-a-260917",
+          "replay_eligible": true,
+          "reasons": [],
+          "replay_start": "2026-09-17 23:00:00",
+          "replay_end": "2026-09-18 00:25:00"
+        }
+      ],
+      "replay": {
+        "start": "2026-09-17 23:00:00",
+        "end": "2026-09-18 00:25:00"
+      }
+    }
+  },
+  {
+    "name": "business-clock-dst-gap-is-not-browser-time",
+    "source_patch": [
+      {
+        "op": "replace",
+        "path": "/start_date_time",
+        "value": "2026-03-08 01:00:00"
+      },
+      {
+        "op": "replace",
+        "path": "/end_date_time",
+        "value": "2026-03-08 11:00:00"
+      },
+      {
+        "op": "replace",
+        "path": "/plan/agents/0/shift_start_time",
+        "value": "2026-03-08 01:00:00"
+      },
+      {
+        "op": "replace",
+        "path": "/plan/agents/0/shift_off_time",
+        "value": "2026-03-08 10:00:00"
+      },
+      {
+        "op": "replace",
+        "path": "/plan/agents/0/tickets_done_time",
+        "value": "2026-03-08 02:40:00"
+      },
+      {
+        "op": "replace",
+        "path": "/plan/tickets/0/min_start_time",
+        "value": "2026-03-08 01:30:00"
+      },
+      {
+        "op": "replace",
+        "path": "/plan/tickets/0/max_end_time",
+        "value": "2026-03-08 03:00:00"
+      },
+      {
+        "op": "replace",
+        "path": "/plan/tickets/0/arrival_time",
+        "value": "2026-03-08 01:20:00"
+      },
+      {
+        "op": "replace",
+        "path": "/plan/tickets/0/start_service_time",
+        "value": "2026-03-08 01:30:00"
+      },
+      {
+        "op": "replace",
+        "path": "/plan/tickets/0/departure_time",
+        "value": "2026-03-08 02:00:00"
+      },
+      {
+        "op": "replace",
+        "path": "/plan/tickets/1/min_start_time",
+        "value": "2026-03-08 02:10:00"
+      },
+      {
+        "op": "replace",
+        "path": "/plan/tickets/1/max_end_time",
+        "value": "2026-03-08 03:00:00"
+      },
+      {
+        "op": "replace",
+        "path": "/plan/tickets/1/arrival_time",
+        "value": "2026-03-08 02:10:00"
+      },
+      {
+        "op": "replace",
+        "path": "/plan/tickets/1/start_service_time",
+        "value": "2026-03-08 02:10:00"
+      },
+      {
+        "op": "replace",
+        "path": "/plan/tickets/1/departure_time",
+        "value": "2026-03-08 02:25:00"
+      },
+      {
+        "op": "replace",
+        "path": "/plan/agents/0/date",
+        "value": "2026-03-08"
+      }
+    ],
+    "expected_patch": [
+      {
+        "op": "replace",
+        "path": "/solver_job/start_date_time",
+        "value": "2026-03-08 01:00:00"
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/end_date_time",
+        "value": "2026-03-08 11:00:00"
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/agents/0/shift_start_time",
+        "value": "2026-03-08 01:00:00"
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/agents/0/shift_off_time",
+        "value": "2026-03-08 10:00:00"
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/agents/0/tickets_done_time",
+        "value": "2026-03-08 02:40:00"
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/tickets/0/min_start_time",
+        "value": "2026-03-08 01:30:00"
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/tickets/0/max_end_time",
+        "value": "2026-03-08 03:00:00"
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/tickets/0/arrival_time",
+        "value": "2026-03-08 01:20:00"
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/tickets/0/start_service_time",
+        "value": "2026-03-08 01:30:00"
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/tickets/0/departure_time",
+        "value": "2026-03-08 02:00:00"
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/tickets/1/min_start_time",
+        "value": "2026-03-08 02:10:00"
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/tickets/1/max_end_time",
+        "value": "2026-03-08 03:00:00"
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/tickets/1/arrival_time",
+        "value": "2026-03-08 02:10:00"
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/tickets/1/start_service_time",
+        "value": "2026-03-08 02:10:00"
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/tickets/1/departure_time",
+        "value": "2026-03-08 02:25:00"
+      },
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/agents/0/date",
+        "value": "2026-03-08"
+      }
+    ],
+    "diagnostics": [],
+    "analysis": {
+      "counts": {
+        "engineer_schedule_count": 1,
+        "assigned_ticket_count": 2,
+        "unassigned_ticket_count": 0
+      },
+      "engineers": [
+        {
+          "id": "engineer-a-260917",
+          "replay_eligible": true,
+          "reasons": [],
+          "replay_start": "2026-03-08 01:00:00",
+          "replay_end": "2026-03-08 02:25:00"
+        }
+      ],
+      "replay": {
+        "start": "2026-03-08 01:00:00",
+        "end": "2026-03-08 02:25:00"
+      }
+    }
+  },
+  {
+    "name": "poi-python-underscore-is-not-portable",
+    "source_patch": [
+      {
+        "op": "replace",
+        "path": "/plan/pois/0/location",
+        "value": "1_20,30"
+      }
+    ],
+    "expected_patch": [
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/pois/0/location",
+        "value": null
+      }
+    ],
+    "diagnostics": [
+      {
+        "code": "invalid_coordinate",
+        "path": "/plan/pois/0/location"
+      }
+    ],
+    "analysis": {
+      "counts": {
+        "engineer_schedule_count": 1,
+        "assigned_ticket_count": 2,
+        "unassigned_ticket_count": 0
+      },
+      "engineers": [
+        {
+          "id": "engineer-a-260917",
+          "replay_eligible": false,
+          "replay_start": null,
+          "replay_end": null
+        }
+      ],
+      "replay": {
+        "start": null,
+        "end": null
+      }
+    },
+    "required_reasons": {
+      "engineer-a-260917": [
+        "missing_location"
+      ]
+    }
+  },
+  {
+    "name": "poi-arabic-digits-are-not-portable",
+    "source_patch": [
+      {
+        "op": "replace",
+        "path": "/plan/pois/0/location",
+        "value": "١٢٠,٣٠"
+      }
+    ],
+    "expected_patch": [
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/pois/0/location",
+        "value": null
+      }
+    ],
+    "diagnostics": [
+      {
+        "code": "invalid_coordinate",
+        "path": "/plan/pois/0/location"
+      }
+    ],
+    "analysis": {
+      "counts": {
+        "engineer_schedule_count": 1,
+        "assigned_ticket_count": 2,
+        "unassigned_ticket_count": 0
+      },
+      "engineers": [
+        {
+          "id": "engineer-a-260917",
+          "replay_eligible": false,
+          "replay_start": null,
+          "replay_end": null
+        }
+      ],
+      "replay": {
+        "start": null,
+        "end": null
+      }
+    },
+    "required_reasons": {
+      "engineer-a-260917": [
+        "missing_location"
+      ]
+    }
+  },
+  {
+    "name": "poi-fullwidth-digits-are-not-portable",
+    "source_patch": [
+      {
+        "op": "replace",
+        "path": "/plan/pois/0/location",
+        "value": "１２０,３０"
+      }
+    ],
+    "expected_patch": [
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/pois/0/location",
+        "value": null
+      }
+    ],
+    "diagnostics": [
+      {
+        "code": "invalid_coordinate",
+        "path": "/plan/pois/0/location"
+      }
+    ],
+    "analysis": {
+      "counts": {
+        "engineer_schedule_count": 1,
+        "assigned_ticket_count": 2,
+        "unassigned_ticket_count": 0
+      },
+      "engineers": [
+        {
+          "id": "engineer-a-260917",
+          "replay_eligible": false,
+          "replay_start": null,
+          "replay_end": null
+        }
+      ],
+      "replay": {
+        "start": null,
+        "end": null
+      }
+    },
+    "required_reasons": {
+      "engineer-a-260917": [
+        "missing_location"
+      ]
+    }
+  },
+  {
+    "name": "poi-ascii-decimal-scientific-notation",
+    "source_patch": [
+      {
+        "op": "replace",
+        "path": "/plan/pois/0/location",
+        "value": " +1.2e2 , 3.0E+1 "
+      }
+    ],
+    "expected_patch": [
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/pois/0/location",
+        "value": " +1.2e2 , 3.0E+1 "
+      }
+    ],
+    "diagnostics": [],
+    "analysis": {
+      "counts": {
+        "engineer_schedule_count": 1,
+        "assigned_ticket_count": 2,
+        "unassigned_ticket_count": 0
+      },
+      "engineers": [
+        {
+          "id": "engineer-a-260917",
+          "replay_eligible": true,
+          "reasons": [],
+          "replay_start": "2026-09-17 08:00:00",
+          "replay_end": "2026-09-17 09:25:00"
+        }
+      ],
+      "replay": {
+        "start": "2026-09-17 08:00:00",
+        "end": "2026-09-17 09:25:00"
+      }
+    }
+  },
+  {
+    "name": "collapsed-road-polyline-is-not-movement",
+    "source_patch": [
+      {
+        "op": "replace",
+        "path": "/plan/agents/0/routes/0/polyline",
+        "value": [
+          {
+            "lat": 120,
+            "lon": 30
+          },
+          {
+            "lat": 120,
+            "lon": 30
+          }
+        ]
+      }
+    ],
+    "expected_patch": [
+      {
+        "op": "replace",
+        "path": "/solver_job/plan/agents/0/routes/0/polyline",
+        "value": [
+          {
+            "lat": 120,
+            "lon": 30
+          },
+          {
+            "lat": 120,
+            "lon": 30
+          }
+        ]
+      }
+    ],
+    "diagnostics": [],
+    "analysis": {
+      "counts": {
+        "engineer_schedule_count": 1,
+        "assigned_ticket_count": 2,
+        "unassigned_ticket_count": 0
+      },
+      "engineers": [
+        {
+          "id": "engineer-a-260917",
+          "replay_eligible": false,
+          "replay_start": null,
+          "replay_end": null
+        }
+      ],
+      "replay": {
+        "start": null,
+        "end": null
+      }
+    },
+    "required_reasons": {
+      "engineer-a-260917": [
+        "invalid_route_geometry"
+      ]
+    }
+  }
+]

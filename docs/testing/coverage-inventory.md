@@ -14,8 +14,9 @@
 | App | `src/test/java/app`、`@Tag("app")` | Quarkus 进程内 Repository、REST、MCP 和应用门面流程 |
 | External | `src/test/java/integration`、`@Tag("external")` | 真实地图服务、远程地址服务和真实求解联调 |
 | Manual | `src/test/java/manual`、`@Tag("manual")` | 人工运行的报表、观察脚本和业务样例 |
-| Script | `scripts/tests` | 本地开发控制脚本的环境隔离与进程清理 |
+| Script | `scripts/tests` | 本地开发控制脚本的环境隔离与进程清理，以及 MCP 结果展示离线契约 |
 | Static UI | `src/main/resources/META-INF/resources/static/tests` | 页面逻辑、布局契约、场景导入、求解展示和 i18n |
+| MCP Apps UI | `src/test/mcp-ui` | 独立 View 的纯模型、协议桥、图商适配、构建校验及模拟宿主浏览器测试；不含真实 Gateway 或四宿主联调 |
 
 ## 3. Unit 覆盖
 
@@ -52,6 +53,8 @@ Manual 测试用于报表、求解样例和人工观察，不计入稳定门禁�
 
 Script 测试当前覆盖 `devctl.sh` 的运行环境隔离、`.env` 加载、非 daemon Gradle 启动参数，以及 PID 文件被 `gradle clean` 删除后扫描并清理 Gradle 启动链和 Quarkus 开发 JVM。
 
+`scripts/tests/test_mcp_result_view_contract.py` 单独验证 Issue #183 的 MCP 结果展示契约，覆盖标准 JSON Schema、跨字段语义和 test-only 参考投影的 golden mapping。样例位于 `docs/integrations/gateway/fixtures/mcp-result-view/`，重点包括白名单及未知字段隔离、ID 与引用完整性、`null`/空集合、历史坐标口径、计划时间、路线段位和回放资格、可确定的只读计数与缺失数据降级；范围及外部未决项见 [MCP 结果展示投影契约](../components/mcp-result-view-contract.md)。该离线契约本身不执行页面或生产 Gateway；页面的独立模拟验证见 §6.1，Python 运行命令见[测试说明](../operations/testing.md#41-mcp-结果展示离线契约)。
+
 ## 6. Static UI 覆盖
 
 当前 Node/Playwright 脚本覆盖：
@@ -65,6 +68,22 @@ Script 测试当前覆盖 `devctl.sh` 的运行环境隔离、`.env` 加载、�
 
 精确命令以静态资源目录的 `package.json` 为准。
 
+### 6.1 独立 MCP Apps View
+
+独立 View 的验证与旧 Scenario/控制台分开，命令和隔离规则见[测试说明](../operations/testing.md#81-独立-mcp-apps-view)，源码及交付状态见[组件说明](../components/mcp-app.md)。以下记录测试职责，不代表尚未执行的真实外部链路已通过。
+
+| 测试文件/层次 | 当前覆盖重点 |
+| --- | --- |
+| `model.test.mjs` | 从人工 canonical goldens 导出的 JavaScript/Python 分析 parity；标量、空集合与未知集合、实体身份、归属、不可播放原因、不变异；无时区业务轴、日历/DST/早期年份与 Java Duration 边界；回放阶段、零距离、零时长、无返程、吸附原几何、跨经度和合成大数据 |
+| `bridge.test.mjs` | 协议处理器注册/连接时序、版本化只读工具调用、外层身份与错误分支、显式刷新、迟到响应、输入和通知覆盖、取消、长 ID、宿主显示模式及资源清理 |
+| `maps.test.mjs` | provider/URL/origin 防错、历史 LOC 转换、原路线索引、路线来源区分、坏几何整段不可用、POI 缺失、纯文本标记、AMAP complete 超时、HERE 样式错误/监听解除及覆盖物生命周期 |
+| `build.test.mjs` 与 `verify:mcp-app` | 严格 manifest 与精确 HTTPS origin、无隐式批准、standalone Schema 校验、浏览器依赖闭包、第一方代码约束、单文件产物、确定性和过期检测 |
+| `bridge.spec.mjs` | Chromium 中生产内联 HTML/官方 SDK 的握手、无普通动态求值 CSP、非父窗口消息拒绝、协议/身份校验、刷新竞态、取消恢复、长 ID、全屏拒绝、teardown ACK、双卡隔离和认证/权限失败清理 |
+| `viewer.spec.mjs` | AMAP/HERE SDK 替身中的选择与工单联动、HERE 克隆事件及原几何、规划回放边界/暂停和静态覆盖物复用、地图策略失败保留 Gantt、AMAP complete 超时/HERE 样式错误、SDK 延迟加载与刷新竞态、窄屏/主题/语言/键盘、XSS、已知空/未知集合、Gateway 非就绪/终态无模型展示、不可播放向量与合成大数据 |
+| `edge-cases.spec.mjs` | 部分工程师可播放、缺失引用原序号、零时长服务/零距离段、同任务刷新保留选择/视角/游标、Gantt 滚动保持、浏览器时区/DST 一致、失败手动重试不轮询、缺失工程师与窄屏键盘焦点 |
+
+该组测试不读取开发任务数据或真实地图凭据，不引入默认外部地图调用。模型参考 helper 只用于测试，不进入浏览器构建，也不充当 Gateway 生产投影。模拟宿主验证与离线契约相互补充；SDK 替身不证明真实瓦片、鉴权、HERE worker/WASM 或客户端安全策略可用。
+
 ## 7. 已知缺口
 
 * 部分求解约束仍缺少非触发、空值、未指派和 justification 边界测试。
@@ -72,6 +91,7 @@ Script 测试当前覆盖 `devctl.sh` 的运行环境隔离、`.env` 加载、�
 * REST 对 malformed JSON、缺失字段和部分响应 Schema 的断言仍不完整。
 * Repository 对损坏 JSON、缺失文件和不可写目录的错误路径覆盖仍有限。
 * External 负向场景受真实服务成本和稳定性限制，不进入默认门禁。
+* MCP Apps 的 Gateway 生产投影、资源发布与鉴权、批准 CSP、真实地图网络/公开 key 限制及四个真实宿主联调不在本仓离线和模拟测试覆盖内；独立页面的本仓验证单列于 §6.1，不能据此标记 Issue #183 生产上线完成。
 
 这些缺口是测试维护信息，不自动构成产品需求或本次任务范围。
 
