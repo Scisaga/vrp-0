@@ -33,3 +33,4 @@ mcp_ui:
       - https://webapi.amap.com
       - https://js.api.here.com
       - https://maps.hereapi.com
+      - https://vdata.amap.com

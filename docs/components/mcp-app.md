@@ -92,6 +92,7 @@ AMAP 与 HERE 使用各自原生适配，不能把 HERE 伪装为全局 AMap。�
 | 精确 origin | 候选需求及证据 |
 | --- | --- |
 | `https://webapi.amap.com` | AMAP 1.4.15 SDK 入口；[官方加载说明](https://lbs.amap.com/api/javascript-api/guide/abc/prepare)不等于当前 key 下后续瓦片/鉴权来源完整清单 |
+| `https://vdata.amap.com` | AMAP 资源来源候选，仅列入 `resource_domains`；仍须真实联调核验 |
 | `https://js.api.here.com` | HERE 3.2 模块、样式、字体及图片；[官方 CSP 说明](https://docs.here.com/maps-api-for-js/docs/content-security-policy)也要求相应 CDN 连接 |
 | `https://vector.hereapi.com` | 当前默认 ROW 矢量瓦片；[官方 Vector 文档](https://docs.here.com/map-rendering/docs/quickstart-vector-tile-api) |
 | `https://maps.hereapi.com` | 默认 ROW 栅格图层及元数据，包含夜间栅格 fallback；[官方 Raster API](https://docs.here.com/map-rendering/reference/gettile) |

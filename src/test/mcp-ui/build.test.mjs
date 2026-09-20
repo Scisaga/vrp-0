@@ -24,6 +24,8 @@ test('manifest build policy is a strict, normalized copy, not an implicit approv
   const empty = manifest(); empty.mcp_ui.csp = {connect_domains:[],resource_domains:[]};
   assert.deepEqual(networkPolicyFromManifest(empty), {connectDomains:[],resourceDomains:[]}, 'empty arrays express a valid declaration, not a working map');
   assert.ok(readNetworkPolicy().resourceDomains.includes('https://js.api.here.com'));
+  assert.ok(readNetworkPolicy().resourceDomains.includes('https://vdata.amap.com'));
+  assert.ok(!readNetworkPolicy().connectDomains.includes('https://vdata.amap.com'));
   for (const change of [
     value => { delete value.mcp_ui; },
     value => { value.mcp_ui.entry_path = '/other.html'; },
@@ -129,6 +131,10 @@ test('actual browser bundle uses the ordinary SDK entry and one shared Zod v4 de
   const { html, inputs } = await buildMcpApp();
   verifyDocument(html);
   verifyInputs(inputs);
+  for (const domains of Object.values(readNetworkPolicy())) {
+    assert.ok(html.includes(`Object.freeze(${JSON.stringify(domains)})`),
+      'bundled network policy must match the manifest');
+  }
   const nodeModules = path.relative(projectRoot, path.join(staticRoot,'node_modules')).replaceAll(path.sep,'/');
   assert.ok(inputs.includes(`${nodeModules}/@modelcontextprotocol/ext-apps/dist/src/app.js`));
   assert.ok(!inputs.some(input => /(?:app|react)-with-deps/.test(input)));
