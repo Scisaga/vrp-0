@@ -65,16 +65,19 @@ export function buildMapScene(model, { agentId = null, ticketId = null } = {}) {
 function loadScript(url, signal) {
   return new Promise((resolve, reject) => {
     const script = document.createElement('script');
-    let done = false;
+    let done = false, failedTimer;
     const finish = error => {
-      if (done) return; done = true; clearTimeout(timer);
+      if (done) return; done = true; clearTimeout(timer); clearTimeout(failedTimer);
       signal.removeEventListener('abort', abort); script.onload = script.onerror = null;
       if (error) { script.remove(); reject(error); } else resolve(script);
     };
-    const abort = () => finish(mapError('MAP_ABORTED'));
+    const abort = () => finish(mapError(signal.reason?.code || 'MAP_ABORTED'));
     const timer = setTimeout(() => finish(mapError('MAP_TIMEOUT')), 20000);
     script.src = url; script.async = true; script.referrerPolicy = 'strict-origin-when-cross-origin';
-    script.onload = () => finish(); script.onerror = () => finish(mapError('MAP_LOAD_FAILED'));
+    script.onload = () => finish();
+    // Let the browser deliver its CSP event before reducing a script error to
+    // an unknown loading failure. Never include URLs/keys in the error text.
+    script.onerror = () => { failedTimer = setTimeout(() => finish(mapError('MAP_LOAD_FAILED')), 0); };
     signal.addEventListener('abort', abort, { once:true });
     if (signal.aborted) abort(); else document.head.append(script);
   });
@@ -101,20 +104,47 @@ export class MapView {
   constructor(container, { onSelect, onFailure }) {
     this.container = container; this.onSelect = onSelect; this.onFailure = onFailure;
     this.map = null; this.markers = new Map(); this.objects = []; this.scripts = [];
-    this.sdkCleanup = []; this.failureCode = null;
+    this.sdkCleanup = []; this.failureCode = null; this.resizeFrame = null; this.lastSize = null;
     this.abort = new AbortController(); this.disposed = false; this.viewport = null; this.kind = null; this.scene = null;
     this.violation = event => {
       if (this.disposed) return;
-      // The SDK's deliberately blocked capability probe is not a map failure.
-      if (event.blockedURI === 'eval') return;
-      if (/^(script-src|connect-src|img-src|worker-src)/.test(event.effectiveDirective || '')) this.fail('MAP_CSP_BLOCKED');
+      if (event.disposition === 'report') return;
+      // eval may be essential SDK module execution, not a harmless probe.
+      // Worker violations are not guaranteed to reach this document.
+      if (/^(script-src|connect-src|img-src|worker-src|child-src|style-src|font-src|object-src|default-src)(?:-|$)/.test(event.effectiveDirective || '')) this.fail('MAP_CSP_BLOCKED');
     };
     document.addEventListener('securitypolicyviolation', this.violation);
   }
   fail(code) {
     if (this.disposed || this.failureCode) return;
     this.failureCode = code;
+    this.abort.abort(mapError(code));
     this.onFailure(mapError(code));
+  }
+  replaceAmapResizeSensor() {
+    const container = this.container;
+    const descriptor = Object.getOwnPropertyDescriptor(container, 'appendChild');
+    const append = container.appendChild;
+    // AMap 1.4 installs this sensor even with resizeEnable:false. Its onload
+    // dereferences contentDocument.defaultView in an opaque-origin sandbox.
+    // Intercept ONLY the inert full-size sensor on this map container; do not
+    // patch document/Node prototypes, open object-src or touch SDK internals.
+    const guardedAppend = function(child) {
+      if (child.tagName === 'OBJECT' && child.type === 'text/html'
+        && (!child.data || child.data === 'about:blank')
+        && child.style.position === 'absolute' && child.style.pointerEvents === 'none'
+        && child.style.width === '100%' && child.style.height === '100%' && child.style.zIndex === '-1') {
+        child.onload = null;
+        return child;
+      }
+      return append.call(this, child);
+    };
+    Object.defineProperty(container, 'appendChild', {configurable:true, writable:true, value:guardedAppend});
+    this.sdkCleanup.push(() => {
+      if (container.appendChild !== guardedAppend) return;
+      if (descriptor) Object.defineProperty(container, 'appendChild', descriptor);
+      else delete container.appendChild;
+    });
   }
   waitForAmapComplete() {
     const map = this.map, signal = this.abort.signal;
@@ -166,7 +196,9 @@ export class MapView {
       if (this.disposed) return;
       if (!window.AMap?.Map) throw mapError('MAP_LOAD_FAILED');
       this.api = window.AMap;
-      this.map = new this.api.Map(this.container, { center, zoom:12, mapStyle:'amap://styles/darkblue', lang:locale === 'en-US' ? 'en' : 'zh_cn', resizeEnable:true });
+      this.replaceAmapResizeSensor();
+      this.map = new this.api.Map(this.container, { center, zoom:12, mapStyle:'amap://styles/darkblue', lang:locale === 'en-US' ? 'en' : 'zh_cn', resizeEnable:false });
+      if (typeof this.map.triggerResize !== 'function') throw mapError('MAP_RESIZE_FAILED');
       // Attach a rejection handler immediately: a synchronous overlay/resize
       // failure below may otherwise leave the aborted readiness promise unhandled.
       ready = this.waitForAmapComplete().then(() => null, error => error);
@@ -192,8 +224,25 @@ export class MapView {
     this.update(scene); this.fit();
     this.resizeObserver = new ResizeObserver(() => this.resize()); this.resizeObserver.observe(this.container);
     if (ready) { const error = await ready; if (error) throw error; }
+    this.lastSize = null; this.resize();
   }
-  resize() { if (this.disposed || !this.map) return; if (this.kind === 'AMAP') this.map.resize?.(); else this.map.getViewPort()?.resize(); }
+  resize() {
+    if (this.disposed || !this.map || this.failureCode || this.resizeFrame !== null) return;
+    this.resizeFrame = requestAnimationFrame(() => {
+      this.resizeFrame = null;
+      if (this.disposed || !this.map || this.failureCode) return;
+      const width = this.container.clientWidth, height = this.container.clientHeight;
+      // Hidden tabs have no usable viewport. Resize when visible again.
+      if (width <= 0 || height <= 0 || this.lastSize?.width === width && this.lastSize?.height === height) return;
+      try {
+        const viewport = this.getViewport();
+        if (this.kind === 'AMAP') this.map.triggerResize();
+        else this.map.getViewPort().resize();
+        this.setViewport(viewport);
+        this.lastSize = {width, height};
+      } catch { this.fail('MAP_RESIZE_FAILED'); }
+    });
+  }
   getViewport() {
     if (!this.map) return this.viewport;
     const center = this.map.getCenter();
@@ -204,7 +253,7 @@ export class MapView {
   setViewport(value) {
     if (!value || !this.map) return;
     this.viewport = value;
-    if (this.kind === 'AMAP') this.map.setZoomAndCenter(value.zoom, value.center);
+    if (this.kind === 'AMAP') this.map.setZoomAndCenter(value.zoom, value.center, true);
     else { this.map.setCenter({lng:value.center[0],lat:value.center[1]}); this.map.setZoom(value.zoom); }
   }
   update(scene) {
@@ -246,7 +295,7 @@ export class MapView {
   }
   fit() {
     if (!this.map || !this.objects.length) return;
-    if (this.kind === 'AMAP') this.map.setFitView(this.objects, false, [35,35,35,35]);
+    if (this.kind === 'AMAP') this.map.setFitView(this.objects, true, [35,35,35,35]);
     else {
       const group = new this.api.map.Group();
       // Bounds from supplied coordinates only; group ownership must not move overlays.
@@ -266,7 +315,9 @@ export class MapView {
     }
   }
   dispose() {
-    if (this.disposed) return; this.disposed = true; this.abort.abort();
+    if (this.disposed) return; this.disposed = true; this.abort.abort(mapError(this.failureCode || 'MAP_ABORTED'));
+    if (this.resizeFrame !== null) cancelAnimationFrame(this.resizeFrame);
+    this.resizeFrame = null;
     document.removeEventListener('securitypolicyviolation', this.violation); this.resizeObserver?.disconnect();
     for (const cleanup of this.sdkCleanup.splice(0)) cleanup();
     this.behavior?.dispose?.(); this.events?.dispose?.();

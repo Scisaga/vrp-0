@@ -135,7 +135,7 @@ test('AMAP missing complete event times out without guessing authentication fail
   await page.clock.install();const host=await openHost(page);await page.addInitScript(()=>{window.__disableMapComplete=true});const frame=await host.add();
   await expect.poll(()=>frame.evaluate(()=>Boolean(window.__mapStats?.maps.length))).toBe(true);
   await expect(frame.locator('#map-message')).toContainText('正在加载地图');await page.clock.fastForward(21000);
-  await expect(frame.locator('#map-message')).toContainText('地图加载失败');expect(await frame.locator('#map-message').textContent()).not.toContain('认证');
+  await expect(frame.locator('#map-message')).toContainText('地图加载超时');expect(await frame.locator('#map-message').textContent()).not.toContain('认证');
   expect(await frame.evaluate(()=>window.__mapStats.maps[0].listeners.get('complete').size)).toBe(0);
   expect(await frame.evaluate(()=>window.__mapStats.destroyed)).toBe(1);await host.assertHealthy();
 });
@@ -149,4 +149,44 @@ test('a map script completing after refresh renders the newest scene, not captur
   await expect(frame.locator('#engineer')).toContainText('加载中更新后的工程师');
   await held.fulfill({contentType:'text/javascript',body:mapSdkFixture});await mapReady(frame);
   await expect(frame.locator('.mcp-marker[data-kind="agent"]')).toHaveText('加载中更新后的工程师');await host.assertHealthy();
+});
+
+for(const provider of ['AMAP','HERE'])test(`${provider} resizes its drawing buffer while retaining viewport, selection and replay cursor`,async({page})=>{
+  const result=message();if(provider==='HERE'){
+    result._meta.gateway_ui.task.map_provider='HERE';Object.assign(result._meta.gateway_ui.map_context,{provider,js_url:'https://js.api.here.com/v3/3.2/mapsjs-core.js'});
+  }
+  const host=await openHost(page),frame=await host.add({result});await mapReady(frame);
+  const sized=async()=>{
+    await expect.poll(()=>frame.locator('#map-canvas').evaluate(el=>{const c=el.querySelector('canvas');return c?.width===el.clientWidth&&c?.height===el.clientHeight;})).toBe(true);
+  };
+  await sized();await expect(frame.locator('#map-canvas object')).toHaveCount(0);
+  if(provider==='AMAP')expect(await frame.evaluate(()=>window.__mapStats.sensorInserted)).toBe(false);
+  await fullscreen(frame);await sized();await frame.locator('#engineer').selectOption(AGENT);await frame.locator('#cursor').fill('450');
+  await frame.evaluate(()=>window.__mapStats.maps[0].setZoomAndCenter(15,[121,31]));
+  const time=await frame.locator('#playback-time').textContent();
+  const viewport=()=>frame.evaluate(()=>({center:window.__mapStats.maps[0].getCenter(),zoom:window.__mapStats.maps[0].getZoom(),maps:window.__mapStats.maps.length}));
+  const before=await viewport();
+  await page.evaluate(()=>{const f=window.host.cards.get('card').frame;f.style.width='900px';f.style.height='950px'});await sized();expect(await viewport()).toEqual(before);
+  await frame.locator('#fullscreen').click();await expect(frame.locator('#app')).toHaveAttribute('data-mode','inline');await sized();
+  expect(await frame.locator('#engineer').inputValue()).toBe(AGENT);expect(await frame.locator('#playback-time').textContent()).toBe(time);
+  await fullscreen(frame);await sized();await expect(frame.locator('#play')).toHaveAttribute('aria-pressed','false');expect(await viewport()).toEqual(before);
+  await frame.locator('#tab-gantt').click();await frame.locator('#tab-map').click();await sized();
+  expect(await frame.locator('#playback-time').textContent()).toBe(time);expect(await viewport()).toEqual(before);await host.assertHealthy();
+});
+
+test('a caught eval inside the map SDK is reported as CSP blocked, never silently ignored',async({page})=>{
+  const host=await openHost(page);
+  await page.route('https://webapi.amap.com/**',route=>route.fulfill({contentType:'text/javascript',body:mapSdkFixture+';try{new Function("return 1")}catch{}'}));
+  const frame=await host.add();await expect(frame.locator('#map-message')).toContainText('安全策略');
+  await expect(frame.locator('#map-retry')).toBeVisible();await expect(frame.locator('#fit-map')).toBeDisabled();
+  expect(await frame.evaluate(()=>window.__violations.some(e=>e.blocked==='eval'))).toBe(true);
+  await frame.locator('#tab-gantt').click();await expect(frame.locator('.gantt-row').first()).toBeVisible();
+});
+
+test('map configuration and unknown loading failures have distinct non-speculative messages',async({page})=>{
+  const host=await openHost(page,{mapFailure:true}),result=message();result._meta.gateway_ui.map_context.js_url='https://webapi.amap.com/unsupported';
+  const invalid=await host.add({id:'invalid',result});await expect(invalid.locator('#map-message')).toContainText('地图配置缺失或不合法');
+  const failed=await host.add({id:'failed'});await expect(failed.locator('#map-message')).toContainText('原因尚未确定');
+  expect(await failed.locator('#map-message').textContent()).not.toMatch(/网络|Key|密钥/);
+  await host.assertHealthy();
 });

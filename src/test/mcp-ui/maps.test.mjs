@@ -302,3 +302,77 @@ test('HERE listens only to documented Style failures, sanitizes details and rele
     assert.equal(listeners.size, 0, 'an already failed style is rejected before attaching listeners');
   } finally {next.restore();}
 });
+
+test('all enforced map CSP violations including eval are failures; report-only is not', () => {
+  for (const [directive,blocked] of [['script-src','eval'],['script-src-elem','https://restapi.amap.com'],
+    ['worker-src','blob'],['connect-src','https://vdata.amap.com'],['style-src-elem','inline'],
+    ['font-src','https://js.api.here.com'],['img-src','https://webapi.amap.com'],['object-src','about:blank']]) {
+    const errors=[],{view,restore}=isolatedAdapter(error=>errors.push(error));
+    try {
+      view.violation({effectiveDirective:directive,blockedURI:blocked,disposition:'report'});
+      assert.equal(errors.length,0);
+      view.violation({effectiveDirective:directive,blockedURI:blocked,disposition:'enforce'});
+      assert.deepEqual(errors.map(e=>e.code),['MAP_CSP_BLOCKED']);
+      assert.equal(view.abort.signal.reason.code,'MAP_CSP_BLOCKED');
+      view.violation({effectiveDirective:directive,blockedURI:blocked});
+      assert.equal(errors.length,1);
+    } finally {restore();}
+  }
+});
+
+test('AMAP sensor guard is container-local, exact and restores the original DOM method', () => {
+  for (const own of [false,true]) {
+    const {view,restore}=isolatedAdapter(),added=[];
+    const appendChild=function(child){added.push(child);return child;};
+    const parent={appendChild};view.container=Object.create(parent);
+    if(own)Object.defineProperty(view.container,'appendChild',{value:appendChild,configurable:true});
+    const descriptor=Object.getOwnPropertyDescriptor(view.container,'appendChild');
+    const sensor=()=>({tagName:'OBJECT',type:'text/html',data:'about:blank',onload:()=>assert.fail('legacy sensor executed'),
+      style:{position:'absolute',pointerEvents:'none',width:'100%',height:'100%',zIndex:'-1'}});
+    try {
+      view.replaceAmapResizeSensor();
+      const child=sensor();assert.equal(view.container.appendChild(child),child);assert.equal(child.onload,null);assert.equal(added.length,0);
+      for(const change of [c=>{c.tagName='DIV';},c=>{c.type='image/svg+xml';},c=>{c.data='https://example.com';},
+        c=>{c.style.width='50%';},c=>{c.style.zIndex='0';},c=>{c.style.pointerEvents='auto';}]) {
+        const normal=sensor();change(normal);view.container.appendChild(normal);assert.equal(added.at(-1),normal);
+      }
+      assert.equal(parent.appendChild,appendChild,'never alter DOM prototypes');
+      view.dispose();assert.deepEqual(Object.getOwnPropertyDescriptor(view.container,'appendChild'),descriptor);
+      assert.equal(view.container.appendChild,appendChild);
+    } finally {restore();}
+  }
+});
+
+test('resizing coalesces frames, ignores zero size and preserves the live map and scene', () => {
+  const previous={requestAnimationFrame:globalThis.requestAnimationFrame,cancelAnimationFrame:globalThis.cancelAnimationFrame};
+  const frames=new Map();let next=0;
+  globalThis.requestAnimationFrame=callback=>{frames.set(++next,callback);return next;};
+  globalThis.cancelAnimationFrame=id=>frames.delete(id);
+  const flush=()=>{for(const [id,callback]of [...frames]){frames.delete(id);callback();}};
+  try {
+    for(const kind of ['AMAP','HERE']) {
+      const errors=[],{view,restore}=isolatedAdapter(error=>errors.push(error));
+      let calls=0;
+      try {
+        view.kind=kind;view.container={clientWidth:640,clientHeight:300};
+        const map=view.map={triggerResize(){calls++;},getViewPort:()=>({resize(){calls++;}}),
+          getCenter:()=>({lng:120,lat:30}),getZoom:()=>12,setZoomAndCenter(){},setCenter(){},setZoom(){}};
+        const scene=view.scene={markers:[]},positions=view.markers;
+        view.resize();view.resize();assert.equal(frames.size,1);flush();assert.equal(calls,1);
+        view.resize();flush();assert.equal(calls,1,'unchanged size does not trigger SDK work');
+        view.container.clientWidth=0;view.resize();flush();assert.equal(calls,1);
+        view.container.clientWidth=900;view.container.clientHeight=700;view.resize();flush();assert.equal(calls,2);
+        assert.equal(view.map,map);assert.equal(view.scene,scene);assert.equal(view.markers,positions);
+        view.resize();view.dispose();assert.equal(frames.size,0);assert.deepEqual(errors,[]);
+      } finally {restore();}
+    }
+    const errors=[],{view,restore}=isolatedAdapter(error=>errors.push(error));
+    try {
+      view.kind='AMAP';view.container={clientWidth:600,clientHeight:400};view.map={};
+      view.resize();flush();assert.deepEqual(errors.map(e=>e.code),['MAP_RESIZE_FAILED']);
+      view.resize();assert.equal(frames.size,0);
+    } finally {restore();}
+  } finally {
+    for(const [name,value]of Object.entries(previous))if(value===undefined)delete globalThis[name];else globalThis[name]=value;
+  }
+});

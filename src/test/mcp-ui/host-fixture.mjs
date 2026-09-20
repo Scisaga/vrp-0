@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import { createRequire } from 'node:module';
 import { test, expect } from '../../main/resources/META-INF/resources/static/node_modules/@playwright/test/index.mjs';
 import { mapSdkFixture } from './map-sdk-fixture.mjs';
 export { test, expect };
@@ -10,7 +11,9 @@ export const JOB = message()._meta.gateway_ui.job_id;
 export const VERSION = message()._meta.gateway_ui.image_version_id;
 export const TOOL = message()._meta.gateway_ui.display_tool_name;
 export const AGENT = message()._meta.gateway_ui.engine_view.solver_job.plan.agents[0].id;
-export const STRICT_CSP = "default-src 'none'; script-src 'unsafe-inline' https://webapi.amap.com https://js.api.here.com; style-src 'unsafe-inline'; img-src data: https://maps.hereapi.com; connect-src https://js.api.here.com https://vector.hereapi.com https://maps.hereapi.com; worker-src 'none'; frame-ancestors http://mcp-host.test; base-uri 'none'; form-action 'none'";
+const require = createRequire(new URL('../../main/resources/META-INF/resources/static/package.json', import.meta.url));
+const { connectDomains, resourceDomains } = require('./scripts/build-mcp-app.cjs').readNetworkPolicy();
+export const STRICT_CSP = `default-src 'none'; script-src 'unsafe-inline' ${resourceDomains.join(' ')}; style-src 'unsafe-inline' ${resourceDomains.join(' ')}; img-src data: ${resourceDomains.join(' ')}; font-src ${resourceDomains.join(' ')}; connect-src ${connectDomains.join(' ')}; worker-src 'none'; frame-ancestors http://mcp-host.test; base-uri 'none'; form-action 'none'`;
 
 const hostDocument = `<!doctype html><html><head><meta charset="utf-8"><title>Synthetic MCP Apps Host</title></head><body><script>
 const cards=new Map();let nextId=1000;

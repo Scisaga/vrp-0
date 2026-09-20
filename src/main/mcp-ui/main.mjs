@@ -273,7 +273,7 @@ function mapMessage() {
   if(state.missingEngineer)return t('engineerNotFound');
   if(!state.envelope)return t(state.error==='noHost'?'noHost':'waiting');
   if(!state.model)return `${t(state.envelope.result_state)} · ${t('noResult')}`;
-  const keys={MAP_DISABLED:'mapDisabled',MAP_PROVIDER_MISMATCH:'mapMismatch',MAP_CONFIG:'mapFailed',MAP_NO_POINTS:'mapNoPoints',MAP_CSP_BLOCKED:'mapBlocked',MAP_LOAD_FAILED:'mapFailed',MAP_TIMEOUT:'mapFailed'};
+  const keys={MAP_DISABLED:'mapDisabled',MAP_PROVIDER_MISMATCH:'mapMismatch',MAP_CONFIG:'mapConfig',MAP_NO_POINTS:'mapNoPoints',MAP_CSP_BLOCKED:'mapBlocked',MAP_LOAD_FAILED:'mapFailed',MAP_TIMEOUT:'mapTimeout',MAP_RESIZE_FAILED:'mapResizeFailed'};
   return state.mapError?t(keys[state.mapError] || 'mapFailed'):t('mapLoading');
 }
 function renderMapStatus() { $('map-state').hidden=state.mapReady;$('map-message').textContent=mapMessage();$('map-retry').hidden=!state.model||!state.mapError;$('fit-map').disabled=!state.mapReady; }

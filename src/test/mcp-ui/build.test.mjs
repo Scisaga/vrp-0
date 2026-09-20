@@ -25,7 +25,8 @@ test('manifest build policy is a strict, normalized copy, not an implicit approv
   assert.deepEqual(networkPolicyFromManifest(empty), {connectDomains:[],resourceDomains:[]}, 'empty arrays express a valid declaration, not a working map');
   assert.ok(readNetworkPolicy().resourceDomains.includes('https://js.api.here.com'));
   assert.ok(readNetworkPolicy().resourceDomains.includes('https://vdata.amap.com'));
-  assert.ok(!readNetworkPolicy().connectDomains.includes('https://vdata.amap.com'));
+  assert.ok(readNetworkPolicy().connectDomains.includes('https://vdata.amap.com'));
+  assert.ok(readNetworkPolicy().resourceDomains.includes('https://restapi.amap.com'));
   for (const change of [
     value => { delete value.mcp_ui; },
     value => { value.mcp_ui.entry_path = '/other.html'; },

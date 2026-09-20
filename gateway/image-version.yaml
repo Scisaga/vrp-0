@@ -29,8 +29,10 @@ mcp_ui:
       - https://js.api.here.com
       - https://vector.hereapi.com
       - https://maps.hereapi.com
+      - https://vdata.amap.com
     resource_domains:
       - https://webapi.amap.com
       - https://js.api.here.com
       - https://maps.hereapi.com
       - https://vdata.amap.com
+      - https://restapi.amap.com

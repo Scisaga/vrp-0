@@ -92,12 +92,17 @@ AMAP 与 HERE 使用各自原生适配，不能把 HERE 伪装为全局 AMap。�
 | 精确 origin | 候选需求及证据 |
 | --- | --- |
 | `https://webapi.amap.com` | AMAP 1.4.15 SDK 入口；[官方加载说明](https://lbs.amap.com/api/javascript-api/guide/abc/prepare)不等于当前 key 下后续瓦片/鉴权来源完整清单 |
-| `https://vdata.amap.com` | AMAP 资源来源候选，仅列入 `resource_domains`；仍须真实联调核验 |
+| `https://vdata.amap.com` | 保留资源来源；本地真实 SDK 的 Worker 瓦片请求 `/tiles` 另需 `connect_domains` |
+| `https://restapi.amap.com` | 本地真实 SDK 的 `/v3/log/init` 脚本/JSONP 初始化请求，需要 `resource_domains` |
 | `https://js.api.here.com` | HERE 3.2 模块、样式、字体及图片；[官方 CSP 说明](https://docs.here.com/maps-api-for-js/docs/content-security-policy)也要求相应 CDN 连接 |
 | `https://vector.hereapi.com` | 当前默认 ROW 矢量瓦片；[官方 Vector 文档](https://docs.here.com/map-rendering/docs/quickstart-vector-tile-api) |
 | `https://maps.hereapi.com` | 默认 ROW 栅格图层及元数据，包含夜间栅格 fallback；[官方 Raster API](https://docs.here.com/map-rendering/reference/gettile) |
 
 manifest 的 `connect_domains` 与 `resource_domains` 仅接受精确 HTTPS origin，不接受通配符、路径、凭据或空 CSP 冒充地图支持。不申报本功能不使用的导航、地址搜索、实时交通或 IML 服务。SDK 内部网络是否完整覆盖，仍须在批准策略和受限公开 key 下观测确认；不得从失败日志自动扩大权限。
+
+本地 AMAP 1.4.15 联调已证实旧 `<object>` 尺寸传感器在沙箱中会访问空的 `contentDocument.defaultView`，`resizeEnable:false` 不阻止该传感器创建。适配层仅在当前地图容器拦截 SDK 的空白 HTML 尺寸传感器，不修改全局 DOM 或 SDK 源码、不允许 object 执行；由 `ResizeObserver` 合并到动画帧后调用 SDK 的 `triggerResize()`，保留同一地图实例、视野、选择和回放位置。该方法属于当前实际 SDK 的兼容接口，不是官方参考手册承诺的跨版本 API；缺失或执行失败必须明确报错，不能以可选空调用假装尺寸已更新。HERE 仍使用 `getViewPort().resize()`。
+
+错误提示区分可观察的 CSP 阻断、加载超时、配置缺失/不合法、尺寸适配失败与原因未确定的加载失败。`eval`、Worker、脚本、样式、字体及图片等被执行策略阻止时不作无条件豁免；仅报告模式的 CSP 事件不视为执行阻断。Worker 内部错误未必传到 document，缺少就绪信号时只能报告超时，不能据此断言网络或 Key 错误。临时宿主允许 `unsafe-eval` / `blob:` Worker 的诊断结果须与严格策略分列；这些能力不能写入域名数组，也不代表真实客户端支持。
 
 HERE 3.2 使用 HARP，官方要求的 blob worker、WASM 等能力不是 origin，不能添加到这两个数组或由页面放宽宿主 CSP。[HERE 3.2 迁移说明](https://docs.here.com/maps-api-for-js/docs/migration-guide)说明切换栅格底图不等于恢复旧渲染器。AMAP key 的安全配置与 iframe/referrer 限制须由 Gateway 和图商配置确认，View 不私加安全码字段、使用服务端私钥或搭建代理绕过限制。滚动 SDK 地址也不能视为永不变化的依赖，真实发布要记录批准版本和网络证据。
 
@@ -153,3 +158,19 @@ JVM 对照使用 `allStableTest --offline --no-daemon`，在去除本地环境�
 本次专项复验：Python 契约 **17/17**、MCP Node **122/122**、模拟宿主 Chromium **32/32**、旧页面 Node **110/110** 全部通过；`verify:scenario`、`build:mcp-app` 和 `verify:mcp-app` 通过。新 HTML 为 **667006 字节**，构建可重复，Gateway 同款动态代码正则匹配为零。运行时监测确认 SDK 初始化、消息收发、刷新与销毁全程 `Function` / `eval` 调用为零；独立负向控制能够识别被捕获的探测，原生 CSP 禁止动态求值的自测仍通过。
 
 上游库中未执行的编译实现不等于已从依赖源码删除；保证的是配置与执行路径禁用探测/JIT，并由静态与运行时回归共同验证。本次未重跑 JVM 和旧页面浏览器门禁，上表仍为首轮结果；真实 Gateway 导入及外部联调继续列为未验证，不因这次静态规则复验而改变状态。
+
+### 7.2 AMAP 域名、尺寸与错误分类修复
+
+2026-09-20 使用 Node 22、后台 Chromium、本地模拟宿主及用户指定的真实 Gateway 任务执行专项联调；消费 Gateway 返回的原 `map_context`，不替换 Key、任务或求解结果。临时宿主加载当前工作区重建 HTML，实际 HTTP 响应与本地产物 SHA-256 均为 `eb56089f9f645d2809610f24b01cb53dc6f4c931850fd2b8a093de56e4465252`（669090 字节）；Gateway 原产物哈希为 `55b5ab66c27e731e31eb960c138e2e8d065f82bbc1283a8c321272216e2bc272`，未用旧产物作为修复验收依据。
+
+| 验证项 | 结果与边界 |
+| --- | --- |
+| 严格宿主执行策略 | 真实 SDK 的 eval 被阻止；页面明确显示安全策略阻断，保留 Gantt，无未捕获页面异常；不是地图就绪通过 |
+| 临时兼容执行策略 | 仅临时宿主允许 `unsafe-eval` 与 `blob:` Worker，来源取新 manifest；真实 SDK 模块、2 个 Worker、初始化脚本及瓦片请求可观察，`restapi /v3/log/init` 与 `vdata /tiles` 返回 200，无 CSP 违规、请求失败或未捕获页面异常 |
+| 主画布与容器尺寸（DPR 1） | inline `650×300` → fullscreen `718×487` → 容器变化 `518×510` → 退出 `818×300` → 重入 `518×510`；主画布 CSS 与绘图缓冲区均匹配，不以 offscreen 瓦片或全屏状态标志代替尺寸断言 |
+| 旧传感器 | 地图内没有 `<object>`，无 `defaultView` 异常；不放宽 object-src 或沙箱同源权限 |
+| 交互 | 真实播放时间前进及工程师标记移动、暂停、定位、末端自动停止、单工程师筛选、显式刷新、切换视图、关闭通过；尺寸变化保持同一实例、中心点/缩放、选择与游标，退出全屏后不自动续播 |
+| 离线回归 | MCP Node 125/125、模拟宿主浏览器 36/36、旧页面 Node 110/110 通过；新增替身绘图缓冲区及错误分类回归 |
+| 构建交付 | `build:mcp-app` / `verify:mcp-app` 通过，声明、产物及确定性一致 |
+
+可复用的显式联网入口为 [`real-sdk-check.mjs`](../../src/test/mcp-ui/real-sdk-check.mjs)，运行与凭据隔离说明见[测试说明](../operations/testing.md#显式启用真实-amap-联调)。当次脱敏报告与业务截图仅存于本地 `/tmp/vrp0-mcp-real-sdk`，不进入仓库。本轮未重新导入 Gateway 资源、修改审批或普通预览 CSP；没有验证 ChatGPT 桌面、其他真实宿主、真实 HERE、所有 Key 限制或所有地图网络路径。本轮不重跑 JVM 与旧页面浏览器门禁，相关既有基线限制仍见 §7。

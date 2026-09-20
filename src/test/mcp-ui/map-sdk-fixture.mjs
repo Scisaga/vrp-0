@@ -5,6 +5,14 @@ export const mapSdkFixture = `(() => {
     constructor(container, layer, options) {
       this.container=container;this.options=options || layer;this.center=this.options.center;this.zoom=this.options.zoom;this.objects=[];this.listeners=new Map();
       stats.maps.push(this);container.dataset.mockMap='ready';
+      this.canvas=document.createElement('canvas');container.appendChild(this.canvas);this.triggerResize();
+      if(!options){
+        // Match the real SDK: resizeEnable:false does NOT prevent its sensor.
+        const sensor=document.createElement('object');sensor.type='text/html';sensor.data='about:blank';
+        sensor.style.cssText='position:absolute;pointer-events:none;width:100%;height:100%;z-index:-1';
+        sensor.onload=function(){this.contentDocument.defaultView.addEventListener('resize',()=>{})};
+        container.appendChild(sensor);stats.sensorInserted=Boolean(sensor.parentNode);
+      }
     }
     add(objects){this.addObjects(objects)}
     addObjects(objects){for(const item of objects){this.objects.push(item);if(item.content){this.container.append(item.content);item.content.style.position='relative';item.content.style.display='inline-flex';item.content.style.margin='4px';}}}
@@ -16,8 +24,8 @@ export const mapSdkFixture = `(() => {
     getZoom(){return this.zoom}setZoom(value){this.zoom=value}setCenter(value){this.center=value}
     setZoomAndCenter(zoom,center){this.zoom=zoom;this.center=center}
     setFitView(){stats.fits++}getViewModel(){return {setLookAtData:()=>{stats.fits++}}}
-    resize(){}getViewPort(){return {resize:()=>{}}}
-    destroy(){this.dispose()}dispose(){if(this.disposed)return;this.disposed=true;this.removeObjects([...this.objects]);stats.destroyed++;delete this.container.dataset.mockMap}
+    triggerResize(){this.size={width:this.container.clientWidth,height:this.container.clientHeight};this.canvas.width=this.size.width;this.canvas.height=this.size.height;this.canvas.style.cssText='position:absolute;pointer-events:none;width:'+this.size.width+'px;height:'+this.size.height+'px'}getViewPort(){return {resize:()=>this.triggerResize()}}
+    destroy(){this.dispose()}dispose(){if(this.disposed)return;this.disposed=true;this.removeObjects([...this.objects]);this.canvas.remove();stats.destroyed++;delete this.container.dataset.mockMap}
   }
   class AMapMarker {
     constructor(options){this.position=options.position;this.content=options.content}

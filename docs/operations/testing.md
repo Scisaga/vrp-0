@@ -175,7 +175,7 @@ Node 测试需要可执行的 `python3`：模型 fixture helper 以 `python3 -B`
 | --- | --- |
 | 模型 Node | 人工 fixtures 与 Python 分析 parity；不变异、`null`/空集合、完整 ID、双向归属、标量语义、业务时区轴、回放资格、阶段边界、吸附原折线、跨经度与合成大向量 |
 | View 桥 Node | 官方 SDK 边界替身；先注册处理器再连接、结果身份、白名单错误映射、只读工具名、显式刷新、输入/通知竞态、取消、长 ID、显示模式与 teardown |
-| 地图 Node | AMAP/HERE 上下文及 URL 策略、原段位/坐标轴/几何、不可播放来源、缺失数据、纯文本 marker、AMAP complete 超时、HERE 样式错误、覆盖物与实例释放 |
+| 地图 Node | AMAP/HERE 上下文及 URL 策略、原段位/坐标轴/几何、不可播放来源、缺失数据、纯文本 marker、AMAP complete 超时、HERE 样式错误、含 eval 的 CSP 分类、容器级旧尺寸传感器拦截/恢复、尺寸合并/隐藏/销毁及失败、覆盖物与实例释放 |
 | 构建 Node 与产物校验 | manifest 字段/精确 origin、Ajv standalone、第一方依赖闭包、共享 Zod/拒绝 SDK with-deps、HTML/CSS/JS 自包含、敏感信息、Gateway 同款动态代码静态拒绝规则、确定性与过期产物 |
 | 模拟浏览器 | 使用真实构建 HTML 与官方 View SDK，在模拟宿主和图商 SDK 替身中检查布局、选择、显式刷新、地图/Gantt、全屏、回放、安全降级、实例隔离和生命周期；具体执行结果见当次记录 |
 
@@ -188,6 +188,25 @@ SDK 安全回归在最终 HTML 的应用脚本之前，用 parser 执行的测�
 修改源码、模板、样式、词典、Schema、依赖锁文件或 `mcp_ui` 后都需重建并运行产物校验。`verify:mcp-app` 不写文件；CI 在重建后还执行 `git diff --exit-code -- mcp-app.html`，防止提交的单文件落后于源码。MCP 构建独立于 `build:scenario`，共享前端工具链变化还需回归原 Node、Scenario 构建校验和 i18n 浏览器测试；不能因新增 View 通过而省略旧页面回归。
 
 当次通过数量与执行状态只记录在[组件验证记录](../components/mcp-app.md#7-验证记录与未验证项)或测试报告，不在本文固定。真实 Gateway 与四宿主联合验收必须单列客户端版本、批准策略和受限 key 条件；模拟宿主通过不能将外部未验证项标为通过。
+
+#### 显式启用真实 AMAP 联调
+
+`src/test/mcp-ui/real-sdk-check.mjs` 不匹配默认 Node/Playwright 测试入口。它使用调用方提供的本地模拟宿主工具目录（导出 `server.mjs`、`config.mjs`、`transport.mjs`）、其私有 PAT 配置以及指定的真实任务，只读调用 Gateway，直接使用结果中的 `map_context`，不更换 browser key。不修改 Gateway、普通预览配置或已发布资源；仅在临时 loopback 宿主中替换当前引擎资源的 HTML 与 CSP 声明，校验源码重建字节及实际 HTTP 响应 SHA-256，防止用旧产物冒充新实现。
+
+使用 Node 22，在仓库根目录执行（路径和任务 ID 由联调者提供；凭据不写在命令行）：
+
+```bash
+agent-browser --session vrp0-map-check open about:blank
+MCP_REAL_SDK=1 \
+MCP_PREVIEW_DIR=/absolute/path/to/mcp-live-preview \
+MCP_REAL_JOB_ID='<job-id>' \
+MCP_DIAGNOSTIC_POLICY=/absolute/path/to/csp-probe-policy.json \
+node src/test/mcp-ui/real-sdk-check.mjs
+```
+
+诊断 JSON 显式使用 `allowEval:true`、`allowBlobWorkers:true`；可提供的 `extraResourceDomains` / `extraConnectDomains` 必须已包含在当前 manifest 中，不能藉诊断追加未申报来源，`disableLegacyResize` 必须缺省或为 `false`。脚本先验证严格策略拒绝及 Gantt 降级，再在隔离兼容策略下检查真实 SDK/Worker/瓦片请求、主画布尺寸、播放标记移动、筛选、视野和游标保留、全屏/退出/容器变化、刷新及关闭。临时执行权限不写入产品域名数组，也不代表目标桌面宿主允许执行。
+
+默认脱敏报告及截图写入 `/tmp/vrp0-mcp-real-sdk`，可通过 `MCP_REAL_REPORT_DIR` 指定隔离目录；`MCP_BROWSER_SESSION` 可指定已启动的独立 agent-browser 会话。报告不记录 PAT 或 browser key，真实业务截图不提交到仓库。脚本只进行受控的小规模读取和地图操作，不进入稳定门禁；HERE 和实际桌面宿主仍需单独验收。
 
 ## 9. 完成标准
 
