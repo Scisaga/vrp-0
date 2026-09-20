@@ -294,9 +294,11 @@ test("摘要以任务元信息单行和 Key/Value 表格展示", async () => {
     assert.match(source, /\.result-summary-row-score\s*\{\s*grid-template-columns: minmax\(7\.1875rem, 21%\) minmax\(0, 79%\);/, "得分行保留独立的紧凑分段布局");
     assert.doesNotMatch(source, /\.result-summary-row-score,\s*\.result-summary-row-draw-route/, "生成路线不应使用跨列得分行的分栏比例");
     assert.doesNotMatch(source, /\.result-summary-row-draw-route \.result-summary-value/, "生成路线值应沿用普通 Key\/Value 列对齐，不应推到右侧");
-    assert.match(source, /\.result-summary-score-hard\s*\{\s*@apply text-rose-500;/, "Hard 得分应使用曲线同色的红色");
-    assert.match(source, /\.result-summary-score-medium\s*\{\s*@apply text-amber-500;/, "Medium 得分应使用曲线同色的橙色");
-    assert.match(source, /\.result-summary-score-soft\s*\{\s*@apply text-emerald-500;/, "Soft 得分应使用曲线同色的绿色");
+    assert.match(source, /@import "\.\/result-presentation\.css"/, "分数颜色应由控制台与 MCP 共用的展示样式提供");
+    const shared = await readStaticFile("assets/css/result-presentation.css");
+    for (const [part, color] of [["hard", "rose"], ["medium", "amber"], ["soft", "emerald"]]) {
+      assert.ok(shared.includes(`.result-summary-score-${part} { color: var(--color-${color}-500,`));
+    }
   }
 });
 

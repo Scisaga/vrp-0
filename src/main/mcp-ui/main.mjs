@@ -1,3 +1,4 @@
+import { GANTT_STAGE_STYLES } from "../resources/META-INF/resources/static/assets/js/utils/result-presentation.mjs";
 import validateSchema from 'mcp-view-validator';
 import { createViewerBridge, readEnvelope } from './bridge.mjs';
 import { buildViewModel, buildReplay, parsePlanTime, formatPlanTime, poiPosition, validateViewSemantics } from './model.mjs';
@@ -20,7 +21,7 @@ function label(value) { return value === null || value === undefined || value ==
 function nameOf(agent) { return agent ? agent.name || agent.id : t('unknown'); }
 function rememberFocus() { return document.activeElement?.dataset?.focusKey; }
 function restoreFocus(key) { if(!key)return;for(const element of document.querySelectorAll('[data-focus-key]'))if(element.dataset.focusKey===key){element.focus({preventScroll:true});break;} }
-function pair(container, key, value) { container.append(node('dt',t(key)),node('dd',label(value))); }
+function pair(container, key, value) { container.append(node('dt',t(key)),node('dd',label(value),['id','date','sequence','arrival','start','departure','duration','shift','assigned'].includes(key)?'result-detail-value':'')); }
 function tell(key, { stale=false }={}) { state.error=key;state.stale=stale;renderNotice(); }
 function errorKey(error) {
   const code=error?.code || '';
@@ -103,7 +104,7 @@ function hostContext(context) {
 const bridge=createViewerBridge({onInput:acceptInput,onResult:acceptResult,onHostContext:hostContext,onError:handleError,onTeardown:cleanup});
 
 function localizeShell() {
-  for(const [id,key]of Object.entries({refresh:'refresh', 'tab-map':'map','tab-gantt':'gantt','engineer-label':'engineer','sidebar-toggle':'objects','fit-map':'fit','side-agents':'agents','side-tickets':'tickets','search-label':'search','map-retry':'retryMap','playback-label':'playback','speed-label':'speed','footer':'footer'}))$(id).textContent=t(key);
+  for(const [id,key]of Object.entries({refresh:'refresh', 'tab-map':'map','tab-gantt':'gantt','gantt-title':'ganttTitle','engineer-label':'engineer','sidebar-toggle':'objects','fit-map':'fit','side-agents':'agents','side-tickets':'tickets','search-label':'search','map-retry':'retryMap','playback-label':'playback','speed-label':'speed','footer':'footer'}))$(id).textContent=t(key);
   $('fullscreen').textContent=t(state.mode==='fullscreen'?'exitFullscreen':'fullscreen');$('search').placeholder=t('search');
   for(const [id,key]of Object.entries({'summary':'totals','gantt-in':'zoomIn','gantt-out':'zoomOut','map-canvas':'mapLabel','map-legend':'legend','gantt-scroll':'chartLabel','inline-detail':'selected','ordered-tickets':'tickets','playback':'playback','cursor':'time'}))$(id).setAttribute('aria-label',t(key));
   document.querySelector('.view-tabs').setAttribute('aria-label',t('resultView'));document.querySelector('.side-tabs').setAttribute('aria-label',t('objectType'));
@@ -119,12 +120,25 @@ function platformDate(value) {
   return new Date(time+8*3600000).toISOString().slice(0,19).replace('T',' ');
 }
 function renderSummary() {
-  const fragment=document.createDocumentFragment();fragment.append(node('span',t('totals')));
+  const fragment=document.createDocumentFragment();
   for(const [key,value]of [['schedules',state.model?.analysis.counts.engineer_schedule_count],['assigned',state.model?.analysis.counts.assigned_ticket_count],['unassigned',state.model?.analysis.counts.unassigned_ticket_count],['score',state.envelope?.task?.result_score]]){
-    const row=node('span',t(key));row.append(node('strong',value===null||value===undefined?t('unknown'):value));fragment.append(row);
+    const row=node('div',undefined,`summary-item summary-${key}`);
+    row.append(node('span',t(key),'summary-label'));
+    const display=node('strong',undefined,'summary-value result-detail-value');
+    // Keep score digits as text (Java long values may exceed JS safe integers).
+    const parts=key==='score' && typeof value==='string' && /^(-?\d+)hard\/(-?\d+)medium\/(-?\d+)soft$/.exec(value);
+    if(parts){
+      for(const [index,part]of ['hard','medium','soft'].entries()){
+        const segment=node('span',undefined,`score-segment result-summary-score-${part}`);
+        segment.append(node('small',part),node('span',parts[index+1]));display.append(segment);
+      }
+      display.setAttribute('aria-label',value);display.title=value;
+    }else display.textContent=value===null||value===undefined?t('unknown'):String(value);
+    row.append(display);fragment.append(row);
   }
   $('summary').replaceChildren(fragment);
 }
+
 function renderEngineerSelect() {
   const options=[new Option(state.missingEngineer?`${state.missingEngineer} · ${t('missingReference')}`:t('allEngineers'),'')];
   for(const agent of state.model?.agents || [])options.push(new Option(`${nameOf(agent)}${agent.date?' · '+agent.date:''}${agent.virtual===true?' · '+t('virtual'):''}`,agent.id));
@@ -220,6 +234,12 @@ function renderSidebar() {
 function ganttAgents() { if(state.missingEngineer)return [];return (state.model?.agents || []).filter(agent=>!state.engineerId||agent.id===state.engineerId); }
 function renderGantt() {
   const chart=$('gantt-chart'),scroll=$('gantt-scroll');
+  const legend=$('gantt-legend');legend.replaceChildren();
+  for(const [type,key]of [['travel','travel'],['wait','waitingPhase'],['service','service']]){
+    const item=node('span',undefined,'result-phase-key'),dot=node('span',undefined,'result-phase-dot');
+    dot.style.cssText=GANTT_STAGE_STYLES[type].dot;dot.setAttribute('aria-hidden','true');
+    item.append(dot,node('span',t(key)));legend.append(item);
+  }
   chart.replaceChildren();
   if(state.missingEngineer){chart.append(node('p',t('engineerNotFound'),'empty'));return;}
   if(!state.model){chart.append(node('p',state.envelope?t('noResult'):t('waiting'),'empty'));return;}
@@ -232,29 +252,48 @@ function renderGantt() {
   const head=node('div',undefined,'gantt-head');head.append(node('div',t('engineer'),'gantt-label'));const scale=node('div',undefined,'gantt-scale');
   for(let index=0;index<4;index++){const time=min+span*index/4;const tick=node('span',formatPlanTime(time).slice(5),'gantt-tick');tick.style.left=`${index*25}%`;scale.append(tick);}head.append(scale);grid.append(head);
   const percent=time=>span===0?50:Math.max(0,Math.min(100,100*(time-min)/span));
-  function bar(track,ticket,agent,index,phase,start,end){
-    const element=button(phase==='service'?`${index+1} · ${ticket.id}`:'',()=>selectTicket(ticket.id,agent.id),'gantt-bar');
-    element.style.setProperty('--agent-color',colorFor(agent.id));element.style.left=`${percent(start)}%`;element.style.width=`${Math.max(0,percent(end)-percent(start))}%`;
-    element.dataset.phase=phase;element.dataset.zero=String(end===start);element.dataset.focusKey=`gantt:${agent.id}:${ticket.id}:${phase}`;
-    element.setAttribute('aria-label',`${index+1} · ${ticket.id} · ${t(phase==='waiting'?'waitingPhase':phase)} · ${formatPlanTime(start)} → ${formatPlanTime(end)}`);
-    element.setAttribute('aria-pressed',String(state.ticketId===ticket.id));track.append(element);
+  function visit(track,ticket,agent,index,stages){
+    if(!stages.length)return;
+    const first=Math.min(...stages.map(stage=>stage[1])),last=Math.max(...stages.map(stage=>stage[2]));
+    const duration=last-first,group=node('div',undefined,'gantt-visit result-timeline-bar');
+    group.style.left=`${percent(first)}%`;group.style.width=`${Math.max(0,percent(last)-percent(first))}%`;
+    group.dataset.selected=String(state.ticketId===ticket.id);
+    group.style.setProperty('--stage-border',GANTT_STAGE_STYLES.service.border);
+    group.style.setProperty('--stage-base',GANTT_STAGE_STYLES.service.baseBackground);
+    for(const [phase,start,end]of stages){
+      const style=GANTT_STAGE_STYLES[phase==='waiting'?'wait':phase];
+      const element=button('',()=>selectTicket(ticket.id,agent.id),'gantt-bar');
+      element.style.setProperty('--stage-fill',style.background);
+      element.style.setProperty('--stage-ink',style.text);
+      element.style.left=`${duration===0?0:100*(start-first)/duration}%`;
+      element.style.width=`${duration===0?0:100*(end-start)/duration}%`;
+      element.dataset.phase=phase;element.dataset.zero=String(end===start);element.dataset.focusKey=`gantt:${agent.id}:${ticket.id}:${phase}`;
+      const description=`${index+1} · ${ticket.id} · ${t(phase==='waiting'?'waitingPhase':phase)} · ${formatPlanTime(start)} → ${formatPlanTime(end)}`;
+      element.setAttribute('aria-label',description);element.title=description;
+      element.setAttribute('aria-pressed',String(state.ticketId===ticket.id));group.append(element);
+    }
+    const badge=node('span',undefined,'gantt-visit-label');badge.setAttribute('aria-hidden','true');badge.append(node('span',index+1,'result-sequence-badge'));
+    group.append(badge);track.append(group);
   }
   for(const agent of agents){
-    const row=node('div',undefined,'gantt-row'),name=node('div',undefined,'gantt-label'),select=button('',()=>selectEngineer(agent.id));select.dataset.focusKey=`gantt-agent:${agent.id}`;select.append(swatch(agent.id),node('span',nameOf(agent)));name.append(select,node('small',label(agent.date)));row.append(name);
+    const row=node('div',undefined,'gantt-row'),name=node('div',undefined,'gantt-label'),select=button('',()=>selectEngineer(agent.id));select.dataset.focusKey=`gantt-agent:${agent.id}`;select.append(swatch(agent.id),node('span',nameOf(agent)));const range=[agent.shift_start_time,agent.tickets_done_time].map(value=>parsePlanTime(value)===null?'—':value.slice(11,16)).join(' → ');
+    const date=node('small',`${agent.date?.slice(5) || '—'} ${range}`);date.setAttribute('aria-label',`${label(agent.date)} · ${range}`);
+    name.append(select,date);row.dataset.selected=String(state.engineerId===agent.id);row.append(name);
     const track=node('div',undefined,'gantt-track');let previous=parsePlanTime(agent.shift_start_time),missing=[];
     const report=state.model.analysis.engineers.find(item=>item.id===agent.id);
     if(report?.reasons.includes('inconsistent_assignment'))missing.push(t('inconsistent_assignment'));
     if(agent.tickets===null)missing.push(t('unknownAssignment'));
     for(const [index,id]of(agent.tickets || []).entries()){
       const ticket=state.model.indexes.tickets.get(id);if(!ticket){missing.push(`${index+1} · ${id} · ${t('missingReference')}`);previous=null;continue;}
-      const arrival=parsePlanTime(ticket.arrival_time),start=parsePlanTime(ticket.start_service_time),end=parsePlanTime(ticket.departure_time);
+      const arrival=parsePlanTime(ticket.arrival_time),start=parsePlanTime(ticket.start_service_time),end=parsePlanTime(ticket.departure_time),stages=[];
       const ordered=previous===null||arrival===null||arrival>=previous;
       if(!ordered||arrival!==null&&start!==null&&start<arrival)missing.push(`${index+1} · ${id} · ${t('non_monotonic_schedule')}`);
       if(arrival===null)missing.push(`${index+1} · ${id} · ${t('missingTime')}`);
-      if(previous!==null&&arrival!==null&&arrival>previous)bar(track,ticket,agent,index,'travel',previous,arrival);
-      if(ordered&&arrival!==null&&start!==null&&start>arrival)bar(track,ticket,agent,index,'waiting',arrival,start);
-      if(start!==null&&end!==null&&end>=start)bar(track,ticket,agent,index,'service',start,end);
+      if(previous!==null&&arrival!==null&&arrival>previous)stages.push(['travel',previous,arrival]);
+      if(ordered&&arrival!==null&&start!==null&&start>arrival)stages.push(['waiting',arrival,start]);
+      if(start!==null&&end!==null&&end>=start)stages.push(['service',start,end]);
       else missing.push(`${index+1} · ${id} · ${t('missingTime')}`);
+      visit(track,ticket,agent,index,stages);
       previous=end;
     }
     if(missing.length){const info=node('div',undefined,'gantt-missing');info.style.position='relative';info.style.marginTop='52px';for(const value of missing)info.append(node('span',value,'metadata'));track.append(info);}

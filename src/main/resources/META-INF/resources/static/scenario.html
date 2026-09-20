@@ -1098,12 +1098,6 @@
       background-color: color-mix(in oklab, var(--color-white) 5%, transparent);
     }
   }
-  .bg-white\/75 {
-    background-color: color-mix(in srgb, #fff 75%, transparent);
-    @supports (color: color-mix(in lab, red, red)) {
-      background-color: color-mix(in oklab, var(--color-white) 75%, transparent);
-    }
-  }
   .bg-white\/80 {
     background-color: color-mix(in srgb, #fff 80%, transparent);
     @supports (color: color-mix(in lab, red, red)) {
@@ -1332,10 +1326,6 @@
   }
   .text-\[37\.5px\] {
     font-size: 37.5px;
-  }
-  .leading-\[1\.25rem\] {
-    --tw-leading: 1.25rem;
-    line-height: 1.25rem;
   }
   .leading-\[1\.875rem\] {
     --tw-leading: 1.875rem;
@@ -2112,6 +2102,58 @@
 
 /*! tailwindcss v4.1.18 | MIT License | https://tailwindcss.com */
 @layer properties;
+.result-presentation {
+  font-family: "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+}
+.result-timeline-bar {
+  position: absolute;
+  height: 50px;
+  border: 1.25px solid;
+  border-radius: 7.5px;
+  text-align: left;
+  font-size: 15px;
+  line-height: 20px;
+}
+.result-sequence-badge {
+  display: inline-block;
+  border-radius: 5px;
+  background: rgb(255 255 255 / .75);
+  padding-inline: 5px;
+  line-height: 25px;
+  font-weight: 600;
+  box-shadow: 0 1.25px 3.75px rgb(0 0 0 / .1), 0 1.25px 2.5px -1.25px rgb(0 0 0 / .1);
+}
+.result-phase-key {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 1.25px solid var(--result-line, #e2e8f0);
+  border-radius: 9999px;
+  background: var(--result-surface, rgb(255 255 255 / .75));
+  padding: 2.5px 7.5px;
+  font-size: 13.75px;
+  line-height: 20px;
+  white-space: nowrap;
+}
+.result-phase-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex: none;
+}
+.result-detail-value {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-variant-numeric: tabular-nums;
+}
+.result-summary-score-hard {
+  color: var(--color-rose-500, #f43f5e);
+}
+.result-summary-score-medium {
+  color: var(--color-amber-500, #f59e0b);
+}
+.result-summary-score-soft {
+  color: var(--color-emerald-500, #10b981);
+}
 @layer base {
   :root,
   :host {
@@ -3476,15 +3518,6 @@
     --tw-tracking: var(--tracking-tight, -0.025em);
     letter-spacing: var(--tracking-tight, -0.025em);
     white-space: nowrap;
-  }
-  .result-summary-score-hard {
-    color: var(--color-rose-500, oklch(64.5% 0.246 16.439));
-  }
-  .result-summary-score-medium {
-    color: var(--color-amber-500, oklch(76.9% 0.188 70.08));
-  }
-  .result-summary-score-soft {
-    color: var(--color-emerald-500, oklch(69.6% 0.17 162.48));
   }
   .result-summary-score-label {
     margin-right: 0.3125rem;
@@ -5988,7 +6021,7 @@ var VrpScenarioComponentEntry = (() => {
             </div>
           </div>
         </aside>
-</div>`, result: `<div x-data="solverJobDetailPage" class="responsive-page-root">
+</div>`, result: `<div x-data="solverJobDetailPage" class="responsive-page-root result-presentation">
   <div
     x-show="hoveredBusinessId"
     x-cloak
@@ -6100,7 +6133,7 @@ var VrpScenarioComponentEntry = (() => {
                 </template>
                 <span x-text="row.label"></span>
               </span>
-              <span class="shrink-0 whitespace-nowrap text-right font-mono tabular-nums text-slate-800" x-text="row.value"></span>
+              <span class="result-detail-value shrink-0 whitespace-nowrap text-right text-slate-800" x-text="row.value"></span>
             </div>
           </template>
           <div x-show="activeGanttPopover.showLocationInfo" class="border-t-[1.25px] border-slate-200 pt-[0.625rem]">
@@ -6316,8 +6349,8 @@ var VrpScenarioComponentEntry = (() => {
                   <div class="flex flex-wrap items-center justify-end gap-[0.625rem]">
                     <div class="flex flex-wrap items-center gap-[0.625rem] pr-[0.3125rem] text-[13.75px] text-slate-500">
                       <template x-for="item in ganttLegend()" :key="item.type">
-                        <span class="inline-flex items-center gap-[0.3125rem] rounded-[12498.75px] border-[1.25px] border-slate-200 bg-white/75 px-[0.46875rem] py-[0.15625rem] text-[13.75px] leading-[1.25rem]">
-                          <span class="h-[0.625rem] w-[0.625rem] rounded-[12498.75px]" :style="item.dotStyle"></span>
+                        <span class="result-phase-key">
+                          <span class="result-phase-dot" :style="item.dotStyle"></span>
                           <span x-text="item.label"></span>
                         </span>
                       </template>
@@ -6367,7 +6400,7 @@ var VrpScenarioComponentEntry = (() => {
                             <div class="relative flex-1 p-0" style="min-height: 3.125rem;" @click="closeTicketPopover()">
                               <div class="absolute top-1/2 h-[3.75px] -translate-y-1/2 rounded-[12498.75px] bg-slate-400/40" :style="row.trackStyle"></div>
                               <template x-for="bar in row.bars" :key="bar.key">
-                                <button type="button" class="absolute top-0 h-[3.125rem] overflow-visible rounded-[0.46875rem] border-[1.25px] text-left text-[0.9375rem]/[1.25rem] transition ring-[1.25px]" :data-gantt-bar-key="bar.key" :class="isTicketPopoverOpen(bar.key) ? 'ring-slate-400/60' : 'ring-slate-200/70'" :style="bar.barStyle" @click.stop="clickTimelineBar(row.agent.id, bar, $event)" @mouseenter="hoverTicket(bar.ticketId)" @mouseleave="hoverTicket('')" :aria-label="bar.label">
+                                <button type="button" class="result-timeline-bar top-0 overflow-visible transition ring-[1.25px]" :data-gantt-bar-key="bar.key" :class="isTicketPopoverOpen(bar.key) ? 'ring-slate-400/60' : 'ring-slate-200/70'" :style="bar.barStyle" @click.stop="clickTimelineBar(row.agent.id, bar, $event)" @mouseenter="hoverTicket(bar.ticketId)" @mouseleave="hoverTicket('')" :aria-label="bar.label">
                                   <div class="absolute inset-0 overflow-hidden rounded-[inherit]">
                                     <template x-for="segment in bar.segments" :key="segment.key">
                                       <div class="ui-tooltip absolute inset-y-0" :style="segment.style" :data-tooltip="segment.title"></div>
@@ -6377,7 +6410,7 @@ var VrpScenarioComponentEntry = (() => {
                               </template>
                               <template x-for="label in row.labels" :key="label.key">
                                 <span class="pointer-events-none absolute top-0 z-20 flex h-[3.125rem] items-center justify-center truncate px-[0.3125rem] text-[0.9375rem]/[1.25rem] font-semibold" :style="label.style">
-                                  <span class="rounded-[0.3125rem] bg-white/75 px-[0.3125rem] leading-[1.5625rem] shadow-[0_1.25px_3.75px_0_rgba(0,0,0,0.1),0_1.25px_2.5px_-1.25px_rgba(0,0,0,0.1)]" x-text="label.displayLabel"></span>
+                                  <span class="result-sequence-badge" x-text="label.displayLabel"></span>
                                 </span>
                               </template>
                             </div>
@@ -12086,6 +12119,47 @@ var VrpScenarioComponentEntry = (() => {
     };
   }
 
+  // assets/js/utils/result-presentation.mjs
+  var GANTT_STAGE_STYLES = {
+    travel: {
+      labelKey: "gantt.travel",
+      background: "rgba(59, 130, 246, 0.18)",
+      baseBackground: "rgba(59, 130, 246, 0.07)",
+      border: "rgba(37, 99, 235, 0.34)",
+      text: "#1d4ed8",
+      dot: "background:#60a5fa;"
+    },
+    wait: {
+      labelKey: "gantt.waiting",
+      background: "rgba(59, 130, 246, 0.34)",
+      baseBackground: "rgba(59, 130, 246, 0.10)",
+      border: "rgba(37, 99, 235, 0.42)",
+      text: "#1e40af",
+      dot: "background:#2563eb;"
+    },
+    service: {
+      labelKey: "gantt.service",
+      background: "rgba(16, 185, 129, 0.26)",
+      baseBackground: "rgba(16, 185, 129, 0.08)",
+      border: "rgba(5, 150, 105, 0.32)",
+      text: "#047857",
+      dot: "background:rgba(16, 185, 129, 0.26);"
+    },
+    return: {
+      labelKey: "gantt.return",
+      background: "rgba(139, 92, 246, 0.24)",
+      baseBackground: "rgba(139, 92, 246, 0.08)",
+      border: "rgba(124, 58, 237, 0.34)",
+      text: "#6d28d9",
+      dot: "background:#8b5cf6;"
+    }
+  };
+  var GANTT_OUT_OF_WINDOW_STYLE = {
+    border: "rgba(225, 29, 72, 0.98)",
+    text: "#be123c",
+    dot: "background:#e11d48;box-shadow:0 0 0 2.5px rgba(225,29,72,0.16);"
+  };
+
   // assets/js/utils/solver-score-progress.mjs
   function numberValue(value) {
     const parsed = Number(value);
@@ -12260,45 +12334,6 @@ var VrpScenarioComponentEntry = (() => {
   var SCORE_AXIS_BOTTOM_PADDING = 0.24;
   var SCORE_AXIS_TOP_PADDING = 0.12;
   var HARD_PENALTY_PLOT_FRACTION = 0.18;
-  var GANTT_STAGE_STYLES = {
-    travel: {
-      labelKey: "gantt.travel",
-      background: "rgba(59, 130, 246, 0.18)",
-      baseBackground: "rgba(59, 130, 246, 0.07)",
-      border: "rgba(37, 99, 235, 0.34)",
-      text: "#1d4ed8",
-      dot: "background:#60a5fa;"
-    },
-    wait: {
-      labelKey: "gantt.waiting",
-      background: "rgba(59, 130, 246, 0.34)",
-      baseBackground: "rgba(59, 130, 246, 0.10)",
-      border: "rgba(37, 99, 235, 0.42)",
-      text: "#1e40af",
-      dot: "background:#2563eb;"
-    },
-    service: {
-      labelKey: "gantt.service",
-      background: "rgba(16, 185, 129, 0.26)",
-      baseBackground: "rgba(16, 185, 129, 0.08)",
-      border: "rgba(5, 150, 105, 0.32)",
-      text: "#047857",
-      dot: "background:rgba(16, 185, 129, 0.26);"
-    },
-    return: {
-      labelKey: "gantt.return",
-      background: "rgba(139, 92, 246, 0.24)",
-      baseBackground: "rgba(139, 92, 246, 0.08)",
-      border: "rgba(124, 58, 237, 0.34)",
-      text: "#6d28d9",
-      dot: "background:#8b5cf6;"
-    }
-  };
-  var GANTT_OUT_OF_WINDOW_STYLE = {
-    border: "rgba(225, 29, 72, 0.98)",
-    text: "#be123c",
-    dot: "background:#e11d48;box-shadow:0 0 0 2.5px rgba(225,29,72,0.16);"
-  };
   var GANTT_STAGE_LEGEND = [
     ...["travel", "wait", "service", "return"].map((type) => ({
       type,

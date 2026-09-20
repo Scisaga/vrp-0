@@ -8,7 +8,7 @@
   <!-- MCP_STYLE -->
 </head>
 <body>
-  <main id="app" class="mcp-root" aria-busy="true">
+  <main id="app" class="mcp-root result-presentation" aria-busy="true">
     <header class="app-header">
       <div class="brand" aria-label="VRP-0"><svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true"><path d="M5 8h8l6 16h8M5 24l7-16h15" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><circle cx="5" cy="8" r="3" fill="currentColor"/><circle cx="27" cy="24" r="3" fill="currentColor"/></svg><span>VRP-0</span></div>
       <div class="task-heading"><h1 id="task-title">等待任务结果</h1><div id="task-meta" class="metadata"></div></div>
@@ -36,7 +36,7 @@
           <div id="map-state" class="map-state"><p id="map-message">等待任务结果</p><button type="button" id="map-retry" hidden>重试地图</button></div>
           <div id="map-legend" class="map-legend" aria-label="工程师图例"></div>
         </section>
-        <section id="gantt-panel" class="gantt-panel" role="tabpanel" aria-labelledby="tab-gantt" hidden><div id="gantt-scroll" class="gantt-scroll" tabindex="0" aria-label="只读排程时间轴"><div id="gantt-chart"></div></div></section>
+        <section id="gantt-panel" class="gantt-panel" role="tabpanel" aria-labelledby="tab-gantt" hidden><div class="gantt-heading"><h2 id="gantt-title">工程师排程</h2><div id="gantt-legend" class="gantt-legend"></div></div><div id="gantt-scroll" class="gantt-scroll" tabindex="0" aria-label="只读排程时间轴"><div id="gantt-chart"></div></div></section>
         <section id="inline-detail" class="inline-detail" aria-label="选中对象"></section>
         <section id="ordered-tickets" class="ordered-tickets" hidden></section>
       </div>

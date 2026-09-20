@@ -1,4 +1,4 @@
-<div x-data="solverJobDetailPage" class="responsive-page-root">
+<div x-data="solverJobDetailPage" class="responsive-page-root result-presentation">
   <div
     x-show="hoveredBusinessId"
     x-cloak
@@ -110,7 +110,7 @@
                 </template>
                 <span x-text="row.label"></span>
               </span>
-              <span class="shrink-0 whitespace-nowrap text-right font-mono tabular-nums text-slate-800" x-text="row.value"></span>
+              <span class="result-detail-value shrink-0 whitespace-nowrap text-right text-slate-800" x-text="row.value"></span>
             </div>
           </template>
           <div x-show="activeGanttPopover.showLocationInfo" class="border-t-[1.25px] border-slate-200 pt-[0.625rem]">
@@ -326,8 +326,8 @@
                   <div class="flex flex-wrap items-center justify-end gap-[0.625rem]">
                     <div class="flex flex-wrap items-center gap-[0.625rem] pr-[0.3125rem] text-[13.75px] text-slate-500">
                       <template x-for="item in ganttLegend()" :key="item.type">
-                        <span class="inline-flex items-center gap-[0.3125rem] rounded-[12498.75px] border-[1.25px] border-slate-200 bg-white/75 px-[0.46875rem] py-[0.15625rem] text-[13.75px] leading-[1.25rem]">
-                          <span class="h-[0.625rem] w-[0.625rem] rounded-[12498.75px]" :style="item.dotStyle"></span>
+                        <span class="result-phase-key">
+                          <span class="result-phase-dot" :style="item.dotStyle"></span>
                           <span x-text="item.label"></span>
                         </span>
                       </template>
@@ -377,7 +377,7 @@
                             <div class="relative flex-1 p-0" style="min-height: 3.125rem;" @click="closeTicketPopover()">
                               <div class="absolute top-1/2 h-[3.75px] -translate-y-1/2 rounded-[12498.75px] bg-slate-400/40" :style="row.trackStyle"></div>
                               <template x-for="bar in row.bars" :key="bar.key">
-                                <button type="button" class="absolute top-0 h-[3.125rem] overflow-visible rounded-[0.46875rem] border-[1.25px] text-left text-[0.9375rem]/[1.25rem] transition ring-[1.25px]" :data-gantt-bar-key="bar.key" :class="isTicketPopoverOpen(bar.key) ? 'ring-slate-400/60' : 'ring-slate-200/70'" :style="bar.barStyle" @click.stop="clickTimelineBar(row.agent.id, bar, $event)" @mouseenter="hoverTicket(bar.ticketId)" @mouseleave="hoverTicket('')" :aria-label="bar.label">
+                                <button type="button" class="result-timeline-bar top-0 overflow-visible transition ring-[1.25px]" :data-gantt-bar-key="bar.key" :class="isTicketPopoverOpen(bar.key) ? 'ring-slate-400/60' : 'ring-slate-200/70'" :style="bar.barStyle" @click.stop="clickTimelineBar(row.agent.id, bar, $event)" @mouseenter="hoverTicket(bar.ticketId)" @mouseleave="hoverTicket('')" :aria-label="bar.label">
                                   <div class="absolute inset-0 overflow-hidden rounded-[inherit]">
                                     <template x-for="segment in bar.segments" :key="segment.key">
                                       <div class="ui-tooltip absolute inset-y-0" :style="segment.style" :data-tooltip="segment.title"></div>
@@ -387,7 +387,7 @@
                               </template>
                               <template x-for="label in row.labels" :key="label.key">
                                 <span class="pointer-events-none absolute top-0 z-20 flex h-[3.125rem] items-center justify-center truncate px-[0.3125rem] text-[0.9375rem]/[1.25rem] font-semibold" :style="label.style">
-                                  <span class="rounded-[0.3125rem] bg-white/75 px-[0.3125rem] leading-[1.5625rem] shadow-[0_1.25px_3.75px_0_rgba(0,0,0,0.1),0_1.25px_2.5px_-1.25px_rgba(0,0,0,0.1)]" x-text="label.displayLabel"></span>
+                                  <span class="result-sequence-badge" x-text="label.displayLabel"></span>
                                 </span>
                               </template>
                             </div>

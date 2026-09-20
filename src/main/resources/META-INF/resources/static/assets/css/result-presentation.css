@@ -1,0 +1,43 @@
+/* Shared result presentation extracted from solver-job-detail.
+   Compiled into the console, Scenario component and standalone MCP App. */
+.result-presentation {
+  font-family: "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+}
+.result-timeline-bar {
+  position: absolute;
+  height: 50px;
+  border: 1.25px solid;
+  border-radius: 7.5px;
+  text-align: left;
+  font-size: 15px;
+  line-height: 20px;
+}
+.result-sequence-badge {
+  display: inline-block;
+  border-radius: 5px;
+  background: rgb(255 255 255 / .75);
+  padding-inline: 5px;
+  line-height: 25px;
+  font-weight: 600;
+  box-shadow: 0 1.25px 3.75px rgb(0 0 0 / .1), 0 1.25px 2.5px -1.25px rgb(0 0 0 / .1);
+}
+.result-phase-key {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 1.25px solid var(--result-line, #e2e8f0);
+  border-radius: 9999px;
+  background: var(--result-surface, rgb(255 255 255 / .75));
+  padding: 2.5px 7.5px;
+  font-size: 13.75px;
+  line-height: 20px;
+  white-space: nowrap;
+}
+.result-phase-dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.result-detail-value {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-variant-numeric: tabular-nums;
+}
+.result-summary-score-hard { color: var(--color-rose-500, #f43f5e); }
+.result-summary-score-medium { color: var(--color-amber-500, #f59e0b); }
+.result-summary-score-soft { color: var(--color-emerald-500, #10b981); }

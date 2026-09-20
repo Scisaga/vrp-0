@@ -4,7 +4,7 @@
 
 本文记录 Issue #183 后续引擎实现；本轮引擎实现、单文件打包及模拟宿主验收已完成，尚不代表生产 UI ready。白名单、字段单位、空值和安全投影的事实源仍是 [MCP 结果展示契约](mcp-result-view-contract.md) 与 [`docs/integrations/gateway/mcp-result-view-schema.json`](../integrations/gateway/mcp-result-view-schema.json)，本文负责独立 View、构建和交付行为。
 
-本轮范围是独立完整 HTML、标准 View 桥、只读地图/Gantt/单工程师/规划回放、构建声明及模拟宿主验收。不修改 Gateway、REST/OpenAPI、旧结果摘要或求解行为，不拆分、重新嵌入或替代原 `scenario.html`。真实 Gateway 服务端投影、导入发布、授权、地图网络、公开 browser key 与 ChatGPT、Claude、Quick Desktop、WorkBuddy 联调仍是外部验收项。
+本轮范围是独立完整 HTML、标准 View 桥、只读地图/Gantt/单工程师/规划回放、构建声明及模拟宿主验收。不修改 Gateway、REST/OpenAPI、旧结果摘要或求解行为，不重新嵌入或替代原 `scenario.html`；仅抽取结果展示层供两端共享。真实 Gateway 服务端投影、导入发布、授权、地图网络、公开 browser key 与 ChatGPT、Claude、Quick Desktop、WorkBuddy 联调仍是外部验收项。
 
 **引擎实现与模拟验收完成，不等于 Gateway UI ready，也不等于双图商在四个真实宿主可用。**
 
@@ -13,6 +13,7 @@
 | 位置 | 职责 |
 | --- | --- |
 | [`src/main/mcp-ui/`](../../src/main/mcp-ui/) | 独立页面模板、样式、词典、原生 DOM 入口、View 桥、模型及地图适配；不导入官网 Controller 或 Scenario Runtime |
+| [`static/assets/css/result-presentation.css`](../../src/main/resources/META-INF/resources/static/assets/css/result-presentation.css) / [`result-presentation.mjs`](../../src/main/resources/META-INF/resources/static/assets/js/utils/result-presentation.mjs) | 从控制台结果页提取的共享展示样式与阶段配色，构建时内联；不包含 REST、Controller、存储、业务投影或时间推算 |
 | [`model.mjs`](../../src/main/mcp-ui/model.mjs) | canonical 模型的标量校验、只读索引、计数、回放资格和规划位置纯函数；不做原始归档投影 |
 | [`bridge.mjs`](../../src/main/mcp-ui/bridge.mjs) | 官方 MCP Apps SDK 连接、宿主通知、只读刷新、全屏请求、尺寸通知、取消和销毁 |
 | [`sdk.mjs`](../../src/main/mcp-ui/sdk.mjs) / [`sdk-config.mjs`](../../src/main/mcp-ui/sdk-config.mjs) | 使用 SDK 普通入口及共享 Zod，在 SDK 模块初始化前关闭 JIT；不使用内嵌另一份 Zod 的 `app-with-deps` |
@@ -56,6 +57,8 @@ View 校验不是生产安全投影：Gateway 仍必须在服务端从归档执�
 会话内精简模式展示地图或 Gantt、任务总计、工程师选择和紧凑详情，没有常驻工程师侧栏或播放控件。选定单工程师时展示原始执行顺序的工单列表；引用缺失也保留其序号，不按 ID 重排。
 
 全屏向宿主请求，只有宿主确认后才进入；拒绝或不支持时继续保留精简模式。全屏使用工程师/工单页签、检索与详情侧栏，以及主地图或 Gantt。窄屏侧栏以可收起覆盖层承载。语言、主题跟随宿主；不支持或未提供的语言回退简体中文，主题缺省为浅色。
+
+Gantt 复用控制台的阶段配色、组合任务条、序号标签和图例，选中后在详情中保留完整工单 ID；统计区使用扁平标签/值分区，标准 Hard/Medium/Soft 分数分段着色且保留原始数字字符串。共享展示文件修改时需同时重建控制台 CSS、Scenario 与 MCP 产物。
 
 Gantt 使用已有服务、等待和行程时间，缺少或先后不一致的区间显示不可用，不补十五分钟或按 `duration` 推算缺失时间；零时长服务采用明确的点状标记。列表、地图、Gantt 的工程师身份与颜色保持一致。任务计数不随局部选择改写；无法确定的计数显示未知，不显示零。
 
@@ -174,3 +177,9 @@ JVM 对照使用 `allStableTest --offline --no-daemon`，在去除本地环境�
 | 构建交付 | `build:mcp-app` / `verify:mcp-app` 通过，声明、产物及确定性一致 |
 
 可复用的显式联网入口为 [`real-sdk-check.mjs`](../../src/test/mcp-ui/real-sdk-check.mjs)，运行与凭据隔离说明见[测试说明](../operations/testing.md#显式启用真实-amap-联调)。当次脱敏报告与业务截图仅存于本地 `/tmp/vrp0-mcp-real-sdk`，不进入仓库。本轮未重新导入 Gateway 资源、修改审批或普通预览 CSP；没有验证 ChatGPT 桌面、其他真实宿主、真实 HERE、所有 Key 限制或所有地图网络路径。本轮不重跑 JVM 与旧页面浏览器门禁，相关既有基线限制仍见 §7。
+
+### 7.3 结果展示层复用
+
+2026-09-20 从控制台结果页提取共享展示 CSS 与阶段配色，控制台、Scenario 与 MCP 构建消费同一份源文件。MCP 不引入原页面的 Controller、REST、轮询或时间补全逻辑；保留自身的 canonical 模型、协议桥、零时长与缺失数据规则。字体、任务条尺寸/边框/背景、序号、图例及等宽元信息由 Chromium 对照控制台生产 CSS 验证，另检查 375px、768px、1100px、深色及全屏布局。
+
+本次 Node 22 回归：MCP Node **126/126**、模拟宿主浏览器 **41/41**、旧页面 Node **110/110** 通过；控制台 CSS、Scenario、MCP 构建及两类产物校验通过。旧页面浏览器 **19/20**，唯一失败仍是 `visual density` 中地图接口页 `quotaBorder.headerBottom` 期望 `0px`、实际 `1px`；在 `git archive 05df23b` 的隔离基线上复现相同失败，不作为本次展示层回归修复范围。另使用 13 名工程师的离线合成数据对照原页面与 MCP 截图。本次未运行 JVM 或真实 Gateway/图商/宿主联调，不改变 §7.2 的外部验收边界。

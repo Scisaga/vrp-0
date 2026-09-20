@@ -76,6 +76,7 @@ Script 测试当前覆盖 `devctl.sh` 的运行环境隔离、`.env` 加载、�
 
 | 测试文件/层次 | 当前覆盖重点 |
 | --- | --- |
+| `presentation.spec.mjs` | 在严格 CSP 下对照控制台生产 CSS 的共享任务条、序号、图例与等宽字体；阶段配色、键盘选择、长整数字符串分数、窄屏/平板/桌面及深色全屏 |
 | `model.test.mjs` | 从人工 canonical goldens 导出的 JavaScript/Python 分析 parity；标量、空集合与未知集合、实体身份、归属、不可播放原因、不变异；无时区业务轴、日历/DST/早期年份与 Java Duration 边界；回放阶段、零距离、零时长、无返程、吸附原几何、跨经度和合成大数据 |
 | `bridge.test.mjs` | 协议处理器注册/连接时序、版本化只读工具调用、外层身份与错误分支、显式刷新、迟到响应、输入和通知覆盖、取消、长 ID、宿主显示模式及资源清理 |
 | `maps.test.mjs` | provider/URL/origin 防错、历史 LOC 转换、原路线索引、路线来源区分、坏几何整段不可用、POI 缺失、纯文本标记、AMAP complete 超时、HERE 样式错误/监听解除、含 eval 的 CSP 分类、旧 object 尺寸传感器的容器级拦截与恢复、尺寸合并/隐藏/失败/销毁及覆盖物生命周期 |

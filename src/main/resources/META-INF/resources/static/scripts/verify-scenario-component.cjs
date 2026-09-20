@@ -246,10 +246,10 @@ assert(
 
 assert(
   resultTemplate.includes('width: min(30rem, calc(100vw - 30px));')
-    && resultTemplate.includes('class="shrink-0 whitespace-nowrap text-right font-mono tabular-nums text-slate-800"')
+    && resultTemplate.includes('class="result-detail-value shrink-0 whitespace-nowrap text-right text-slate-800"')
     && resultPage.includes('width: "min(30rem, calc(100vw - 30px))"')
     && html.includes('width: min(30rem, calc(100vw - 30px));')
-    && html.includes('class="shrink-0 whitespace-nowrap text-right font-mono tabular-nums text-slate-800"'),
+    && html.includes('class="result-detail-value shrink-0 whitespace-nowrap text-right text-slate-800"'),
   "Gantt 浮框时间值须保持单行展示"
 );
 
@@ -266,14 +266,16 @@ assert(
     && resultTemplate.includes('class="gantt-agent-label identifier-trigger w-[11.875rem] shrink-0 px-[0.9375rem] py-[0.15625rem] text-left"')
     && resultTemplate.includes('class="flex w-[11.875rem] shrink-0 items-center gap-[0.625rem] pt-[0.15625rem]"')
     && resultTemplate.includes('style="min-height: 3.125rem;"')
-    && resultTemplate.includes('class="absolute top-0 h-[3.125rem] overflow-visible rounded-[0.46875rem] border-[1.25px] text-left text-[0.9375rem]/[1.25rem] transition ring-[1.25px]"')
+    && resultTemplate.includes('class="result-timeline-bar top-0 overflow-visible transition ring-[1.25px]"')
     && html.includes('class="px-[1.25rem] py-[0.15625rem] transition"')
     && html.includes('class="gantt-agent-label identifier-trigger w-[11.875rem] shrink-0 px-[0.9375rem] py-[0.15625rem] text-left"')
     && html.includes('class="flex w-[11.875rem] shrink-0 items-center gap-[0.625rem] pt-[0.15625rem]"')
     && html.includes('style="min-height: 3.125rem;"')
-    && html.includes('class="absolute top-0 h-[3.125rem] overflow-visible rounded-[0.46875rem] border-[1.25px] text-left text-[0.9375rem]/[1.25rem] transition ring-[1.25px]"'),
-  "Gantt 排程行须紧凑，且不改变排程条高度"
+    && html.includes('class="result-timeline-bar top-0 overflow-visible transition ring-[1.25px]"'),
+  "Gantt 排程行须紧凑，并使用共享排程条样式"
 );
+
+assert(/\.result-timeline-bar\s*\{[^}]*height:\s*50px/.test(html), "共享排程条必须保留 50px 高度");
 
 assert(
   scenarioEntry.includes('navigate(destination)')

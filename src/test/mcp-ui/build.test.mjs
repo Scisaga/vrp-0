@@ -172,3 +172,24 @@ test('canonical Ajv2020 standalone validator preserves strict shape, null holes 
   const calendar = structuredClone(base); calendar.solver_job.plan.agents[0].date = '2026-02-30';
   assert.equal(validate(calendar), true, 'calendar semantics belong to the additional semantic validator, not JSON Schema regex');
 });
+
+test('console and MCP share only the extracted result presentation, not the console runtime', async () => {
+  const sharedJs = 'src/main/resources/META-INF/resources/static/assets/js/utils/result-presentation.mjs';
+  verifyInputs([sharedJs]);
+  const { html, inputs } = await buildMcpApp();
+  assert.ok(inputs.includes(sharedJs));
+  const consoleJs = fs.readFileSync(path.join(staticRoot, 'assets/js/pages/solver-job-detail-page.js'), 'utf8');
+  assert.match(consoleJs, /import .*GANTT_STAGE_STYLES.*result-presentation\.mjs/);
+  assert.doesNotMatch(consoleJs, /const GANTT_STAGE_STYLES\s*=/);
+  for (const name of ['style.css', 'scenario-business.source.css']) {
+    assert.match(fs.readFileSync(path.join(staticRoot, 'assets/css', name), 'utf8'), /@import "\.\/result-presentation\.css"/);
+  }
+  const sharedCss = fs.readFileSync(path.join(staticRoot, 'assets/css/result-presentation.css'), 'utf8');
+  for (const selector of ['result-timeline-bar','result-sequence-badge','result-phase-key','result-detail-value','result-summary-score-hard']) {
+    assert.ok(sharedCss.includes(`.${selector}`));
+    assert.ok(html.includes(`.${selector}`));
+  }
+  for (const input of ['assets/js/utils/api.js','assets/js/pages/solver-job-detail-page.js','assets/js/utils/vrp-model.js']) {
+    assert.throws(() => verifyInputs([`src/main/resources/META-INF/resources/static/${input}`]));
+  }
+});

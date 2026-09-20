@@ -14,6 +14,7 @@ const projectRoot = path.resolve(staticRoot, "../../../../../..");
 const sourceRoot = path.join(projectRoot, "src/main/mcp-ui");
 const outputFile = path.join(staticRoot, "mcp-app.html");
 const manifestFile = path.join(projectRoot, "gateway/image-version.yaml");
+const sharedStylesFile = path.join(staticRoot, "assets/css/result-presentation.css");
 const schemaFile = path.join(projectRoot, "docs/integrations/gateway/mcp-result-view-schema.json");
 
 function exactKeys(value, keys, label) {
@@ -124,8 +125,9 @@ async function buildMcpApp() {
   assert(!/@import\b/.test(cssSource.replace(tailwindImport, "")), "MCP styles cannot import additional files or external resources");
   // The source tree deliberately lives outside static/. Resolve the existing
   // package's CSS explicitly, keeping @source paths relative to styles.css.
+  // Shared primitives precede the MCP host/layout overrides in the cascade.
   const resolvedCss = cssSource.replace(tailwindImport, () =>
-    `@import ${JSON.stringify(require.resolve("tailwindcss/index.css"))} source(none);`);
+    `@import ${JSON.stringify(require.resolve("tailwindcss/index.css"))} source(none);\n${fs.readFileSync(sharedStylesFile, "utf8")}`);
   const css = await postcss([tailwind({ base: sourceRoot }), autoprefixer]).process(resolvedCss, { from: cssFile, map: false });
   assert(!/<\/style/i.test(css.css), "MCP CSS cannot terminate its inline style element");
 

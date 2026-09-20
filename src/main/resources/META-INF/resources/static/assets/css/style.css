@@ -1,3 +1,4 @@
+@import "./result-presentation.css";
 @import "tailwindcss";
 @source not "../../mcp-app.html";
 @source not "../../scripts/build-mcp-app.cjs";
@@ -729,18 +730,6 @@
 
   .result-summary-score-segment {
     @apply min-w-0 whitespace-nowrap font-mono text-[0.9375rem]/[1.25rem] font-medium tracking-tight;
-  }
-
-  .result-summary-score-hard {
-    @apply text-rose-500;
-  }
-
-  .result-summary-score-medium {
-    @apply text-amber-500;
-  }
-
-  .result-summary-score-soft {
-    @apply text-emerald-500;
   }
 
   .result-summary-score-label {

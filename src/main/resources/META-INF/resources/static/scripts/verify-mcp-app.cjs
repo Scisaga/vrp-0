@@ -43,9 +43,10 @@ function verifyDocument(html) {
 function verifyInputs(inputs) {
   const sourcePrefix = path.relative(projectRoot, sourceRoot).replaceAll(path.sep, "/") + "/";
   const dependencyPrefix = path.relative(projectRoot, path.join(staticRoot, "node_modules")).replaceAll(path.sep, "/") + "/";
+  const sharedPresentation = path.relative(projectRoot, path.join(staticRoot, "assets/js/utils/result-presentation.mjs")).replaceAll(path.sep, "/");
   for (const input of inputs) {
     const normalized = input.replaceAll(path.sep, "/");
-    assert(normalized.startsWith(sourcePrefix) || normalized.startsWith(dependencyPrefix)
+    assert(normalized === sharedPresentation || normalized.startsWith(sourcePrefix) || normalized.startsWith(dependencyPrefix)
       || /^mcp-contract:mcp-(?:view-validator|network-policy)$/.test(normalized), `Unexpected MCP build input: ${input}`);
     assert(!/(?:^|\/)(?:\.env(?:\.[^/]*)?|application\.properties)$/.test(normalized), "Credential/configuration files must not enter the browser bundle");
     if (normalized.startsWith(dependencyPrefix)) {
@@ -55,7 +56,7 @@ function verifyInputs(inputs) {
       assert(!/^(?:alpinejs(?:-web-components)?|plotly\.js|codemirror|@codemirror|lightweight-charts)\//.test(dependency), "MCP App must not import the legacy UI's runtime dependencies");
       assert(!dependency.startsWith("ajv/") || dependency.startsWith("ajv/dist/runtime/"), "Only standalone Ajv runtime helpers, not the schema compiler, may enter the browser bundle");
     }
-    if (!normalized.startsWith(sourcePrefix)) continue;
+    if (normalized !== sharedPresentation && !normalized.startsWith(sourcePrefix)) continue;
     const source = fs.readFileSync(path.resolve(projectRoot, input), "utf8");
     verifyFirstPartySource(source);
   }
