@@ -16,6 +16,7 @@ const outputFiles = { map: path.join(staticRoot, "mcp-map-app.html"), gantt: pat
 const outputFile = outputFiles.map;
 const manifestFile = path.join(projectRoot, "gateway/image-version.yaml");
 const sharedStylesFile = path.join(staticRoot, "assets/css/result-presentation.css");
+const logoFile = path.join(staticRoot, "assets/img/vrp-0-logo-120.png");
 const schemaFile = path.join(projectRoot, "docs/integrations/gateway/mcp-result-view-schema.json");
 
 function exactKeys(value, keys, label) {
@@ -127,6 +128,7 @@ async function buildMcpApp(kind = "map", css) {
   });
   assert.equal(bundle.outputFiles.length,1,"MCP App must produce one inline JavaScript bundle");
   let html=fs.readFileSync(path.join(sourceRoot,`${kind}-template.html`),"utf8");
+  html=replaceOnce(html,"<!-- MCP_LOGO -->",fs.readFileSync(logoFile).toString("base64"));
   html=replaceOnce(html,"<!-- MCP_STYLE -->",`<style>\n${css ?? await compileCss()}\n</style>`);
   html=replaceOnce(html,"<!-- MCP_SCRIPT -->",`<script>\n${inlineScript(bundle.outputFiles[0].text)}\n</script>`);
   html=html.replace(/\r\n/g,"\n").replace(/\s*$/,"\n");

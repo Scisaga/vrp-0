@@ -32,6 +32,7 @@ svg{flex:none}
 .map-app .app-header{justify-content:space-between}
 .gantt-app .app-header h1{flex:1}
 .brand{display:flex;align-items:center;gap:7px;color:var(--brand);font-weight:650;white-space:nowrap}
+.brand img{display:block;flex:none;object-fit:contain}
 .task-heading{min-width:0;flex:1}
 .task-heading .metadata{margin-top:3px}
 .task-heading .metadata>*{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

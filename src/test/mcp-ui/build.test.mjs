@@ -134,6 +134,9 @@ test('actual browser bundle uses the ordinary SDK entry and one shared Zod v4 de
   const { html, inputs } = await buildMcpApp();
   verifyDocument(html);
   verifyInputs(inputs);
+  const officialLogo = fs.readFileSync(path.join(staticRoot, 'assets/img/vrp-0-logo-120.png')).toString('base64');
+  assert.ok(html.includes(`data:image/png;base64,${officialLogo}`), 'MCP header must inline the existing VRP-0 logo');
+  assert.ok(!html.includes('M5 8h8l6 16h8M5 24l7-16h15'), 'MCP header must not contain an invented logo');
   for (const domains of Object.values(readNetworkPolicy())) {
     assert.ok(html.includes(`Object.freeze(${JSON.stringify(domains)})`),
       'bundled network policy must match the manifest');

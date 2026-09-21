@@ -8,7 +8,7 @@ function verifyDocument(html) {
   assert(/<html\b/i.test(html) && /<head\b/i.test(html) && /<body\b/i.test(html)
     && /<\/html>\s*$/i.test(html), "MCP App must contain html, head and body elements");
   assert(/<meta\s+charset=["']utf-8["']\s*\/?\s*>/i.test(html), "MCP App must declare UTF-8");
-  assert(!/<!-- MCP_(?:STYLE|SCRIPT) -->/.test(html), "MCP build placeholders must be replaced");
+  assert(!/<!-- MCP_(?:LOGO|STYLE|SCRIPT) -->/.test(html), "MCP build placeholders must be replaced");
   assert(!/\b(?:VrpScenarioGateway|mountScenarioUi|__SCENARIO_COMPONENT_TEMPLATES__)\b/.test(html), "MCP App cannot depend on the legacy Scenario runtime");
   // The upstream SDK includes a roots-URI validator for the bare "file://"
   // scheme. Reject concrete file URLs, not that inert protocol schema string.
