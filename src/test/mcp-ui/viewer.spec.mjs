@@ -27,19 +27,19 @@ test('map fullscreen provides isolated sidebar, fit, replay and pauses on hide o
   await host.assertHealthy();
 });
 
-test('Gantt artifact has no map surface or network request, filters locally, zooms and exposes fullscreen right sidebar',async({page})=>{
+test('Gantt keeps only zoom-out, makes no map request, filters locally and exposes fullscreen right sidebar',async({page})=>{
   const host=await openHost(page),frame=await host.add({result:asGantt()});
   await expect(frame.locator('#map-canvas,#fit-map,#open-gantt')).toHaveCount(0);await expect(frame.locator('#refresh')).toBeHidden();await expect(frame.locator('.gantt-bar')).toHaveCount(5);
   expect(host.requests.some(url=>url.startsWith('https://'))).toBe(false);
   await frame.locator('#engineer').selectOption(AGENT);expect((await host.pending('card')).length).toBe(0);
-  const before=await frame.locator('.gantt-grid').evaluate(el=>el.getBoundingClientRect().width);await frame.locator('#gantt-in').click();expect(await frame.locator('.gantt-grid').evaluate(el=>el.getBoundingClientRect().width)).toBeGreaterThan(before);
+  await expect(frame.locator('#gantt-out')).toBeVisible();await expect(frame.locator('#gantt-in')).toBeHidden();const before=await frame.locator('.gantt-grid').evaluate(el=>el.getBoundingClientRect().width);await frame.locator('#gantt-out').click();expect(await frame.locator('.gantt-grid').evaluate(el=>el.getBoundingClientRect().width)).toBeLessThan(before);
   await fullscreen(frame);await expect(frame.locator('#sidebar')).toBeVisible();expect(await frame.locator('#sidebar').evaluate(el=>getComputedStyle(el).borderLeftWidth)).not.toBe('0px');
   await frame.locator('.gantt-bar').last().click();await expect(frame.locator('#side-detail')).toContainText('ticket-a');await host.assertHealthy();
 });
 
 test('map and Gantt cards keep selection, viewport, scroll and fullscreen state isolated',async({page})=>{
   const host=await openHost(page),map=await host.add({id:'map'}),gantt=await host.add({id:'gantt',result:asGantt()});await mapReady(map);
-  await map.locator('#engineer').selectOption(AGENT);await gantt.locator('#gantt-in').click();await fullscreen(gantt);
+  await map.locator('#engineer').selectOption(AGENT);await gantt.locator('#gantt-out').click();await fullscreen(gantt);
   await expect(map.locator('#app')).toHaveAttribute('data-mode','inline');await expect(gantt.locator('#app')).toHaveAttribute('data-mode','fullscreen');
   await expect(map.locator('#engineer')).toHaveValue(AGENT);await expect(gantt.locator('#engineer')).toHaveValue('');await host.assertHealthy();
 });
