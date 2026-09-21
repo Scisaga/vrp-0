@@ -83,6 +83,17 @@ test('reads every existing success envelope without inventing a state mapping', 
   }
 });
 
+test('accepts the frozen Gateway Gantt empty browser key and rejects null or non-empty variants', () => {
+  const gatewayResult = sample('gantt-ready');
+  assert.equal(gatewayResult._meta.gateway_ui.map_context.browser_key, '');
+  assert.equal(readEnvelope(gatewayResult).map_context.browser_key, '');
+  for (const browserKey of [null, 'synthetic-public-browser-key']) {
+    const invalid = sample('gantt-ready');
+    invalid._meta.gateway_ui.map_context.browser_key = browserKey;
+    throwsCode(() => readEnvelope(invalid), 'MCP_UI_ENVELOPE_INVALID', true);
+  }
+});
+
 test('metadata is never guessed from model text or another query shape', () => {
   throwsCode(() => readEnvelope(null), 'MCP_UI_ENVELOPE_INVALID', true);
   throwsCode(() => readEnvelope({ content: [{ type: 'text', text: JSON.stringify(sample()) }] }), 'MCP_UI_META_MISSING', true);

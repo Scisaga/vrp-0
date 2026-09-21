@@ -81,7 +81,7 @@ export function readEnvelope(result, {
   }
   if (viewKind === 'gantt' && (envelope.map_context.enabled !== false
       || !['AMAP', 'HERE'].includes(envelope.map_context.provider)
-      || envelope.map_context.browser_key !== null || envelope.map_context.js_url !== ''
+      || envelope.map_context.browser_key !== '' || envelope.map_context.js_url !== ''
       || envelope.map_context.css_url !== null || !identity(envelope.map_context.locale))) {
     throw new ViewerBridgeError('MCP_UI_ENVELOPE_INVALID');
   }

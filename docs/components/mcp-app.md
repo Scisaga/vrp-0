@@ -58,7 +58,7 @@ Inline Gantt 使用真实业务时间轴、工程师本地筛选、行程/等待
 
 * Map 只输出工程师起点或工单位置引用的 POI，保留坐标、路线端点、折线、来源与度量；校验坐标、路线段位、几何及回放资格。不可播放只给出安全原因，不伪造路线或时间。
 * Gantt 只输出其侧栏/时间轴引用的 POI，并固定 `location=null`；`agent.routes` 未知为 `null`，已知则保留长度、顺序和空洞，仅保留合法 `route_source`，其他四个路线字段固定为 `null`。它校验身份、引用、顺序、班次、计划时间、路线段位和来源，不运行地图几何或回放资格分析。
-* Gantt `map_context` 只保留 provider/locale，固定 `enabled=false`、`browser_key=null`、`js_url=""`、`css_url=null`。
+* Gantt `map_context` 只保留 provider/locale，固定 `enabled=false`、`browser_key=""`、`js_url=""`、`css_url=null`。
 
 外层 fixtures 分别覆盖两资源的 ready、空结果与失败/未就绪状态，已删除“非成功仍携带模型”样例。大向量保留 200 工程师、1,000 工单和 4,097 点折线；Gateway 默认 8 MiB 结果上限由 Gateway 明确失败处理，页面和投影不得截断。
 

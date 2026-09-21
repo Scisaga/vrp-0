@@ -10,6 +10,7 @@ import { pathToFileURL } from 'node:url';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
+import { readEnvelope } from '../../main/mcp-ui/bridge.mjs';
 
 assert.equal(process.env.MCP_REAL_SDK, '1', 'Explicit MCP_REAL_SDK=1 is required for live network tests');
 for (const name of ['MCP_PREVIEW_DIR','MCP_REAL_JOB_ID','MCP_DIAGNOSTIC_POLICY']) assert.ok(process.env[name], `${name} is required`);
@@ -48,6 +49,20 @@ try {
   assert.ok(tool, 'Task display tool must be available');
   const result = await client.callTool(tool.name,{job_id:job});
   assert.notEqual(result.isError, true); assert.equal(result._meta.gateway_ui.map_context.provider,'AMAP');
+  const version = result._meta.gateway_ui.image_version_id;
+  const ganttToolName = `gateway.ui.gantt_result_${version}`;
+  const ganttTool = tools.find(item => item.name === ganttToolName);
+  assert.ok(ganttTool, 'Version-bound Gantt display tool must be available');
+  const ganttResult = await client.callTool(ganttToolName,{job_id:job});
+  assert.notEqual(ganttResult.isError, true);
+  const ganttEnvelope = readEnvelope(ganttResult, {
+    viewKind:'gantt', expectedJobId:job, expectedVersionId:version, expectedToolName:ganttToolName,
+  });
+  assert.deepEqual(ganttEnvelope.map_context, {
+    enabled:false, provider:result._meta.gateway_ui.task.map_provider,
+    browser_key:'', js_url:'', css_url:null, locale:ganttEnvelope.map_context.locale,
+  });
+  report.gateway_gantt_empty_key_contract = true;
   key = result._meta.gateway_ui.map_context.browser_key;
   assert.ok(key, 'Use Gateway browser_key, never substitute a local key');
   const uri = tool._meta.ui.resourceUri;

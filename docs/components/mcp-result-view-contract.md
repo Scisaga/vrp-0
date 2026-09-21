@@ -27,7 +27,7 @@ Gateway 的权威公共契约是其 `docs/design/mcp-apps-contract.md`；工具�
 | --- | --- |
 | `result_summary` | 样例使用 `null`。现有声明要求的路线数/工单数不等于 Gateway 当前归档摘要的实际 shape；不能直接引用旧摘要或补零，也不能把参考分析结果写入外层摘要 |
 | `task` | 仅采用 Issue 的安全白名单；不引用整个 `SolverJobDetail`，不增加创建人、内部实例、归档、约束或写操作字段 |
-| `map_context` | Map 的公开 browser key 和批准来源由 Gateway 决定；Gantt 只保留 provider/locale，固定禁用并清空 `browser_key/js_url/css_url` 网络配置 |
+| `map_context` | Map 的公开 browser key 和批准来源由 Gateway 决定；Gantt 只保留 provider/locale，固定禁用，并令 `browser_key=""`、`js_url=""`、`css_url=null` |
 | 错误 `details` | Issue 的 `display_tool_name/supported_views` 对象访问方式与现有 Gateway 数组型错误详情需要对齐；本次不改错误封装 |
 | 状态映射 | 不新增任务状态；非成功状态固定 `engine_view=null`，不能携带等待模型 |
 | 工程师输入上限 | 输出工程师 ID 不截断；超过 128 字符的初始工具定位仍受 Gateway 现有输入限制。本地选择不受影响；只读刷新可省略可选 `engineer_id` 并保留本地选择，本次不修改工具输入限制 |

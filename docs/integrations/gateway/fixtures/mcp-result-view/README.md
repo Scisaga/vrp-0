@@ -42,4 +42,4 @@ python -B -m unittest discover -s scripts/tests -p 'test_mcp_result_view_contrac
 
 所有 `TEST_ONLY_*` 值均为故意注入的合成测试标记，包括不可用的地图 key；`example.invalid` 链接不会被请求。公开 SDK URL 仅用于展示配置形状，不代表 CSP 已获批准。错误 `details` 对象形状来自 issue 的交接设计，不表示 Gateway 当前实现已迁移。
 
-外层样例固定 `result_summary=null`，分别覆盖 Map/Gantt 的 ready、空结果与失败/未就绪；非成功状态不携带模型。Gantt map_context 固定禁用且清空网络配置。不能把该示例集合当作另一份 Gateway 协议，权威外层契约仍在 Gateway 仓库。
+外层样例固定 `result_summary=null`，分别覆盖 Map/Gantt 的 ready、空结果与失败/未就绪；非成功状态不携带模型。Gantt map_context 固定禁用，`browser_key` 与 `js_url` 使用契约规定的空字符串，`css_url=null`。不能把该示例集合当作另一份 Gateway 协议，权威外层契约仍在 Gateway 仓库。

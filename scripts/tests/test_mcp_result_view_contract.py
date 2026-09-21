@@ -313,7 +313,7 @@ print(json.dumps([analyze(project(c['source'],c['gateway_job_id'])['engine_view'
                 if envelope["view"] == "gantt":
                     self.assertIsNone(envelope["engineer_id"])
                     self.assertEqual(envelope["map_context"]["enabled"], False)
-                    self.assertEqual(envelope["map_context"]["browser_key"], None)
+                    self.assertEqual(envelope["map_context"]["browser_key"], "")
                     self.assertEqual(envelope["map_context"]["js_url"], "")
                 self.assertIsNone(envelope["result_summary"])
                 summary = message["structuredContent"]

@@ -997,7 +997,7 @@
           "map_context": {
             "enabled": false,
             "provider": "AMAP",
-            "browser_key": null,
+            "browser_key": "",
             "js_url": "",
             "css_url": null,
             "locale": "zh-CN"
@@ -1076,7 +1076,7 @@
           "map_context": {
             "enabled": false,
             "provider": "AMAP",
-            "browser_key": null,
+            "browser_key": "",
             "js_url": "",
             "css_url": null,
             "locale": "zh-CN"
@@ -1139,7 +1139,7 @@
           "map_context": {
             "enabled": false,
             "provider": "AMAP",
-            "browser_key": null,
+            "browser_key": "",
             "js_url": "",
             "css_url": null,
             "locale": "zh-CN"
@@ -1202,7 +1202,7 @@
           "map_context": {
             "enabled": false,
             "provider": "AMAP",
-            "browser_key": null,
+            "browser_key": "",
             "js_url": "",
             "css_url": null,
             "locale": "zh-CN"
