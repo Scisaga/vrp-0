@@ -248,7 +248,7 @@ test('AMAP readiness resolves only on documented complete and removes its listen
 });
 
 test('AMAP missing complete times out without inventing an authentication diagnosis', async t => {
-  t.mock.timers.enable({apis:['setTimeout']});
+  t.mock.timers.enable(['setTimeout']);
   const {view, restore} = isolatedAdapter();
   try {
     view.map = amapEvents(); view.kind = 'AMAP';

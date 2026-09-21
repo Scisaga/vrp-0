@@ -79,10 +79,24 @@ export function readEnvelope(result, {
       || (viewKind === 'map' && envelope.engineer_id !== null && [...envelope.engineer_id].length > 128)) {
     throw new ViewerBridgeError('MCP_UI_ENVELOPE_INVALID');
   }
-  if (viewKind === 'gantt' && (envelope.map_context.enabled !== false
-      || !['AMAP', 'HERE'].includes(envelope.map_context.provider)
-      || envelope.map_context.browser_key !== '' || envelope.map_context.js_url !== ''
-      || envelope.map_context.css_url !== null || !identity(envelope.map_context.locale))) {
+  const mapContext = envelope.map_context;
+  if (!['AMAP', 'HERE'].includes(mapContext.provider) || mapContext.provider !== envelope.task.map_provider
+      || !identity(mapContext.locale) || typeof mapContext.browser_key !== 'string'
+      || typeof mapContext.js_url !== 'string' || !(mapContext.css_url === null || typeof mapContext.css_url === 'string')
+      || typeof mapContext.renderer_url !== 'string' || typeof mapContext.renderer_origin !== 'string'
+      || typeof mapContext.enabled !== 'boolean') {
+    throw new ViewerBridgeError('MCP_UI_ENVELOPE_INVALID');
+  }
+  if (viewKind === 'gantt' && (mapContext.enabled !== false
+      || mapContext.browser_key !== '' || mapContext.js_url !== '' || mapContext.css_url !== null
+      || mapContext.renderer_url !== '' || mapContext.renderer_origin !== '')) {
+    throw new ViewerBridgeError('MCP_UI_ENVELOPE_INVALID');
+  }
+  if (viewKind === 'map' && (mapContext.enabled
+      ? (!mapContext.browser_key.trim() || !mapContext.js_url.trim() || !mapContext.renderer_url.trim()
+          || !mapContext.renderer_origin.trim() || (mapContext.css_url !== null && !mapContext.css_url.trim()))
+      : (mapContext.browser_key !== '' || mapContext.js_url !== '' || mapContext.css_url !== null
+          || mapContext.renderer_url !== '' || mapContext.renderer_origin !== ''))) {
     throw new ViewerBridgeError('MCP_UI_ENVELOPE_INVALID');
   }
   const toolMatch = typeof envelope.display_tool_name === 'string'

@@ -5,13 +5,14 @@ import { createRequire } from 'node:module';
 import test from 'node:test';
 
 const require = createRequire(new URL('../../main/resources/META-INF/resources/static/package.json', import.meta.url));
-const { buildMcpApp, exactOrigins, networkPolicyFromManifest, readNetworkPolicy, standaloneValidator, staticRoot, projectRoot } = require('./scripts/build-mcp-app.cjs');
+const { buildMcpApp, buildRenderer, exactOrigins, networkPolicyFromManifest, readNetworkPolicy, standaloneValidator, staticRoot, projectRoot } = require('./scripts/build-mcp-app.cjs');
 const { verifyDocument, verifyInputs, verifyFirstPartySource } = require('./scripts/verify-mcp-app.cjs');
 const { build } = require('esbuild');
 const manifest = () => ({ mcp_ui: {
   contract_version: 'gateway_mcp_result_v1', result_view_kind: 'vrp0', result_view_schema_version: 2,
   resources: {
-    map: { file:'mcp-map-app.html', display_modes:['inline','fullscreen'], csp:{ connect_domains:['https://z.example','https://a.example'], resource_domains:['https://sdk.example:8443'] } },
+    map: { file:'mcp-map-app.html', display_modes:['inline','fullscreen'], csp:{ connect_domains:[], resource_domains:[] },
+      renderer:{file:'mcp-map-renderer.html',csp:{allow_unsafe_eval:true,allow_blob_workers:true,connect_domains:['https://z.example','https://a.example'],resource_domains:['https://sdk.example:8443']}}},
     gantt: { file:'mcp-gantt-app.html', display_modes:['inline','fullscreen'], csp:{ connect_domains:[], resource_domains:[] } }
   }
 } });
@@ -23,12 +24,13 @@ test('manifest build policy is a strict, normalized copy, not an implicit approv
     connectDomains: ['https://a.example','https://z.example'], resourceDomains: ['https://sdk.example:8443']
   });
   assert.deepEqual(original, snapshot);
-  const empty = manifest(); empty.mcp_ui.resources.map.csp = {connect_domains:[],resource_domains:[]};
+  const empty = manifest(); empty.mcp_ui.resources.map.renderer.csp.connect_domains = []; empty.mcp_ui.resources.map.renderer.csp.resource_domains = [];
   assert.deepEqual(networkPolicyFromManifest(empty), {connectDomains:[],resourceDomains:[]}, 'empty arrays express a valid declaration, not a working map');
-  assert.ok(readNetworkPolicy().resourceDomains.includes('https://js.api.here.com'));
-  assert.ok(readNetworkPolicy().resourceDomains.includes('https://vdata.amap.com'));
-  assert.ok(readNetworkPolicy().connectDomains.includes('https://vdata.amap.com'));
-  assert.ok(readNetworkPolicy().resourceDomains.includes('https://restapi.amap.com'));
+  assert.ok(readNetworkPolicy('renderer').resourceDomains.includes('https://js.api.here.com'));
+  assert.ok(readNetworkPolicy('renderer').resourceDomains.includes('https://vdata.amap.com'));
+  assert.ok(readNetworkPolicy('renderer').connectDomains.includes('https://vdata.amap.com'));
+  assert.ok(readNetworkPolicy('renderer').resourceDomains.includes('https://restapi.amap.com'));
+  assert.deepEqual(readNetworkPolicy('map'), {connectDomains:[],resourceDomains:[]});
   for (const change of [
     value => { delete value.mcp_ui; },
     value => { value.mcp_ui.entry_path = '/other.html'; },
@@ -42,7 +44,11 @@ test('manifest build policy is a strict, normalized copy, not an implicit approv
     value => { value.mcp_ui.resources.map.csp = null; },
     value => { value.mcp_ui.resources.map.csp.frame_domains = ['https://evil.example']; },
     value => { value.mcp_ui.resources.map.csp.connect_domains = 'https://api.example'; },
-    value => { value.mcp_ui.resources.map.csp.resource_domains = ['https://sdk.example/path']; }
+    value => { value.mcp_ui.resources.map.csp.resource_domains = ['https://sdk.example/path']; },
+    value => { delete value.mcp_ui.resources.map.renderer; },
+    value => { value.mcp_ui.resources.map.renderer.file = 'other.html'; },
+    value => { value.mcp_ui.resources.map.renderer.csp.allow_unsafe_eval = false; },
+    value => { value.mcp_ui.resources.map.renderer.csp.allow_blob_workers = 'true'; }
   ]) {
     const value = manifest(); change(value);
     assert.throws(() => networkPolicyFromManifest(value));
@@ -137,10 +143,7 @@ test('actual browser bundle uses the ordinary SDK entry and one shared Zod v4 de
   const officialLogo = fs.readFileSync(path.join(staticRoot, 'assets/img/vrp-0-logo-120.png')).toString('base64');
   assert.ok(html.includes(`data:image/png;base64,${officialLogo}`), 'MCP header must inline the existing VRP-0 logo');
   assert.ok(!html.includes('M5 8h8l6 16h8M5 24l7-16h15'), 'MCP header must not contain an invented logo');
-  for (const domains of Object.values(readNetworkPolicy())) {
-    assert.ok(html.includes(`Object.freeze(${JSON.stringify(domains)})`),
-      'bundled network policy must match the manifest');
-  }
+  assert.ok(!html.includes('mcp-network-policy'), 'strict parent must not contain vendor policy');
   const nodeModules = path.relative(projectRoot, path.join(staticRoot,'node_modules')).replaceAll(path.sep,'/');
   assert.ok(inputs.includes(`${nodeModules}/@modelcontextprotocol/ext-apps/dist/src/app.js`));
   assert.ok(!inputs.some(input => /(?:app|react)-with-deps/.test(input)));
@@ -148,6 +151,14 @@ test('actual browser bundle uses the ordinary SDK entry and one shared Zod v4 de
   assert.ok(zodInputs.length > 0);
   assert.ok(zodInputs.every(input => input.startsWith(`${nodeModules}/zod/v4/`)),
     'all SDK schemas and the pre-initialization config must share the same Zod v4 module instance');
+
+  const renderer = await buildRenderer();
+  for (const domains of Object.values(readNetworkPolicy('renderer'))) {
+    assert.ok(renderer.html.includes(`Object.freeze(${JSON.stringify(domains)})`),
+      'renderer network policy must match the manifest');
+  }
+  assert.ok(renderer.inputs.some(input => /(?:^|\/)maps\.mjs$/.test(input)));
+  assert.ok(!inputs.some(input => /(?:^|\/)maps\.mjs$/.test(input)));
 });
 
 test('canonical Ajv2020 standalone validator preserves strict shape, null holes and finite numbers', async () => {

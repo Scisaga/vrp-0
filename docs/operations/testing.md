@@ -175,23 +175,23 @@ Node 测试需要可执行的 `python3`：模型 fixture helper 以 `python3 -B`
 | --- | --- |
 | 模型 Node | 人工 fixtures 与 Python 分析 parity；不变异、`null`/空集合、完整 ID、双向归属、标量语义、业务时区轴、回放资格、阶段边界、吸附原折线、跨经度与合成大向量 |
 | View 桥 Node | 官方 SDK 边界替身；先注册处理器再连接、结果身份、白名单错误映射、只读工具名、Map/Gantt 固定工具与输入边界、显式刷新、`ui/message`、输入/通知竞态、取消、显示模式与 teardown |
-| 地图 Node | AMAP/HERE 上下文及 URL 策略、原段位/坐标轴/几何、不可播放来源、缺失数据、纯文本 marker、AMAP complete 超时、HERE 样式错误、含 eval 的 CSP 分类、容器级旧尺寸传感器拦截/恢复、尺寸合并/隐藏/销毁及失败、覆盖物与实例释放 |
-| 构建 Node 与产物校验 | manifest 字段/精确 origin、Ajv standalone、第一方依赖闭包、共享 Zod/拒绝 SDK with-deps、HTML/CSS/JS 自包含、敏感信息、Gateway 同款动态代码静态拒绝规则、确定性与过期产物 |
-| 模拟浏览器 | 使用真实构建 HTML 与官方 View SDK，在模拟宿主和图商 SDK 替身中检查双资源初始化、布局、选择、刷新按钮隐藏与固定工具边界、消息发送、地图/Gantt、全屏拒绝、回放、Gantt 零地图请求、安全降级、实例隔离和生命周期；具体执行结果见当次记录 |
+| 地图 Node | AMAP/HERE 上下文及 URL 策略、原段位/坐标轴/几何、不可播放来源、缺失数据、纯文本 marker、父页 renderer URL 校验、最小 scene、AMAP complete 超时、HERE 样式错误、容器尺寸合并/隐藏/销毁及失败、覆盖物与实例释放 |
+| 构建 Node 与产物校验 | manifest/renderer 字段、精确 origin、Ajv standalone、父页与 renderer 依赖闭包、共享 Zod/拒绝 SDK with-deps、三份 HTML 自包含、敏感信息、第一方动态代码静态拒绝、确定性与过期产物 |
+| 模拟浏览器 | 使用真实构建 HTML 与官方 View SDK，在 opaque-origin MCP App、跨源 renderer 和图商 SDK 替身中检查双资源初始化、nonce/MessageChannel 握手、布局、选择、刷新按钮隐藏与固定工具边界、消息发送、地图/Gantt、全屏拒绝、回放、Gantt 零地图请求、安全降级、实例隔离和生命周期；具体执行结果见当次记录 |
 
-浏览器测试以不同合成 origin 的宿主与 App iframe 运行，iframe 使用 `sandbox="allow-scripts"`，不授予同源权限。测试 CSP 禁止普通 `unsafe-eval`，并通过路由拦截提供合成宿主页面及 AMAP/HERE SDK 替身，未知请求中止；不请求真实瓦片、读取 `.env` 或使用真实 key。此配置验证第一方/桥的受限执行，不证明 HERE 真实 worker/WASM 或图商鉴权可用。
+浏览器测试以不同合成 origin 的宿主、App iframe 和 renderer iframe 运行。宿主给 App `sandbox="allow-scripts"`，使父页及其后代继承 opaque origin；Map 父资源 CSP 仅允许 renderer origin，renderer HTTP CSP 才允许测试图商和动态执行。路由拦截提供 AMAP/HERE SDK 替身，未知请求中止；不请求真实瓦片、读取 `.env` 或使用真实 key。此配置验证严格父页、跨源握手与隔离绘图，不证明 HERE 真实 worker/WASM 或图商鉴权可用。
 
-SDK 安全回归在最终 HTML 的应用脚本之前，用 parser 执行的测试脚本监测 `Function` / `eval` 调用和 CSP 动态求值违规，覆盖初始化、通知、只读刷新及 teardown，要求调用次数为零；不能仅以异常被捕获或页面仍可用作为通过条件。独立负向控制验证监测能发现被 `catch` 吞掉的探测，宿主 CSP 禁止动态求值的自测与 SDK 零调用断言分开。产物静态规则与运行时断言都不替代真实 Gateway 导入审核。
+父页 SDK 安全回归在最终 Map/Gantt HTML 的应用脚本之前，用 parser 执行的测试脚本监测 `Function` / `eval` 调用和 CSP 动态求值违规，覆盖初始化、通知及 teardown，要求调用次数为零；进入 renderer 的 DevTools 操作不计入父页监测，因为调试器本身可能使用页面 `eval`。独立负向控制验证监测能发现被 `catch` 吞掉的探测。Renderer 的 `unsafe-eval` / WASM / blob Worker 只按其独立 CSP 验证；第一方 renderer 源码仍须通过静态无动态编译检查。
 
 模拟测试使用 `playwright.config.mjs`，失败 trace/截图写入 `/tmp/vrp0-mcp-ui-playwright`，不进入业务目录或仓库。测试不向产品新增调试 wire 字段，也不把图商替身放入生产构建。CSP 错误、地图失败与数据/授权失败需分别断言；认证或权限失败应检查已渲染文本和视图缓存已清除，而非只检查错误横幅。地图替身覆盖 AMAP complete 超时及 HERE 样式错误/监听解除，但不能证明真实 SDK 的所有瓦片或 HTTP 401 失败都能被观测，具体检测边界见[地图与安全降级](../components/mcp-app.md#5-地图网络与安全降级)。
 
-修改源码、模板、样式、词典、Schema、依赖锁文件或 `mcp_ui` 后都需重建并运行产物校验。`verify:mcp-app` 不写文件；CI 在重建后还对 `mcp-map-app.html` 与 `mcp-gantt-app.html` 执行 `git diff --exit-code`，防止任一产物落后于源码。MCP 构建独立于 `build:scenario`；共享 `result-presentation.css` / `result-presentation.mjs` 变化需运行 `build:css`、`build:scenario`、`build:mcp-app`，并由 `presentation.spec.mjs` 对照两端生产样式。共享展示层或前端工具链变化还需回归原 Node、Scenario 构建校验和 i18n 浏览器测试；不能因新增 View 通过而省略旧页面回归。
+修改源码、模板、样式、词典、Schema、依赖锁文件或 `mcp_ui` 后都需重建并运行产物校验。`verify:mcp-app` 不写文件；CI 在重建后还对 `mcp-map-app.html`、`mcp-gantt-app.html` 与 `mcp-map-renderer.html` 执行 `git diff --exit-code`，防止任一产物落后于源码。MCP 构建独立于 `build:scenario`；共享 `result-presentation.css` / `result-presentation.mjs` 变化需运行 `build:css`、`build:scenario`、`build:mcp-app`，并由 `presentation.spec.mjs` 对照两端生产样式。共享展示层或前端工具链变化还需回归原 Node、Scenario 构建校验和 i18n 浏览器测试；不能因新增 View 通过而省略旧页面回归。
 
 当次通过数量与执行状态只记录在[组件验证记录](../components/mcp-app.md#7-验证记录与未验证项)或测试报告，不在本文固定。真实 Gateway 与四宿主联合验收必须单列客户端版本、批准策略和受限 key 条件；模拟宿主通过不能将外部未验证项标为通过。
 
 #### 显式启用真实 AMAP 联调
 
-`src/test/mcp-ui/real-sdk-check.mjs` 不匹配默认 Node/Playwright 测试入口。它使用调用方提供的本地模拟宿主工具目录（导出 `server.mjs`、`config.mjs`、`transport.mjs`）、其私有 PAT 配置以及指定的真实任务，只读调用 Gateway，直接使用结果中的 `map_context`，不更换 browser key。不修改 Gateway、普通预览配置或已发布资源；仅在临时 loopback 宿主中替换当前引擎资源的 HTML 与 CSP 声明，校验源码重建字节及实际 HTTP 响应 SHA-256，防止用旧产物冒充新实现。
+`src/test/mcp-ui/real-sdk-check.mjs` 不匹配默认 Node/Playwright 测试入口。它使用调用方提供的本地模拟宿主工具目录、其私有 PAT 配置以及指定的真实任务，只读调用 Gateway，直接使用结果中的 `map_context`，不更换 browser key。联调时必须读取 Gateway 实际发布的父资源和 renderer URL；不得再通过给 MCP 父页追加 `unsafe-eval` 或 blob Worker 模拟兼容模式。脚本与临时宿主如尚未适配三产物协议，应明确失败，不能用旧直载 SDK 结果作为 iframe 架构证据。
 
 使用 Node 22，在仓库根目录执行（路径和任务 ID 由联调者提供；凭据不写在命令行）：
 
@@ -200,11 +200,10 @@ agent-browser --session vrp0-map-check open about:blank
 MCP_REAL_SDK=1 \
 MCP_PREVIEW_DIR=/absolute/path/to/mcp-live-preview \
 MCP_REAL_JOB_ID='<job-id>' \
-MCP_DIAGNOSTIC_POLICY=/absolute/path/to/csp-probe-policy.json \
 node src/test/mcp-ui/real-sdk-check.mjs
 ```
 
-诊断 JSON 显式使用 `allowEval:true`、`allowBlobWorkers:true`；可提供的 `extraResourceDomains` / `extraConnectDomains` 必须已包含在当前 manifest 中，不能藉诊断追加未申报来源，`disableLegacyResize` 必须缺省或为 `false`。脚本先验证严格策略拒绝及 Gantt 交接入口，再在隔离兼容策略下检查真实 SDK/Worker/瓦片请求、主画布尺寸、播放标记移动、筛选、视野和游标保留、全屏/退出/容器变化、刷新及关闭。临时执行权限不写入产品域名数组，也不代表目标桌面宿主允许执行。
+脚本检查 Gateway 返回的精确 renderer URL、父资源 `frameDomains`、renderer HTTP CSP、真实 SDK/Worker/瓦片请求、主画布尺寸、播放标记移动、筛选、视野和游标保留、全屏/退出/容器变化及关闭。动态执行权限只允许出现在 renderer 响应，不写入 MCP 父资源，也不代表目标桌面宿主已经验收。
 
 默认脱敏报告及截图写入 `/tmp/vrp0-mcp-real-sdk`，可通过 `MCP_REAL_REPORT_DIR` 指定隔离目录；`MCP_BROWSER_SESSION` 可指定已启动的独立 agent-browser 会话。报告不记录 PAT 或 browser key，真实业务截图不提交到仓库。脚本只进行受控的小规模读取和地图操作，不进入稳定门禁；HERE 和实际桌面宿主仍需单独验收。
 

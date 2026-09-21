@@ -57,6 +57,7 @@ svg{flex:none}
 .stage{display:flex;flex-direction:column;flex:1;min-width:0;min-height:0}
 .map-panel{position:relative;flex:1;min-height:300px;height:400px;background:#162535;overflow:hidden}
 .map-canvas{position:absolute;inset:0}
+.map-renderer-frame{display:block;width:100%;height:100%;border:0;background:#162535}
 .map-state{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:25px;background:#162535;color:#dbe7f4;gap:12px}
 .map-state p{max-width:42ch}
 .map-state button{background:#243b50;color:#fff;border-color:#7090aa}

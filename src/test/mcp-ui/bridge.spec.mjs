@@ -9,5 +9,14 @@ test('fullscreen refusal, auth clearing, teardown and two-card refresh stay inst
 });
 
 test('strict CSP and parser monitoring observe zero dynamic compilation attempts',async({page})=>{
- const host=await openHost(page,{monitorDynamicCode:true}),frame=await host.add();await mapReady(frame);await expect.poll(async()=>Boolean(await host.dynamicCodeState('card'))).toBe(true);expect(await host.dynamicCodeState('card')).toMatchObject({attempts:{Function:0,eval:0},violations:[],executed:false});await host.assertHealthy();
+ const host=await openHost(page,{monitorDynamicCode:true});await host.add({inspectFrame:false});
+ // Do not inspect the App or nested renderer with a Playwright locator before
+ // reading the parent monitor. DevTools' cross-frame selector machinery itself
+ // calls window.eval in the inspected parent realm and is a false positive.
+ // The intercepted SDK request proves the parent completed its nonce/port
+ // handshake and issued the renderer mount command.
+ await expect.poll(()=>host.requests.some(url=>url.startsWith('https://webapi.amap.com/'))).toBe(true);
+ await expect.poll(async()=>Boolean(await host.dynamicCodeState('card'))).toBe(true);
+ const state=await host.dynamicCodeState('card');
+ expect(state,JSON.stringify(state.stacks,null,2)).toMatchObject({attempts:{Function:0,eval:0},violations:[],executed:false});await host.assertHealthy();
 });

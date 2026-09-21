@@ -73,7 +73,7 @@ async function verify() {
   assert(process.argv.slice(2).every((arg) => arg === "--check"), "Only --check is supported");
   const first = await buildMcpApps();
   const second = await buildMcpApps();
-  for (const kind of ["map", "gantt"]) {
+  for (const kind of ["map", "gantt", "renderer"]) {
     assert.equal(first[kind].html, second[kind].html, `${kind} MCP App build must be deterministic`);
     const outputBytes = fs.readFileSync(outputFiles[kind]);
     const trackedHtml = new TextDecoder("utf-8", { fatal: true }).decode(outputBytes);
@@ -81,10 +81,12 @@ async function verify() {
     verifyDocument(first[kind].html);
     verifyInputs(first[kind].inputs);
   }
+  assert(!first.map.inputs.some((input) => /(?:^|\/)maps\.mjs$/.test(input) || input === "mcp-contract:mcp-network-policy"), "Strict map App must not contain vendor SDK adapters or network policy");
+  assert(first.renderer.inputs.some((input) => /(?:^|\/)maps\.mjs$/.test(input)) && first.renderer.inputs.includes("mcp-contract:mcp-network-policy"), "Renderer must own the vendor SDK adapter and network policy");
   assert(!first.gantt.inputs.some((input) => /(?:^|\/)maps\.mjs$/.test(input) || input === "mcp-contract:mcp-network-policy"), "Gantt dependency closure must not contain map modules or network policy");
   assert(!/https:\/\/(?:webapi\.amap\.com|js\.api\.here\.com|maps\.hereapi\.com|vdata\.amap\.com)/.test(first.gantt.html), "Gantt artifact must not contain map origins");
   assert(!fs.existsSync(path.join(staticRoot, "mcp-app.html")), "legacy mcp-app.html must be absent");
-  console.log("[verify:mcp-app] both deterministic, self-contained artifacts and manifest checks passed (no files written)");
+  console.log("[verify:mcp-app] strict Apps plus isolated renderer are deterministic and current (no files written)");
 }
 
 if (require.main === module) verify().catch((error) => { console.error(error); process.exitCode = 1; });

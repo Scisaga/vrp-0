@@ -4,9 +4,9 @@ import { largeView } from './model-fixtures.mjs';
 function asGantt(result=message('gantt-ready')) { return result; }
 
 test('map inline hides refresh, stays focused on routes, and sends exact Gantt intent',async({page})=>{
-  const host=await openHost(page),frame=await host.add();await mapReady(frame);
+  const host=await openHost(page),frame=await host.add();const renderer=await mapReady(frame);
   await expect(frame.locator('#task-title,#task-meta,#summary,#inline-detail')).toHaveCount(0);
-  await frame.locator('#engineer').selectOption(AGENT);await expect(frame.locator('.mcp-marker[data-kind="ticket"]')).toHaveCount(2);
+  await frame.locator('#engineer').selectOption(AGENT);await expect(renderer.locator('.mcp-marker[data-kind="ticket"]')).toHaveCount(2);
   expect((await host.pending('card')).length).toBe(0);
   await expect(frame.locator('#refresh')).toBeHidden();await frame.locator('#refresh').evaluate(el=>el.click());await expect.poll(async()=>(await host.pending('card')).length).toBe(1);
   const call=(await host.pending('card'))[0];expect(call.params).toMatchObject({name:message()._meta.gateway_ui.display_tool_name,arguments:{job_id:message()._meta.gateway_ui.job_id,engineer_id:AGENT}});
@@ -47,6 +47,6 @@ test('map and Gantt cards keep selection, viewport, scroll and fullscreen state 
 test('large map and Gantt profiles retain 200 engineers, 1000 tickets and the 4097-point line',async({page})=>{
   test.setTimeout(60000);const large=largeView();const mapResult=message();mapResult._meta.gateway_ui.engine_view=large.view;
   const ganttResult=asGantt();const view=structuredClone(large.view);for(const poi of view.solver_job.plan.pois)poi.location=null;for(const agent of view.solver_job.plan.agents)for(const route of agent.routes)if(route)Object.assign(route,{origin:null,destination:null,polyline:null,transit:null});ganttResult._meta.gateway_ui.engine_view=view;
-  const host=await openHost(page),map=await host.add({id:'map',result:mapResult});await mapReady(map);expect((await map.evaluate(()=>window.__mapStats.lines.map(x=>x.path.length)))[0]).toBe(4097);
+  const host=await openHost(page),map=await host.add({id:'map',result:mapResult});const renderer=await mapReady(map);expect((await renderer.evaluate(()=>window.__mapStats.lines.map(x=>x.path.length)))[0]).toBe(4097);
   const gantt=await host.add({id:'gantt',result:ganttResult,height:900});await expect(gantt.locator('.gantt-row')).toHaveCount(200);await expect(gantt.locator('.gantt-bar[data-phase="service"]')).toHaveCount(1000);await host.assertHealthy();
 });

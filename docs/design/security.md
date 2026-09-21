@@ -60,6 +60,14 @@
 
 认证、Origin/CORS、密钥、日志、错误或文件访问边界变化时，按[文档总览的更新规则](../README.md#6-更新规则)同步文档和测试。
 
+### 8.1 MCP Apps 地图隔离
+
+* `mcp-map-app.html` 与 `mcp-gantt-app.html` 保持严格 CSP；前者不直接加载图商 SDK，后者完全不获得地图网络能力。
+* `mcp-map-renderer.html` 是无任务、无用户、无 Token、无内置 key 的静态绘图子文档。Gateway 以带版本和 bundle hash 的精确 HTTPS URL 发布，并为父 Map MCP Resource 只批准该 renderer origin。
+* 图商公开 browser key 和最小绘图 scene 只在已认证工具结果到达后，经随机 nonce 绑定的私有 `MessageChannel` 传给当前 renderer。Renderer 不接收完整信封、工具名、归档或 Gateway 凭据，也不直接调用 Gateway 业务 API。
+* 第三方图商所需的 `unsafe-eval`、WASM 求值和 blob Worker 只出现在 renderer 的独立 HTTP CSP。父页与第一方源码仍禁止动态编译；Gantt 不继承 renderer 权限。
+* MCP Host 的父 iframe 通常是 opaque origin，后代继承该限制，因此首次无业务数据的端口转移使用通配 `targetOrigin`；安全校验依赖精确 renderer URL、父资源 `frameDomains`、HTTPS、无重定向发布、URL fragment nonce、`event.source` 和后续私有 MessagePort。Renderer HTTP CSP 不设置无法匹配 opaque 父级的 `frame-ancestors`。
+
 ## 9. 非目标
 
 本文不定义用户管理、RBAC、租户隔离、审计平台、密钥托管产品或网络防火墙方案；不能把部署建议误写成应用已实现能力。

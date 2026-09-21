@@ -218,7 +218,9 @@
             "browser_key": "TEST_ONLY_NOT_A_USABLE_KEY",
             "js_url": "https://webapi.amap.com/maps?v=1.4.15",
             "css_url": null,
-            "locale": "zh-CN"
+            "locale": "zh-CN",
+            "renderer_url": "https://renderer.example.invalid/mcp-apps/renderers/00000000000000000000000000000002/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.html",
+            "renderer_origin": "https://renderer.example.invalid"
           }
         }
       }
@@ -297,7 +299,9 @@
             "browser_key": "TEST_ONLY_NOT_A_USABLE_KEY",
             "js_url": "https://webapi.amap.com/maps?v=1.4.15",
             "css_url": null,
-            "locale": "zh-CN"
+            "locale": "zh-CN",
+            "renderer_url": "https://renderer.example.invalid/mcp-apps/renderers/00000000000000000000000000000002/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.html",
+            "renderer_origin": "https://renderer.example.invalid"
           }
         }
       }
@@ -360,7 +364,9 @@
             "browser_key": "TEST_ONLY_NOT_A_USABLE_KEY",
             "js_url": "https://webapi.amap.com/maps?v=1.4.15",
             "css_url": null,
-            "locale": "zh-CN"
+            "locale": "zh-CN",
+            "renderer_url": "https://renderer.example.invalid/mcp-apps/renderers/00000000000000000000000000000002/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.html",
+            "renderer_origin": "https://renderer.example.invalid"
           }
         }
       }
@@ -423,7 +429,9 @@
             "browser_key": "TEST_ONLY_NOT_A_USABLE_KEY",
             "js_url": "https://webapi.amap.com/maps?v=1.4.15",
             "css_url": null,
-            "locale": "zh-CN"
+            "locale": "zh-CN",
+            "renderer_url": "https://renderer.example.invalid/mcp-apps/renderers/00000000000000000000000000000002/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.html",
+            "renderer_origin": "https://renderer.example.invalid"
           }
         }
       }
@@ -486,7 +494,9 @@
             "browser_key": "TEST_ONLY_NOT_A_USABLE_KEY",
             "js_url": "https://webapi.amap.com/maps?v=1.4.15",
             "css_url": null,
-            "locale": "zh-CN"
+            "locale": "zh-CN",
+            "renderer_url": "https://renderer.example.invalid/mcp-apps/renderers/00000000000000000000000000000002/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.html",
+            "renderer_origin": "https://renderer.example.invalid"
           }
         }
       }
@@ -549,7 +559,9 @@
             "browser_key": "TEST_ONLY_NOT_A_USABLE_KEY",
             "js_url": "https://webapi.amap.com/maps?v=1.4.15",
             "css_url": null,
-            "locale": "zh-CN"
+            "locale": "zh-CN",
+            "renderer_url": "https://renderer.example.invalid/mcp-apps/renderers/00000000000000000000000000000002/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.html",
+            "renderer_origin": "https://renderer.example.invalid"
           }
         }
       }
@@ -612,7 +624,9 @@
             "browser_key": "TEST_ONLY_NOT_A_USABLE_KEY",
             "js_url": "https://webapi.amap.com/maps?v=1.4.15",
             "css_url": null,
-            "locale": "zh-CN"
+            "locale": "zh-CN",
+            "renderer_url": "https://renderer.example.invalid/mcp-apps/renderers/00000000000000000000000000000002/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.html",
+            "renderer_origin": "https://renderer.example.invalid"
           }
         }
       }
@@ -675,7 +689,9 @@
             "browser_key": "TEST_ONLY_NOT_A_USABLE_KEY",
             "js_url": "https://webapi.amap.com/maps?v=1.4.15",
             "css_url": null,
-            "locale": "zh-CN"
+            "locale": "zh-CN",
+            "renderer_url": "https://renderer.example.invalid/mcp-apps/renderers/00000000000000000000000000000002/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.html",
+            "renderer_origin": "https://renderer.example.invalid"
           }
         }
       }
@@ -1000,7 +1016,9 @@
             "browser_key": "",
             "js_url": "",
             "css_url": null,
-            "locale": "zh-CN"
+            "locale": "zh-CN",
+            "renderer_url": "",
+            "renderer_origin": ""
           }
         }
       }
@@ -1079,7 +1097,9 @@
             "browser_key": "",
             "js_url": "",
             "css_url": null,
-            "locale": "zh-CN"
+            "locale": "zh-CN",
+            "renderer_url": "",
+            "renderer_origin": ""
           }
         }
       }
@@ -1142,7 +1162,9 @@
             "browser_key": "",
             "js_url": "",
             "css_url": null,
-            "locale": "zh-CN"
+            "locale": "zh-CN",
+            "renderer_url": "",
+            "renderer_origin": ""
           }
         }
       }
@@ -1205,7 +1227,9 @@
             "browser_key": "",
             "js_url": "",
             "css_url": null,
-            "locale": "zh-CN"
+            "locale": "zh-CN",
+            "renderer_url": "",
+            "renderer_origin": ""
           }
         }
       }

@@ -15,9 +15,8 @@ request_schema_source:
   operation_id: putScenario
   request_content_type: application/json
 
-# 引擎侧 MCP App 网络需求候选；不是 Gateway 已批准或真实宿主地图已可用的证明。
-# AMAP 后续瓦片/鉴权来源、HERE worker/WASM 策略仍须真实联调核验。
-# 不增加通配符或猜测域名；受阻时地图资源保留只读结果与 Gantt 请求入口，并显示安全失败原因。
+# MCP App 本体保持严格 CSP；只有地图 renderer 声明图商网络和必要的动态执行能力。
+# Gateway 导入后使用自身受控 HTTPS origin 发布 renderer，再为 map 资源生成 frameDomains。
 mcp_ui:
   contract_version: gateway_mcp_result_v1
   result_view_kind: vrp0
@@ -27,17 +26,24 @@ mcp_ui:
       file: mcp-map-app.html
       display_modes: [inline, fullscreen]
       csp:
-        connect_domains:
-          - https://js.api.here.com
-          - https://vector.hereapi.com
-          - https://maps.hereapi.com
-          - https://vdata.amap.com
-        resource_domains:
-          - https://webapi.amap.com
-          - https://js.api.here.com
-          - https://maps.hereapi.com
-          - https://vdata.amap.com
-          - https://restapi.amap.com
+        connect_domains: []
+        resource_domains: []
+      renderer:
+        file: mcp-map-renderer.html
+        csp:
+          allow_unsafe_eval: true
+          allow_blob_workers: true
+          connect_domains:
+            - https://js.api.here.com
+            - https://vector.hereapi.com
+            - https://maps.hereapi.com
+            - https://vdata.amap.com
+          resource_domains:
+            - https://webapi.amap.com
+            - https://js.api.here.com
+            - https://maps.hereapi.com
+            - https://vdata.amap.com
+            - https://restapi.amap.com
     gantt:
       file: mcp-gantt-app.html
       display_modes: [inline, fullscreen]

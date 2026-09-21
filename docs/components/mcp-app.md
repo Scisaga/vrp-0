@@ -8,16 +8,18 @@ Issue #183 的引擎侧双资源能力已实现。实施基线是 Gateway 契约
 
 ## 2. 资源、工具与构建
 
-`gateway/image-version.yaml` 只声明两个资源：
+`gateway/image-version.yaml` 对外仍只声明两个 MCP 资源，同时在 Map 声明下附带一个内部 renderer 产物：
 
 | 资源 | 文件 | 工具 | 输入 | CSP |
 | --- | --- | --- | --- | --- |
-| Map | `mcp-map-app.html` | `gateway.ui.map_result_<32位image_version_id>` | `job_id`、可选 `engineer_id` | 当前有依据的精确 HTTPS origins |
+| Map | `mcp-map-app.html` | `gateway.ui.map_result_<32位image_version_id>` | `job_id`、可选 `engineer_id` | 父页不直接获得图商网络，只允许 Gateway renderer origin |
 | Gantt | `mcp-gantt-app.html` | `gateway.ui.gantt_result_<32位image_version_id>` | 仅 `job_id` | 两个域名数组均为空 |
 
-两者都支持 `inline/fullscreen`，没有旧 `mcp-app.html` 或单资源兼容逻辑；任一资源失败时由 Gateway 将整套 MCP UI 判为不可发布。工具参数拒绝 `view`、版本 ID 和未知字段，ID 非空且最长 128 个 Unicode code points。
+`mcp-map-renderer.html` 不是第三个 Tool 或 MCP Resource。Gateway 与前两份页面原子导入它，并以带 ImageVersion ID 和 renderer bundle hash 的 HTTPS 地址发布。Map 父页从已校验 `map_context` 取得该精确地址，在运行时创建跨源 sandbox iframe；图商 SDK、瓦片、`unsafe-eval`、WASM 动态求值和 blob Worker 只存在于 renderer 的 HTTP CSP。父页、Gantt 和 MCP Host 的严格 CSP 不因此放宽。
 
-源码位于 `src/main/mcp-ui/`：`viewer.mjs`、`bridge.mjs`、`model.mjs`、`i18n.mjs` 和 `palette.mjs` 为共享层；`map-main.mjs` / `map-template.html` 与 `gantt-main.mjs` / `gantt-template.html` 是独立入口。只有 Map 入口导入 `maps.mjs` 与构建期 `mcp-network-policy`。构建器分别内联 CSS、SDK、Zod 与 Ajv standalone validator，并检查每份文件为严格 UTF-8、完整 HTML5、自包含且不超过默认 4 MiB；Gantt 依赖闭包不得出现地图模块、地图 origin 或网络策略。
+Map/Gantt 都支持 `inline/fullscreen`，没有旧 `mcp-app.html` 或单资源兼容逻辑；三份产物任一失败时由 Gateway 将整套 MCP UI 判为不可发布。工具参数拒绝 `view`、版本 ID 和未知字段，ID 非空且最长 128 个 Unicode code points。
+
+源码位于 `src/main/mcp-ui/`：`viewer.mjs`、`bridge.mjs`、`model.mjs`、`i18n.mjs` 和 `palette.mjs` 为共享层；`map-main.mjs` / `map-template.html` 与 `gantt-main.mjs` / `gantt-template.html` 是两个严格 MCP App 入口。Map 父页使用 `iframe-map.mjs` 和纯数据的 `map-scene.mjs`；只有 `renderer-main.mjs` / `renderer-template.html` 的构建入口导入 `maps.mjs` 与构建期 `mcp-network-policy`。构建器分别内联所需第一方 CSS/JS，并检查三份文件为严格 UTF-8、完整 HTML5、自包含且不超过默认 4 MiB；Map/Gantt 父页依赖闭包不得出现图商 adapter 或网络策略，Gantt 也不得出现 renderer 逻辑。
 
 ```bash
 cd src/main/resources/META-INF/resources/static
@@ -26,7 +28,7 @@ npm run build:mcp-app
 npm run verify:mcp-app
 ```
 
-SDK 固定为 `@modelcontextprotocol/ext-apps@2.0.0` 普通入口，共享 Zod；`sdk-config.mjs` 在 SDK 初始化前设置 `jitless`。构建和校验拒绝动态代码执行、嵌套页面、表单、跳转、未批准外部资源、秘密、调试路径和 `node_modules` 打包。
+SDK 固定为 `@modelcontextprotocol/ext-apps@2.0.0` 普通入口，共享 Zod；`sdk-config.mjs` 在 SDK 初始化前设置 `jitless`。Map/Gantt 父页继续拒绝动态代码执行、静态嵌套页面、表单、跳转、未批准外部资源、秘密、调试路径和 `node_modules` 打包。Map 父页仅允许代码创建契约规定的一个 renderer iframe；renderer 的第一方代码仍禁止动态编译，声明中的放宽仅供所选图商 SDK 使用。
 
 ## 3. 信封与实例边界
 
@@ -35,6 +37,8 @@ SDK 固定为 `@modelcontextprotocol/ext-apps@2.0.0` 普通入口，共享 Zod�
 每个卡片实例独立保存选择、视窗、滚动、全屏和播放状态。不使用 Cookie、Web Storage、全局任务缓存、REST 或对象存储。页面隐藏结果刷新按钮且不轮询；保留的只读刷新边界只允许调用信封中已验证的当前资源工具，Map 可携带当前合法工程师，Gantt 只携带任务 ID。取消、新输入、较新通知、权限失效和 teardown 都会使旧请求失效；销毁时释放地图、计时器、监听器和 SDK。
 
 ## 4. Map App
+
+Map 父页保留 MCP SDK、信封校验、选择、布局和回放状态；renderer 只接收绘图所需的 marker、路线点、颜色/标签和公开 browser key，不接收 Gateway Token、完整信封或工具名。父页严格校验 HTTPS renderer origin、固定路径、ImageVersion ID 和 hash；随机 nonce 放在 URL fragment 中，首次握手只转移 `MessageChannel`，之后父子消息同时核对协议和 nonce。MCP Host 的父级 sandbox 会把后代 origin 继承为 opaque，因此首次 `postMessage` 不能使用精确 `targetOrigin`；安全边界由精确 iframe URL、父资源 `frameDomains`、HTTPS、无重定向的 Gateway 路由、随机 nonce 和私有 MessagePort 共同组成。销毁时关闭 port 并移除 iframe。
 
 Inline Map 只展示全部/单工程师本地切换、点位、工单序号、路线方向、图例、平移、缩放与适配路线；不重复任务名称、任务状态、平台时间、结果指标或独立对象详情。切换工程师不请求后端，页面不显示结果刷新按钮。页面下方的“查看 Gantt 排程”只有用户点击才调用 `ui/message`，内容严格为一个 `user` 文本 ContentBlock：
 
@@ -58,12 +62,12 @@ Inline Gantt 使用真实业务时间轴、工程师本地筛选、行程/等待
 
 * Map 只输出工程师起点或工单位置引用的 POI，保留坐标、路线端点、折线、来源与度量；校验坐标、路线段位、几何及回放资格。不可播放只给出安全原因，不伪造路线或时间。
 * Gantt 只输出其侧栏/时间轴引用的 POI，并固定 `location=null`；`agent.routes` 未知为 `null`，已知则保留长度、顺序和空洞，仅保留合法 `route_source`，其他四个路线字段固定为 `null`。它校验身份、引用、顺序、班次、计划时间、路线段位和来源，不运行地图几何或回放资格分析。
-* Gantt `map_context` 只保留 provider/locale，固定 `enabled=false`、`browser_key=""`、`js_url=""`、`css_url=null`。
+* Gantt `map_context` 只保留 provider/locale，固定 `enabled=false`、`browser_key=""`、`js_url=""`、`css_url=null`、`renderer_url=""`、`renderer_origin=""`。
 
 外层 fixtures 分别覆盖两资源的 ready、空结果与失败/未就绪状态，已删除“非成功仍携带模型”样例。大向量保留 200 工程师、1,000 工单和 4,097 点折线；Gateway 默认 8 MiB 结果上限由 Gateway 明确失败处理，页面和投影不得截断。
 
 ## 7. 验证与发布交接
 
-测试命令和分层见 [`docs/operations/testing.md`](../operations/testing.md)，覆盖构建确定性、双资源初始化、刷新按钮隐藏及固定工具边界、`ui/message`、全屏拒绝、权限清理、多卡隔离、销毁、双语、主题、窄屏、键盘、恶意文本、大结果及 Gantt 零地图请求。发布前还需执行 `./gradlew allStableTest` 和 JVM 打包，核对 JAR 内两份 HTML 与工作区逐字节一致，且任何 JAR 都不含 `static/node_modules`。
+测试命令和分层见 [`docs/operations/testing.md`](../operations/testing.md)，覆盖构建确定性、双资源初始化、renderer 握手、刷新按钮隐藏及固定工具边界、`ui/message`、全屏拒绝、权限清理、多卡隔离、销毁、双语、主题、窄屏、键盘、恶意文本、大结果及 Gantt 零地图请求。发布前还需执行 `./gradlew allStableTest` 和 JVM 打包，核对 JAR 内三份 HTML 与工作区逐字节一致，且任何 JAR 都不含 `static/node_modules`。
 
-Gateway 双资源能力已实现，但真实导入与宿主验收仍按 §1 标为未验证。Map CSP 只是精确来源申请，不是地图可用证明；不得用通配符、代理、空 CSP 或服务端密钥绕过。正式发布不得覆盖当前 `1.1.0-alpha-SNAPSHOT` tag。
+Gateway 双资源与隔离 renderer 能力已实现，但真实导入与宿主验收仍按 §1 标为未验证。Renderer CSP 只是精确来源申请，不是地图可用证明；不得用通配符、服务端密钥或放宽 MCP 父页 CSP 绕过。正式发布不得覆盖当前 `1.1.0-alpha-SNAPSHOT` tag。

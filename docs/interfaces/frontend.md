@@ -119,9 +119,9 @@ MCP 信息使用紧凑行和单层面板，不使用 24px 大字或嵌套卡片�
 
 ### 8.1 独立 MCP Apps 结果查看器
 
-Issue #183 的 `mcp-map-app.html` 与 `mcp-gantt-app.html` 是两个独立的会话宿主只读结果页，不是 `#/mcp` 接入页，也不是官网 `scenario.html` 的 iframe 包装。Gateway 双资源能力已实现并完成本仓模拟验收，不能据此宣称 Gateway 或真实宿主已经启用；实现、安全模型和交付边界见[独立 MCP Apps 查看器](../components/mcp-app.md)。
+Issue #183 的 `mcp-map-app.html` 与 `mcp-gantt-app.html` 是两个独立的会话宿主只读结果页，不是 `#/mcp` 接入页，也不是官网 `scenario.html` 的 iframe 包装。Map 内部可嵌入 Gateway 发布的 `mcp-map-renderer.html`，只用于隔离必须动态执行的第三方图商 SDK；它不是原网页、第三个 MCP Resource 或业务页面。Gateway 双资源能力已实现并完成本仓模拟验收，不能据此宣称真实宿主已经启用；实现、安全模型和交付边界见[独立 MCP Apps 查看器](../components/mcp-app.md)。
 
-Gantt 复用控制台提取出的阶段配色、组合工单条、序号、图例和等宽详情；Map 独立保留路线、视角与回放。两个资源不互相嵌入，均不加载原页面 Controller。Map inline 不重复任务摘要或对象详情，Gantt 不包含地图模块或网络请求。视觉规则见[主题说明](../ui/theme.md#61-独立-mcp-apps-的紧凑宿主界面)。
+Gantt 复用控制台提取出的阶段配色、组合工单条、序号、图例和等宽详情；Map 独立保留路线、视角与回放。Map/Gantt 两个 MCP 资源不互相嵌入，均不加载原页面 Controller；只有 Map 的地图画布嵌入受限 renderer。Map inline 不重复任务摘要或对象详情，Gantt 不包含地图模块或网络请求。视觉规则见[主题说明](../ui/theme.md#61-独立-mcp-apps-的紧凑宿主界面)。
 
 * Map 精简模式只有地图、工程师本地筛选、路线控制与图例，不显示任务摘要或对象详情；下方显式动作通过 `ui/message` 请求宿主展示 Gantt，失败不导航且提供可复制文本。
 * Gantt 精简模式只有工程师筛选、真实时间轴、阶段条、“缩小时间轴”和局部滚动；不展示“放大时间轴”，不包含地图页签、SDK、key 或网络请求。

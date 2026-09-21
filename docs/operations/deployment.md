@@ -120,7 +120,7 @@ MCP 使用 Streamable HTTP，默认路径和完整接入参数见 [MCP 参考](.
 
 ### 10.1 独立 MCP Apps 产物
 
-Issue #183 的引擎交付增加独立完整 `mcp-map-app.html` 与 `mcp-gantt-app.html`，两者与 `scenario.html` 位于同一静态资源目录、随同一版本交付，但不替换原组件。源码、运行边界及当前待验收项见[独立 MCP Apps 查看器](../components/mcp-app.md)。它不是引擎新增的 REST/MCP 写接口，浏览器也不直接调用引擎任务 API。
+Issue #183 的引擎交付增加 `mcp-map-app.html`、`mcp-gantt-app.html` 与内部 `mcp-map-renderer.html`，三者与 `scenario.html` 位于同一静态资源目录、随同一版本交付，但不替换原组件。前两份是 MCP Resource，renderer 由 Gateway 通过独立 HTTPS 路径提供且不是第三个 Tool。源码、运行边界及当前待验收项见[独立 MCP Apps 查看器](../components/mcp-app.md)。它不是引擎新增的 REST/MCP 写接口，浏览器也不直接调用引擎任务 API。
 
 在构建 JVM/native/container 产物之前，先完成前端构建和校验：
 
@@ -133,15 +133,15 @@ npm run verify:mcp-app
 
 返回仓库根目录后再执行本文件原有引擎构建步骤。Node 仅为构建/测试依赖；不要假定 Gradle 打包会自动重建 MCP HTML。校验发现产物过期时应从对应源码重建，不手改压缩 HTML。第一方资源自包含，部署不需要另设第一方 CDN。
 
-[`gateway/image-version.yaml`](../../gateway/image-version.yaml) 中的 `mcp_ui.resources` 与两份 HTML 需作为原子集合一起交接。Map 的精确 HTTPS origin 清单只是待审核网络申请；Gantt 的两个 CSP 数组固定为空，当前 AMAP 后续来源完整性、HERE worker/WASM 能力及真实宿主配置仍未验证；不能使用空 CSP、通配域名或网络代理绕过校验，也不能把构建成功当作地图可用证明。
+[`gateway/image-version.yaml`](../../gateway/image-version.yaml) 中的 `mcp_ui.resources` 与三份 HTML 需作为原子集合一起交接。Map/Gantt 父资源网络数组固定为空；`resources.map.renderer.csp` 才声明精确图商 origin 及所需 eval/blob Worker 能力。Gateway 还必须配置独立 renderer 的公开 HTTPS origin。当前 AMAP 后续来源完整性、HERE worker/WASM 能力及真实宿主配置仍需实际验证；不能使用通配域名、服务端密钥或放宽父页 CSP 绕过校验，也不能把构建成功当作地图可用证明。
 
 元数据资料统一位于仓库根目录 `gateway/`，与 Gateway 默认导入路径一致。导入前须按[目录交接说明](../integrations/gateway/README.md#3-gateway-导入交接)确认目标 tag 包含该目录；若曾覆盖 Gateway 元数据根配置，需恢复默认目录并评估对其他引擎及历史 tag 重导入的影响。仅移动本仓文件不会改变已有 tag 或外部部署。
 
-Gateway 负责服务端安全投影、资源导入、批准 CSP、不可变资源身份、版本启用及用户授权。本轮未实现或验证这些外部链路。未完成审核时不得宣称 UI ready；只读界面遇到地图配置、SDK 或网络失败应保留 Gantt 与对象详情。具体发布前检查包括：
+Gateway 负责服务端安全投影、三产物原子导入、父资源 `frameDomains`、renderer HTTP CSP、不可变资源身份、版本启用及用户授权。未完成真实导入和宿主审核时不得宣称 UI ready；只读界面遇到地图配置、SDK 或网络失败应保留独立 Gantt 与对象详情。具体发布前检查包括：
 
 1. 固定引擎版本、HTML 与 manifest 一致，不覆盖已发布 tag。
 2. Gateway 完成 canonical 展示字段的生产白名单投影和同组 fixtures 校验。
-3. 批准实际 SDK/瓦片/鉴权 origin 及宿主运行能力；使用受限公开 browser key，不嵌入服务器私钥。
+3. 批准 renderer 的实际 SDK/瓦片/鉴权 origin 及宿主 frame 能力；使用受限公开 browser key，不嵌入服务器私钥。
 4. 记录真实 Gateway 与 ChatGPT、Claude、Quick Desktop、WorkBuddy 的客户端版本、权限、全屏、刷新、地图及降级结果；未执行项标为“未验证”。
 
 ## 11. Metrics 与启动验证

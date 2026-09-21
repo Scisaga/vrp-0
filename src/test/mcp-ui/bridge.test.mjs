@@ -86,11 +86,20 @@ test('reads every existing success envelope without inventing a state mapping', 
 test('accepts the frozen Gateway Gantt empty browser key and rejects null or non-empty variants', () => {
   const gatewayResult = sample('gantt-ready');
   assert.equal(gatewayResult._meta.gateway_ui.map_context.browser_key, '');
+  assert.equal(gatewayResult._meta.gateway_ui.map_context.renderer_url, '');
+  assert.equal(gatewayResult._meta.gateway_ui.map_context.renderer_origin, '');
   assert.equal(readEnvelope(gatewayResult).map_context.browser_key, '');
   for (const browserKey of [null, 'synthetic-public-browser-key']) {
     const invalid = sample('gantt-ready');
     invalid._meta.gateway_ui.map_context.browser_key = browserKey;
     throwsCode(() => readEnvelope(invalid), 'MCP_UI_ENVELOPE_INVALID', true);
+  }
+  for (const field of ['renderer_url', 'renderer_origin']) {
+    for (const value of [null, 'https://renderer.example.invalid']) {
+      const invalid = sample('gantt-ready');
+      invalid._meta.gateway_ui.map_context[field] = value;
+      throwsCode(() => readEnvelope(invalid), 'MCP_UI_ENVELOPE_INVALID', true);
+    }
   }
 });
 
@@ -108,6 +117,9 @@ test('validates fixed identities, version tool binding and model constants', () 
     [(data) => { data.task.job_id = 'another-job'; }, 'MCP_UI_IDENTITY_MISMATCH'],
     [(data) => { data.task.image_version_id = '3'.repeat(32); }, 'MCP_UI_IDENTITY_MISMATCH'],
     [(data) => { data.display_tool_name = 'gateway.solver_jobs.create'; }, 'MCP_UI_IDENTITY_MISMATCH'],
+    [(data) => { data.map_context.renderer_url = ''; }, 'MCP_UI_ENVELOPE_INVALID'],
+    [(data) => { data.map_context.renderer_origin = ''; }, 'MCP_UI_ENVELOPE_INVALID'],
+    [(data) => { data.map_context.provider = data.map_context.provider === 'AMAP' ? 'HERE' : 'AMAP'; }, 'MCP_UI_ENVELOPE_INVALID'],
     [(data) => { data.display_tool_name = `gateway.ui.result_${'3'.repeat(32)}`; }, 'MCP_UI_IDENTITY_MISMATCH'],
     [(data) => { data.engine_view.solver_job.id = 'internal-engine-job'; }, 'MCP_UI_IDENTITY_MISMATCH'],
     [(data) => { data.engine_view.kind = 'another-engine'; }, 'MCP_UI_MODEL_INVALID'],
