@@ -1,6 +1,7 @@
 @import "tailwindcss" source(none);
-@source "./template.html";
-@source "./main.mjs";
+@source "./map-template.html";
+@source "./gantt-template.html";
+@source "./viewer.mjs";
 
 :root{color-scheme:light;--surface:#fff;--surface-alt:#f8fafc;--ink:#1e293b;--muted:#475569;--line:#e2e8f0;--accent:#047857;--accent-soft:#ecfdf5;--brand:#4d4397;--danger:#be123c;--warning:#92400e;font-family:"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;font-size:16px}
 
@@ -28,6 +29,8 @@ svg{flex:none}
 .empty{color:var(--muted);padding:22px 16px}
 .mcp-root{--result-line:var(--line);--result-surface:var(--surface);display:flex;flex-direction:column;width:100%;min-width:0;min-height:420px;isolation:isolate}
 .app-header{display:flex;align-items:center;gap:14px;padding:12px 16px;flex:none}
+.map-app .app-header{justify-content:space-between}
+.gantt-app .app-header h1{flex:1}
 .brand{display:flex;align-items:center;gap:7px;color:var(--brand);font-weight:650;white-space:nowrap}
 .task-heading{min-width:0;flex:1}
 .task-heading .metadata{margin-top:3px}
@@ -105,6 +108,7 @@ svg{flex:none}
 .ticket-row .row-copy{flex:1;min-width:0;overflow-wrap:anywhere}
 .ticket-row small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
 .sidebar{width:300px;flex:none;display:flex;flex-direction:column;min-height:0;border-right:1px solid var(--line)}
+.gantt-app .sidebar{order:2;border-right:0;border-left:1px solid var(--line)}
 .side-tabs{padding:10px 12px;flex:none}
 .side-tabs button{flex:1}
 .search-label{padding:0 12px 10px;display:block;flex:none}
@@ -122,6 +126,10 @@ svg{flex:none}
 .speed-label{display:flex;align-items:center;gap:5px;font-size:12px}
 .playback-states{display:flex;gap:5px 12px;flex-wrap:wrap;max-height:46px;overflow:auto;font-size:12px;color:var(--muted);margin-top:6px}
 .app-footer{padding:7px 16px;color:var(--muted);font-size:11px;border-top:1px solid var(--line);flex:none}
+.app-switch{padding:9px 16px;border-top:1px solid var(--line);display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}
+.app-switch>div{display:flex;gap:8px;flex:1;min-width:min(100%,320px)}
+.app-switch textarea{flex:1;min-width:180px;resize:vertical;border:1px solid var(--line);background:var(--surface-alt);color:var(--ink);padding:7px;font:11px ui-monospace,monospace}
+.map-warning{background:#162535;color:#e2e8f0;padding:5px 8px;font-size:12px}
 .mcp-marker{background:var(--agent-color,#4338ca);border:2px solid #fff;color:#fff;border-radius:18px;min-width:26px;min-height:26px;display:flex;align-items:center;justify-content:center;padding:2px 6px;font-size:12px;box-shadow:0 1px 4px #0005;white-space:nowrap}
 .mcp-marker[data-kind="agent"]{border-radius:5px}
 .mcp-marker[data-selected="true"]{outline:3px solid #fbbf24;outline-offset:1px}

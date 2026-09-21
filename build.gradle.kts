@@ -109,6 +109,10 @@ java {
     targetCompatibility = JavaVersion.VERSION_21
 }
 
+sourceSets.main {
+    resources.exclude("META-INF/resources/static/node_modules/**")
+}
+
 tasks.withType<Javadoc>{
     options.encoding = "UTF-8"
 }

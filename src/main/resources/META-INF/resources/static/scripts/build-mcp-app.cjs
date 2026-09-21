@@ -12,7 +12,8 @@ const standaloneCode = require("ajv/dist/standalone").default;
 const staticRoot = path.resolve(__dirname, "..");
 const projectRoot = path.resolve(staticRoot, "../../../../../..");
 const sourceRoot = path.join(projectRoot, "src/main/mcp-ui");
-const outputFile = path.join(staticRoot, "mcp-app.html");
+const outputFiles = { map: path.join(staticRoot, "mcp-map-app.html"), gantt: path.join(staticRoot, "mcp-gantt-app.html") };
+const outputFile = outputFiles.map;
 const manifestFile = path.join(projectRoot, "gateway/image-version.yaml");
 const sharedStylesFile = path.join(staticRoot, "assets/css/result-presentation.css");
 const schemaFile = path.join(projectRoot, "docs/integrations/gateway/mcp-result-view-schema.json");
@@ -40,26 +41,39 @@ function exactOrigins(value, label) {
   return [...value].sort();
 }
 
-function networkPolicyFromManifest(manifest) {
+function resourcesFromManifest(manifest) {
   const ui = manifest?.mcp_ui;
-  exactKeys(ui, ["contract_version", "result_view_kind", "result_view_schema_version", "views", "display_modes", "csp"], "mcp_ui");
+  exactKeys(ui, ["contract_version", "result_view_kind", "result_view_schema_version", "resources"], "mcp_ui");
   assert.equal(ui.contract_version, "gateway_mcp_result_v1");
   assert.equal(ui.result_view_kind, "vrp0");
   assert.equal(ui.result_view_schema_version, 2);
-  exactSet(ui.views, ["map", "gantt"], "mcp_ui.views");
-  exactSet(ui.display_modes, ["inline", "fullscreen"], "mcp_ui.display_modes");
-  exactKeys(ui.csp, ["connect_domains", "resource_domains"], "mcp_ui.csp");
-  return {
-    connectDomains: exactOrigins(ui.csp.connect_domains, "mcp_ui.csp.connect_domains"),
-    resourceDomains: exactOrigins(ui.csp.resource_domains, "mcp_ui.csp.resource_domains")
-  };
+  exactKeys(ui.resources, ["map", "gantt"], "mcp_ui.resources");
+  const expectedFiles = { map:"mcp-map-app.html", gantt:"mcp-gantt-app.html" };
+  const result = {};
+  for (const kind of ["map", "gantt"]) {
+    const resource = ui.resources[kind];
+    exactKeys(resource, ["file", "display_modes", "csp"], `mcp_ui.resources.${kind}`);
+    assert.equal(resource.file, expectedFiles[kind]);
+    exactSet(resource.display_modes, ["inline", "fullscreen"], `mcp_ui.resources.${kind}.display_modes`);
+    exactKeys(resource.csp, ["connect_domains", "resource_domains"], `mcp_ui.resources.${kind}.csp`);
+    result[kind] = {
+      file: resource.file,
+      networkPolicy: {
+        connectDomains: exactOrigins(resource.csp.connect_domains, `mcp_ui.resources.${kind}.csp.connect_domains`),
+        resourceDomains: exactOrigins(resource.csp.resource_domains, `mcp_ui.resources.${kind}.csp.resource_domains`),
+      },
+    };
+  }
+  assert.deepEqual(result.gantt.networkPolicy, { connectDomains:[], resourceDomains:[] });
+  return result;
 }
-
-function readNetworkPolicy() {
+function networkPolicyFromManifest(manifest, kind = "map") { return resourcesFromManifest(manifest)[kind].networkPolicy; }
+function readResources() {
   const document = YAML.parseDocument(fs.readFileSync(manifestFile, "utf8"), { uniqueKeys: true });
   assert.equal(document.errors.length, 0, "image-version.yaml must be valid YAML without duplicate keys");
-  return networkPolicyFromManifest(document.toJS({ maxAliasCount: 0 }));
+  return resourcesFromManifest(document.toJS({ maxAliasCount: 0 }));
 }
+function readNetworkPolicy(kind = "map") { return readResources()[kind].networkPolicy; }
 
 function standaloneValidator() {
   const schema = JSON.parse(fs.readFileSync(schemaFile, "utf8"));
@@ -81,74 +95,58 @@ function replaceOnce(source, placeholder, replacement) {
   return source.replace(placeholder, () => replacement);
 }
 
-async function buildMcpApp() {
-  const networkPolicy = readNetworkPolicy();
-  const validator = standaloneValidator();
-  const bundle = await esbuild.build({
-    absWorkingDir: projectRoot,
-    entryPoints: [path.join(sourceRoot, "main.mjs")],
-    nodePaths: [path.join(staticRoot, "node_modules")],
-    bundle: true,
-    write: false,
-    platform: "browser",
-    format: "iife",
-    target: ["es2020"],
-    charset: "utf8",
-    minify: true,
-    // The upstream transport logs complete messages, including public map
-    // credentials. Never let protocol payloads enter the browser console.
-    drop: ["console"],
-    legalComments: "inline",
-    sourcemap: false,
-    metafile: true,
-    plugins: [{
-      name: "mcp-build-time-contract",
-      setup(build) {
-        build.onResolve({ filter: /^(mcp-view-validator|mcp-network-policy)$/ }, (args) => ({ path: args.path, namespace: "mcp-contract" }));
-        build.onLoad({ filter: /.*/, namespace: "mcp-contract" }, (args) => ({
-          contents: args.path === "mcp-view-validator" ? validator : [
-            `export const connectDomains = Object.freeze(${JSON.stringify(networkPolicy.connectDomains)});`,
-            `export const resourceDomains = Object.freeze(${JSON.stringify(networkPolicy.resourceDomains)});`
-          ].join("\n"),
-          loader: "js",
-          resolveDir: staticRoot
-        }));
-      }
-    }]
-  });
-  assert.equal(bundle.outputFiles.length, 1, "MCP App must produce one inline JavaScript bundle");
-
+async function compileCss() {
   const cssFile = path.join(sourceRoot, "styles.css");
   const cssSource = fs.readFileSync(cssFile, "utf8");
   const tailwindImport = /@import\s+["']tailwindcss["']\s+source\(none\)\s*;/g;
   assert.equal([...cssSource.matchAll(tailwindImport)].length, 1, "MCP styles must disable automatic Tailwind source scanning");
   assert(!/@import\b/.test(cssSource.replace(tailwindImport, "")), "MCP styles cannot import additional files or external resources");
-  // The source tree deliberately lives outside static/. Resolve the existing
-  // package's CSS explicitly, keeping @source paths relative to styles.css.
-  // Shared primitives precede the MCP host/layout overrides in the cascade.
   const resolvedCss = cssSource.replace(tailwindImport, () =>
     `@import ${JSON.stringify(require.resolve("tailwindcss/index.css"))} source(none);\n${fs.readFileSync(sharedStylesFile, "utf8")}`);
   const css = await postcss([tailwind({ base: sourceRoot }), autoprefixer]).process(resolvedCss, { from: cssFile, map: false });
   assert(!/<\/style/i.test(css.css), "MCP CSS cannot terminate its inline style element");
-
-  let html = fs.readFileSync(path.join(sourceRoot, "template.html"), "utf8");
-  html = replaceOnce(html, "<!-- MCP_STYLE -->", `<style>\n${css.css}\n</style>`);
-  html = replaceOnce(html, "<!-- MCP_SCRIPT -->", `<script>\n${inlineScript(bundle.outputFiles[0].text)}\n</script>`);
-  return { html: html.replace(/\r\n/g, "\n").replace(/\s*$/, "\n"), networkPolicy, inputs: Object.keys(bundle.metafile.inputs) };
+  return css.css;
 }
+async function buildMcpApp(kind = "map", css) {
+  assert(["map", "gantt"].includes(kind), "unknown MCP resource");
+  const resources = readResources();
+  const networkPolicy = resources[kind].networkPolicy;
+  const validator = standaloneValidator();
+  const bundle = await esbuild.build({
+    absWorkingDir: projectRoot,
+    entryPoints: [path.join(sourceRoot, `${kind}-main.mjs`)],
+    nodePaths: [path.join(staticRoot, "node_modules")], bundle:true, write:false, platform:"browser", format:"iife",
+    target:["es2020"], charset:"utf8", minify:true, drop:["console"], legalComments:"inline", sourcemap:false, metafile:true,
+    plugins:[{name:"mcp-build-time-contract",setup(build){
+      build.onResolve({filter:/^(mcp-view-validator|mcp-network-policy)$/},args=>({path:args.path,namespace:"mcp-contract"}));
+      build.onLoad({filter:/.*/,namespace:"mcp-contract"},args=>({contents:args.path==="mcp-view-validator"?validator:[
+        `export const connectDomains = Object.freeze(${JSON.stringify(networkPolicy.connectDomains)});`,
+        `export const resourceDomains = Object.freeze(${JSON.stringify(networkPolicy.resourceDomains)});`
+      ].join("\n"),loader:"js",resolveDir:staticRoot}));
+    }}]
+  });
+  assert.equal(bundle.outputFiles.length,1,"MCP App must produce one inline JavaScript bundle");
+  let html=fs.readFileSync(path.join(sourceRoot,`${kind}-template.html`),"utf8");
+  html=replaceOnce(html,"<!-- MCP_STYLE -->",`<style>\n${css ?? await compileCss()}\n</style>`);
+  html=replaceOnce(html,"<!-- MCP_SCRIPT -->",`<script>\n${inlineScript(bundle.outputFiles[0].text)}\n</script>`);
+  html=html.replace(/\r\n/g,"\n").replace(/\s*$/,"\n");
+  assert(Buffer.byteLength(html)<=4*1024*1024,`${resources[kind].file} exceeds 4 MiB`);
+  return {kind,html,networkPolicy,inputs:Object.keys(bundle.metafile.inputs)};
+}
+async function buildMcpApps(){const css=await compileCss();return {map:await buildMcpApp("map",css),gantt:await buildMcpApp("gantt",css)};}
 
 async function main() {
   assert(process.argv.slice(2).every((arg) => arg === "--check"), "Only --check is supported");
-  const { html } = await buildMcpApp();
+  const built = await buildMcpApps();
   if (process.argv.includes("--check")) {
-    assert.equal(fs.readFileSync(outputFile, "utf8"), html, "mcp-app.html is stale; run npm run build:mcp-app");
-    console.log("[build:mcp-app] tracked artifact is current (no files written)");
+    for (const kind of ["map","gantt"]) assert.equal(fs.readFileSync(outputFiles[kind],"utf8"),built[kind].html,`${path.basename(outputFiles[kind])} is stale; run npm run build:mcp-app`);
+    assert(!fs.existsSync(path.join(staticRoot,"mcp-app.html")),"legacy mcp-app.html must be deleted");
+    console.log("[build:mcp-app] both tracked artifacts are current (no files written)");
   } else {
-    fs.writeFileSync(outputFile, html, "utf8");
-    console.log(`[build:mcp-app] wrote mcp-app.html (${Buffer.byteLength(html)} bytes)`);
+    for (const kind of ["map","gantt"]) { fs.writeFileSync(outputFiles[kind],built[kind].html,"utf8"); console.log(`[build:mcp-app] wrote ${path.basename(outputFiles[kind])} (${Buffer.byteLength(built[kind].html)} bytes)`); }
+    fs.rmSync(path.join(staticRoot,"mcp-app.html"),{force:true});
   }
 }
-
 if (require.main === module) main().catch((error) => { console.error(error); process.exitCode = 1; });
 
-module.exports = { buildMcpApp, readNetworkPolicy, networkPolicyFromManifest, standaloneValidator, exactOrigins, staticRoot, projectRoot, sourceRoot, outputFile };
+module.exports = { buildMcpApp, buildMcpApps, readResources, resourcesFromManifest, readNetworkPolicy, networkPolicyFromManifest, standaloneValidator, exactOrigins, staticRoot, projectRoot, sourceRoot, outputFile, outputFiles };

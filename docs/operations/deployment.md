@@ -120,7 +120,7 @@ MCP 使用 Streamable HTTP，默认路径和完整接入参数见 [MCP 参考](.
 
 ### 10.1 独立 MCP Apps 产物
 
-Issue #183 的引擎交付增加独立完整 `mcp-app.html`，与 `scenario.html` 位于同一静态资源目录、随同一版本交付，但不替换原组件。源码、运行边界及当前待验收项见[独立 MCP Apps 查看器](../components/mcp-app.md)。它不是引擎新增的 REST/MCP 写接口，浏览器也不直接调用引擎任务 API。
+Issue #183 的引擎交付增加独立完整 `mcp-map-app.html` 与 `mcp-gantt-app.html`，两者与 `scenario.html` 位于同一静态资源目录、随同一版本交付，但不替换原组件。源码、运行边界及当前待验收项见[独立 MCP Apps 查看器](../components/mcp-app.md)。它不是引擎新增的 REST/MCP 写接口，浏览器也不直接调用引擎任务 API。
 
 在构建 JVM/native/container 产物之前，先完成前端构建和校验：
 
@@ -133,7 +133,7 @@ npm run verify:mcp-app
 
 返回仓库根目录后再执行本文件原有引擎构建步骤。Node 仅为构建/测试依赖；不要假定 Gradle 打包会自动重建 MCP HTML。校验发现产物过期时应从对应源码重建，不手改压缩 HTML。第一方资源自包含，部署不需要另设第一方 CDN。
 
-[`gateway/image-version.yaml`](../../gateway/image-version.yaml) 中的 `mcp_ui` 与单文件产物需一起交接。其精确 HTTPS origin 清单只是待审核网络申请，当前 AMAP 后续来源完整性、HERE worker/WASM 能力及真实宿主配置仍未验证；不能使用空 CSP、通配域名或网络代理绕过校验，也不能把构建成功当作地图可用证明。
+[`gateway/image-version.yaml`](../../gateway/image-version.yaml) 中的 `mcp_ui.resources` 与两份 HTML 需作为原子集合一起交接。Map 的精确 HTTPS origin 清单只是待审核网络申请；Gantt 的两个 CSP 数组固定为空，当前 AMAP 后续来源完整性、HERE worker/WASM 能力及真实宿主配置仍未验证；不能使用空 CSP、通配域名或网络代理绕过校验，也不能把构建成功当作地图可用证明。
 
 元数据资料统一位于仓库根目录 `gateway/`，与 Gateway 默认导入路径一致。导入前须按[目录交接说明](../integrations/gateway/README.md#3-gateway-导入交接)确认目标 tag 包含该目录；若曾覆盖 Gateway 元数据根配置，需恢复默认目录并评估对其他引擎及历史 tag 重导入的影响。仅移动本仓文件不会改变已有 tag 或外部部署。
 

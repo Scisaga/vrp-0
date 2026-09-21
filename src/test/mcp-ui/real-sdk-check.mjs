@@ -46,7 +46,7 @@ try {
   const detail = await client.callTool('gateway.solver_jobs.get_detail',{job_id:job});
   const tool = tools.find(item => item.name === detail._meta?.gateway_ui?.display_tool_name);
   assert.ok(tool, 'Task display tool must be available');
-  const result = await client.callTool(tool.name,{job_id:job,view:'map'});
+  const result = await client.callTool(tool.name,{job_id:job});
   assert.notEqual(result.isError, true); assert.equal(result._meta.gateway_ui.map_context.provider,'AMAP');
   key = result._meta.gateway_ui.map_context.browser_key;
   assert.ok(key, 'Use Gateway browser_key, never substitute a local key');
@@ -120,8 +120,8 @@ try {
       await expect(frame.locator('#map-state')).toBeVisible();
       data.checks.message = await frame.locator('#map-message').textContent();
       assert.match(data.checks.message,/安全策略|security policy/);
-      await frame.locator('#tab-gantt').click(); await expect(frame.locator('.gantt-row').first()).toBeVisible();
-      data.checks.gantt_fallback = true;
+      await expect(frame.locator('#open-gantt')).toBeVisible();
+      data.checks.gantt_handoff_available = true;
     } else {
       await expect(frame.locator('#map-state')).toBeHidden({timeout:30000});
       assert.ok(await frame.locator('.mcp-marker').count()>0); data.checks.real_map_ready=true;
@@ -162,9 +162,6 @@ try {
       await frame.locator('#fullscreen').click();await expect(page.locator('#display-mode')).toHaveValue('fullscreen');
       await sized('reenter_fullscreen_size'); await expect(frame.locator('#play')).toHaveAttribute('aria-pressed','false');
       assert.equal(await frame.locator('#cursor').inputValue(),cursor);
-      await frame.locator('#tab-gantt').click();await expect(frame.locator('.gantt-row').first()).toBeVisible();
-      await frame.locator('#tab-map').click();await sized('return_from_gantt');
-      assert.equal(await frame.locator('#cursor').inputValue(),cursor);assert.deepEqual(await viewport(),selectedViewport);
       await frame.locator('#refresh').click();await expect(frame.locator('#refresh')).toBeEnabled();await expect(frame.locator('#map-state')).toBeHidden();
       assert.equal(await frame.locator('#engineer').inputValue(),selected);assert.equal(await frame.locator('#cursor').inputValue(),cursor);
       await frame.locator('#engineer').selectOption('');await frame.locator('#cursor').fill('990');await frame.locator('#play').click();

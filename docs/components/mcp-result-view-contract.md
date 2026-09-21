@@ -2,22 +2,22 @@
 
 ## 1. 状态与范围
 
-**状态：安全展示契约与离线验证；不是 Gateway 生产投影实现。** 本文承接 [Issue #183](https://git.sefo.cc:233/x-force/vrp-0/-/issues/183) 第一阶段先固定展示字段、映射与 fixtures 的工作。后续独立 `mcp-app.html` 的引擎实现与本仓验收另见[独立 MCP Apps 查看器](mcp-app.md)，不能据此宣称 Gateway 导入、版本工具或四个真实宿主已经验收。
+**状态：双 Profile 安全展示契约与离线验证；不是 Gateway 生产投影实现。** 本文承接 [Issue #183](https://git.sefo.cc:233/x-force/vrp-0/-/issues/183) 的字段、映射与 fixtures；Map/Gantt 双资源实现见[独立 MCP Apps 查看器](mcp-app.md)，不能据此宣称真实 tag 导入、地图网络或四个宿主已经验收。
 
-第一阶段契约产物包括：
+契约产物包括：
 
 * [`docs/integrations/gateway/mcp-result-view-schema.json`](../integrations/gateway/mcp-result-view-schema.json)：Draft 2020-12 安全 `engine_view` 对象 Schema。
 * [`docs/integrations/gateway/fixtures/mcp-result-view/`](../integrations/gateway/fixtures/mcp-result-view/)：人工合成源结果与人工编写的期望投影。
 * [`scripts/tests/test_mcp_result_view_contract.py`](../../scripts/tests/test_mcp_result_view_contract.py)：标准 Schema、语义和 golden mapping 三层离线验证。
 * [`scripts/tests/mcp_result_view_support.py`](../../scripts/tests/mcp_result_view_support.py)：仅用于测试的参考投影与分析，不是生产代码。
 
-第一阶段未修改原 `scenario.html`、引擎 REST/MCP、`docs/openapi.yaml`、既有 [`gateway/result-summary-schema.json`](../../gateway/result-summary-schema.json)、ImageVersion manifest 或 Gateway 仓库。后续引擎 View 与 `mcp_ui` 构建声明由独立组件文档维护；本文继续只负责安全模型与参考测试，不以浏览器实现替代 Gateway 服务端白名单投影、授权或联合验收。
+本轮未修改原 `scenario.html`、引擎 REST/MCP、`docs/openapi.yaml` 或既有 [`gateway/result-summary-schema.json`](../../gateway/result-summary-schema.json)。`gateway/image-version.yaml` 已切换为双资源声明；本文继续只负责唯一安全模型和双 Profile 参考测试，不以浏览器实现替代 Gateway 服务端白名单投影、授权或联合验收。
 
 ## 2. 与 Gateway 外层契约的关系
 
 Gateway 的权威公共契约是其 `docs/design/mcp-apps-contract.md`；工具、产物与 UI 语义分别由该仓对应 API、ImageVersion 和 MCP Apps UI 文档负责。Issue #183 附有原文快照及 SHA-256。本文件只负责该交接中 `engine_view` 的安全白名单与引擎映射，不另行定义 Gateway 工具、鉴权、传输或资源发布规则。
 
-固定外层语义包括 `_meta.gateway_ui.contract_version=gateway_mcp_result_v1`，Gateway `job_id`/`image_version_id`、`display_tool_name`、`result_state`、初始 `view`/`engineer_id`、`platform_timezone`、白名单 `task`、`result_summary`、`engine_view` 与 `map_context`。绘图数据只属于 UI 数据层，不复制进模型摘要；`_meta` 仍不是秘密存储或授权边界。
+固定外层语义包括 `_meta.gateway_ui.contract_version=gateway_mcp_result_v1`，Gateway `job_id`/`image_version_id`、当前资源固定 `display_tool_name`/`view`、`result_state`、`engineer_id`、`platform_timezone`、白名单 `task`、固定 `result_summary=null`、`engine_view` 与 `map_context`。Map 工具为 `gateway.ui.map_result_<32hex>`，Gantt 为 `gateway.ui.gantt_result_<32hex>`；只有成功展示态允许非空模型，Gantt 的工程师定位固定为空。
 
 本文 Schema 的根是**非空 `engine_view` 对象**，不是整个 tool result，也不允许根 `null`；Gateway 外层允许 `engine_view=null`。参考投影不能形成安全模型时返回 `null` 并附测试诊断，调用者不能拿空根对象伪装成功。测试诊断和分析结果不新增 wire 字段。
 
@@ -27,11 +27,11 @@ Gateway 的权威公共契约是其 `docs/design/mcp-apps-contract.md`；工具�
 | --- | --- |
 | `result_summary` | 样例使用 `null`。现有声明要求的路线数/工单数不等于 Gateway 当前归档摘要的实际 shape；不能直接引用旧摘要或补零，也不能把参考分析结果写入外层摘要 |
 | `task` | 仅采用 Issue 的安全白名单；不引用整个 `SolverJobDetail`，不增加创建人、内部实例、归档、约束或写操作字段 |
-| `map_context` | 公开 browser key、批准来源和禁用时各字段值由 Gateway 决定；旧配置的 `key/message/none` 不能直接当作新 `browser_key/locale/AMAP/HERE` 契约 |
+| `map_context` | Map 的公开 browser key 和批准来源由 Gateway 决定；Gantt 只保留 provider/locale，固定禁用并清空 `browser_key/js_url/css_url` 网络配置 |
 | 错误 `details` | Issue 的 `display_tool_name/supported_views` 对象访问方式与现有 Gateway 数组型错误详情需要对齐；本次不改错误封装 |
-| 状态映射 | 不新增任务状态；`pending_confirmation/canceling` 等到 `result_state` 的完整映射仍需 Gateway 固定 |
+| 状态映射 | 不新增任务状态；非成功状态固定 `engine_view=null`，不能携带等待模型 |
 | 工程师输入上限 | 输出工程师 ID 不截断；超过 128 字符的初始工具定位仍受 Gateway 现有输入限制。本地选择不受影响；只读刷新可省略可选 `engineer_id` 并保留本地选择，本次不修改工具输入限制 |
-| 规模与网络 | 不臆造结果大小、HTML 大小、频率和规模限额，也不补 CSP 通配来源或实际地图凭据 |
+| 规模与网络 | HTML 默认上限为每资源 4 MiB，Gateway 结果默认上限为 8 MiB；超限明确失败、不截断，不补 CSP 通配来源或实际地图凭据 |
 
 ## 3. 安全对象与源码映射
 
@@ -71,6 +71,15 @@ Gateway 的权威公共契约是其 `docs/design/mcp-apps-contract.md`；工具�
 * 路线数组允许空段位，必须保留原索引。非法折线中的任一点使整条 `polyline` 不可用，不能过滤坏点后把剩余点拼成新的道路轨迹。
 * `AgentEachDay` 的常规 ID 是原 ID 加 `-yyMMdd`，但源 ID 无 128 字符上限，不能据此反向解析身份或给输出 schema 加同样上限。
 
+### 3.4 同一 Schema 的双 Profile
+
+两种 Profile 不复制 Schema 或协议，只裁剪同一安全对象：
+
+* **Map**：`pois` 只保留工程师起点或工单位置实际引用项；路线保留坐标、端点、折线、来源和度量，并执行 §4 的地图几何与回放资格分析。
+* **Gantt**：`pois` 同样只保留时间轴/右栏引用项，但 `location` 固定为 `null`。`agent.routes=null` 表示未知；非空数组完整保留长度、顺序和 `null` 空段，只保留合法 `route_source`，每个非空路线的 `origin/destination/polyline/transit` 固定为 `null`。Gantt 校验身份、引用、顺序、班次、计划时间、路线段位和来源，不运行地图几何或回放资格分析。
+
+因此 Gantt 中契约性空坐标和空路线几何不是错误，也不能被页面重新补全。两种 Profile 都不得输出未引用 POI。
+
 ## 4. 坐标、时间和路线语义
 
 ### 4.1 历史坐标字段
@@ -105,7 +114,7 @@ Duration 字符串使用 ASCII 数字，可保留最多九位小数秒，按 Jav
 
 不具备回放资格的工程师仍可展示已有静态路线、工单和 Gantt，不展示推演位置；缺失引用明确说明“引用对象缺失”，不删除缺失列表项后重新编号。
 
-测试参考分析只报告“能否依据现有事实回放”，不实现播放动画；独立 View 的回放实现见[组件说明](mcp-app.md#43-规划回放)，必须标示“规划回放”，不得称实时位置。
+测试参考分析只报告“能否依据现有事实回放”，不实现播放动画；独立 View 的回放实现见[组件说明](mcp-app.md#4-map-app)，必须标示“规划回放”，不得称实时位置。
 
 ## 5. 可确定的只读计数
 
@@ -132,8 +141,9 @@ Fixture 文件使用以下组织方式，不是生产消息：
 | 文件/字段 | 作用 |
 | --- | --- |
 | `base-source.json` | 人工合成的原始引擎结果，内部任务 ID 与 Gateway ID 不同；非白名单字段由安全用例补丁注入 |
-| `base-expected.json` | 独立人工编写的完整安全 `engine_view`，不由参考 projector 生成 |
-| `cases.json` | 每例给出 `name`、可选 `gateway_job_id`，以及独立编写的 `source_patch/expected_patch`；补丁支持 JSON Pointer 上的 `add/replace/remove` |
+| `base-expected.json` | 独立人工编写的 Map 安全 `engine_view` 基线，不由运行时投影生成 |
+| `gantt-expected.json` | 同一 59-case 集合的 Gantt profile 完整 golden、独立诊断与语义断言 |
+| `cases.json` | 每例给出 `name`、可选 `gateway_job_id`，以及源/Map 期望补丁；补丁支持 JSON Pointer 上的 `add/replace/remove` |
 | `expected_null` | 该例必须拒绝形成模型；不能拿缺失期望值跳过投影断言 |
 | `diagnostics` | 断言诊断项中提供的 `code/path` 子集；空 `[]` 表示必须没有诊断 |
 | `analysis` | 对提供的只读分析字段递归断言，未提供字段不代表新增生产默认值 |
@@ -141,17 +151,17 @@ Fixture 文件使用以下组织方式，不是生产消息：
 | `large-recipe.json` | 可重复的大结果生成配方及独立期望规模，不是产品限额 |
 | `payloads.json` | 交接用完整工具结果、工具业务错误、资源错误与认证错误样例；不将这些外层包装扩入本 Schema |
 
-[`scripts/tests/mcp_result_view_fixtures.py`](../../scripts/tests/mcp_result_view_fixtures.py) 只装载 golden 文件、应用人工补丁及在内存生成大结果，不导入参考 projector。当前大结果配方包含 200 个按日工程师、1,000 个工单，并使首段折线包含 4,097 个点，用于验证序列、规模和几何未被静默截断；这些数值不是平台支持上限。
+[`scripts/tests/mcp_result_view_fixtures.py`](../../scripts/tests/mcp_result_view_fixtures.py) 只装载两组 golden、应用人工补丁及在内存生成大结果，不导入参考 projector。当前大结果配方包含 200 个按日工程师、1,000 个工单，并使 Map 首段折线包含 4,097 个点，用于验证序列、规模和几何未被静默截断；这些数值不是平台支持上限。
 
 测试诊断的 `{code,path}` 和 `analysis` 都不进入 `_meta.gateway_ui`，也不构成新增错误码或数据接口。golden 的期望对象、诊断断言和分析断言须人工维护，不以被测 projector 的输出反向覆盖期望文件。
 
-外层样例始终使用 `result_summary=null` 和不可用的明确测试 browser key。SDK 地址只是交接形状示例，不表示 CSP 已批准或可在真实宿主联网。`payloads.json` 分开表达正常 `result_state`、`isError` 工具错误和 JSON-RPC 资源/认证错误；业务失败不能冒充登录失败。样例按 Issue 表达对象型错误 `details`，不宣称现有 Gateway 已从数组型实现迁移。它们不消除第 2 节的外部待确认项。
+外层样例始终使用 `result_summary=null`。Map 使用不可用的明确测试 browser key；Gantt 固定禁用网络配置。SDK 地址只是交接形状示例，不表示 CSP 已批准或可在真实宿主联网。`payloads.json` 分别覆盖两资源 ready/空结果/失败或未就绪，并分开表达 `isError` 工具错误和 JSON-RPC 资源/认证错误；不存在非成功仍携带模型的样例。
 
 三层验证分别负责：
 
 1. **标准 Schema**：Draft 2020-12、封闭对象、必填键、枚举、空值与合法基础类型。
 2. **语义**：真实日期、地理范围、身份与引用完整性、路线原索引、时间先后以及计数/回放适用条件。
-3. **Golden mapping**：合成源结果经过白名单参考投影后，与人工期望值比较；未知源字段不泄漏，非法源值不变成伪造的有效值。
+3. **Golden mapping**：每个合成源结果分别执行 Map/Gantt 白名单参考投影并与各自人工期望比较；未知源字段不泄漏，非法源值不变成伪造的有效值。
 
 运行命令、锁定依赖和临时虚拟环境见[测试说明](../operations/testing.md#41-mcp-结果展示离线契约)。测试不得调用地图、Gateway 或读取真实归档。缺 Schema 校验依赖时应明确失败，不静默跳过标准校验。
 
@@ -159,4 +169,4 @@ Fixture 文件使用以下组织方式，不是生产消息：
 
 Gateway 需以本契约和同组 fixtures 实现服务端生产白名单投影并完成映射测试，不能依靠 View 收到完整对象后再过滤；通过后才能按其发布规则标记 UI ready，不能直接用本仓参考脚本代替生产授权和投影链路。若外层或安全字段变化，先更新权威契约再同步双方样例，不让 Issue 快照与本文件独立演进。
 
-独立 HTML、同 tag 构建声明、只读刷新、实例隔离、地图/Gantt、全屏及规划回放的引擎实现与本仓验证进度见[组件说明](mcp-app.md#7-验证记录与未验证项)。真实 Gateway 的 manifest/CSP 审核、资源身份与缓存、任务权限和生产投影，以及 ChatGPT、Claude、Quick Desktop、WorkBuddy 各自的真实客户端版本与能力仍需联合验收。离线契约及模拟宿主测试不覆盖这些生产链路，未运行项统一记为“未验证”，不以文档或脚本存在替代上线证据。
+独立 HTML、同 tag 构建声明、只读刷新、实例隔离、地图/Gantt、全屏及规划回放的引擎实现与本仓验证进度见[组件说明](mcp-app.md#7-验证与发布交接)。真实 Gateway 的 manifest/CSP 审核、资源身份与缓存、任务权限和生产投影，以及 ChatGPT、Claude、Quick Desktop、WorkBuddy 各自的真实客户端版本与能力仍需联合验收。离线契约及模拟宿主测试不覆盖这些生产链路，未运行项统一记为“未验证”，不以文档或脚本存在替代上线证据。

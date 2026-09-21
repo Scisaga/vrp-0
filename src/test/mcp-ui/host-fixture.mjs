@@ -4,7 +4,7 @@ import { test, expect } from '../../main/resources/META-INF/resources/static/nod
 import { mapSdkFixture } from './map-sdk-fixture.mjs';
 export { test, expect };
 
-const artifact = new URL('../../main/resources/META-INF/resources/static/mcp-app.html', import.meta.url);
+const artifacts = { map:new URL('../../main/resources/META-INF/resources/static/mcp-map-app.html', import.meta.url), gantt:new URL('../../main/resources/META-INF/resources/static/mcp-gantt-app.html', import.meta.url) };
 const payloads = JSON.parse(fs.readFileSync(new URL('../../../docs/integrations/gateway/fixtures/mcp-result-view/payloads.json', import.meta.url), 'utf8'));
 export const message = (name='ready') => structuredClone(payloads.find(item=>item.name===name).message);
 export const JOB = message()._meta.gateway_ui.job_id;
@@ -12,14 +12,15 @@ export const VERSION = message()._meta.gateway_ui.image_version_id;
 export const TOOL = message()._meta.gateway_ui.display_tool_name;
 export const AGENT = message()._meta.gateway_ui.engine_view.solver_job.plan.agents[0].id;
 const require = createRequire(new URL('../../main/resources/META-INF/resources/static/package.json', import.meta.url));
-const { connectDomains, resourceDomains } = require('./scripts/build-mcp-app.cjs').readNetworkPolicy();
-export const STRICT_CSP = `default-src 'none'; script-src 'unsafe-inline' ${resourceDomains.join(' ')}; style-src 'unsafe-inline' ${resourceDomains.join(' ')}; img-src data: ${resourceDomains.join(' ')}; font-src ${resourceDomains.join(' ')}; connect-src ${connectDomains.join(' ')}; worker-src 'none'; frame-ancestors http://mcp-host.test; base-uri 'none'; form-action 'none'`;
+const policies = {map:require('./scripts/build-mcp-app.cjs').readNetworkPolicy('map'),gantt:require('./scripts/build-mcp-app.cjs').readNetworkPolicy('gantt')};
+export const strictCsp = kind => { const {connectDomains,resourceDomains}=policies[kind]; return `default-src 'none'; script-src 'unsafe-inline' ${resourceDomains.join(' ')}; style-src 'unsafe-inline' ${resourceDomains.join(' ')}; img-src data: ${resourceDomains.join(' ')}; font-src ${resourceDomains.join(' ')}; connect-src ${connectDomains.join(' ')}; worker-src 'none'; frame-ancestors http://mcp-host.test; base-uri 'none'; form-action 'none'`; };
+export const STRICT_CSP = strictCsp('map');
 
 const hostDocument = `<!doctype html><html><head><meta charset="utf-8"><title>Synthetic MCP Apps Host</title></head><body><script>
 const cards=new Map();let nextId=1000;
 const send=(card,message)=>card.frame.contentWindow.postMessage(message,'*');
 window.host={cards,
-  add(options){const card={...options,wire:[],pending:[],acks:[],initialized:false};const frame=document.createElement('iframe');frame.name=options.id;frame.id=options.id;frame.setAttribute('sandbox','allow-scripts');frame.style.cssText='border:0;display:block;width:'+ (options.width||1100)+'px;height:'+(options.height||800)+'px';card.frame=frame;cards.set(card.id,card);frame.src='http://mcp-app.test/app.html?id='+encodeURIComponent(card.id);document.body.append(frame)},
+  add(options){const card={...options,wire:[],pending:[],acks:[],initialized:false};const frame=document.createElement('iframe');frame.name=options.id;frame.id=options.id;frame.setAttribute('sandbox','allow-scripts');frame.style.cssText='border:0;display:block;width:'+ (options.width||1100)+'px;height:'+(options.height||800)+'px';card.frame=frame;cards.set(card.id,card);frame.src='http://mcp-app.test/app.html?id='+encodeURIComponent(card.id)+'&kind='+encodeURIComponent(options.kind||'map');document.body.append(frame)},
   notify(id,method,params){send(cards.get(id),{jsonrpc:'2.0',method,params})},
   result(id,result){this.notify(id,'ui/notifications/tool-result',result)},
   context(id,context){const card=cards.get(id);Object.assign(card.context,context);this.notify(id,'ui/notifications/host-context-changed',context)},
@@ -31,6 +32,7 @@ addEventListener('message',event=>{const card=[...cards.values()].find(item=>ite
 if(data.method==='ui/initialize'){send(card,{jsonrpc:'2.0',id:data.id,result:{protocolVersion:card.initProtocolOverride||data.params.protocolVersion,hostInfo:{name:'synthetic-host',version:'1'},hostCapabilities:{serverTools:{}},hostContext:card.context}})}
 else if(data.method==='ui/notifications/initialized'){card.initialized=true;if(card.initial!==false){send(card,{jsonrpc:'2.0',method:'ui/notifications/tool-input',params:{arguments:card.input}});if(card.result)send(card,{jsonrpc:'2.0',method:'ui/notifications/tool-result',params:card.result})}}
 else if(data.method==='tools/call'){card.pending.push(data)}
+else if(data.method==='ui/message'){card.messages??=[];card.messages.push(data.params);send(card,{jsonrpc:'2.0',id:data.id,result:{}})}
 else if(data.method==='ui/request-display-mode'){const mode=card.refuseFullscreen?'inline':data.params.mode;card.context.displayMode=mode;send(card,{jsonrpc:'2.0',id:data.id,result:{mode}})}
 else if(data.id!==undefined&&(!data.method)){card.acks.push(data)}
 });
@@ -80,12 +82,12 @@ export async function openHost(page, { mapFailure=false, mapCsp=false, probeCsp=
     const url=new URL(route.request().url());requests.push(url.href);
     if(url.origin==='http://mcp-host.test')return route.fulfill({contentType:'text/html',body:hostDocument});
     if(url.origin==='http://mcp-app.test'){
-      let body=fs.readFileSync(artifact,'utf8');
+      const kind=url.searchParams.get('kind')==='gantt'?'gantt':'map';let body=fs.readFileSync(artifacts[kind],'utf8');
       // A parser-executed test-only probe proves unsafe-eval is blocked. A script
       // appended by Playwright's debugger evaluate inherits its CSP bypass.
       if(probeCsp)body=body.replace('<head>','<head><script>try{new Function("window.__unsafeExecuted=true")()}catch{window.__unsafeEvalBlocked=true}</script>');
       if(monitorDynamicCode)body=body.replace('<head>','<head>'+dynamicCodeMonitor+(probeDynamicCode?caughtDynamicCodeProbe:''));
-      return route.fulfill({contentType:'text/html',body,headers:{'content-security-policy':mapCsp?STRICT_CSP.replace(' https://webapi.amap.com',''):STRICT_CSP}});
+      return route.fulfill({contentType:'text/html',body,headers:{'content-security-policy':mapCsp?strictCsp(kind).replace(' https://webapi.amap.com',''):strictCsp(kind)}});
     }
     if(['https://webapi.amap.com','https://js.api.here.com'].includes(url.origin)){
       if(mapFailure)return route.abort();
@@ -98,7 +100,9 @@ export async function openHost(page, { mapFailure=false, mapCsp=false, probeCsp=
     logs,errors,requests,unexpected,
     async add({id='card',result=message(),width=1100,height=800,context={},input,initial=true,refuseFullscreen=false,initProtocolOverride,expectInitialized=true}={}) {
       const defaults={theme:'light',locale:'zh-CN',displayMode:'inline',availableDisplayModes:['inline','fullscreen'],toolInfo:{tool:{name:TOOL,inputSchema:{type:'object'}}}};
-      await page.evaluate(options=>window.host.add(options),{id,result,width,height,context:{...defaults,...context},input:input??{job_id:result?._meta?.gateway_ui?.job_id||JOB},initial,refuseFullscreen,initProtocolOverride});
+      const kind=result?._meta?.gateway_ui?.view==='gantt'?'gantt':'map';
+      defaults.toolInfo.tool.name=result?._meta?.gateway_ui?.display_tool_name||TOOL;
+      await page.evaluate(options=>window.host.add(options),{id,result,kind,width,height,context:{...defaults,...context},input:input??{job_id:result?._meta?.gateway_ui?.job_id||JOB},initial,refuseFullscreen,initProtocolOverride});
       if(expectInitialized)await expect.poll(()=>page.evaluate(id=>window.host.cards.get(id)?.initialized,id)).toBe(true);
       else await expect.poll(()=>page.evaluate(id=>window.host.cards.get(id)?.wire.some(item=>item.method==='ui/initialize'),id)).toBe(true);
       const frame=page.frame({name:id});await expect(frame.locator('#app')).toBeVisible();return frame;
@@ -109,6 +113,7 @@ export async function openHost(page, { mapFailure=false, mapCsp=false, probeCsp=
     respond:(id,index,result,error)=>page.evaluate(({id,index,result,error})=>window.host.respond(id,index,result,error),{id,index,result,error}),
     wire:(id)=>page.evaluate(id=>window.host.cards.get(id).wire,id),
     pending:(id)=>page.evaluate(id=>window.host.cards.get(id).pending,id),
+    messages:(id)=>page.evaluate(id=>window.host.cards.get(id).messages||[],id),
     // Read the parser monitor's postMessage snapshot in the uninstrumented
     // parent realm: frame.evaluate itself invokes eval through Playwright.
     dynamicCodeState:(id)=>page.evaluate(id=>window.host.cards.get(id).dynamicCode,id),

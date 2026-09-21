@@ -44,7 +44,7 @@ jobs:
           npm run test:i18n-ui
           npm run build:mcp-app
           npm run verify:mcp-app
-          git diff --exit-code -- mcp-app.html
+          git diff --exit-code -- mcp-map-app.html mcp-gantt-app.html
           npm run test:mcp-unit
           npm run test:mcp-ui
 
@@ -74,7 +74,16 @@ jobs:
           java-version: '21'
       - uses: gradle/actions/setup-gradle@v3
       - name: Build JVM artifact
-        run: ./gradlew quarkusBuild -x test --no-daemon
+        run: |
+          ./gradlew quarkusBuild -x test --no-daemon
+          app_jar="$(find build/quarkus-app/app -name 'vrp-0-*.jar' -print -quit)"
+          test -n "$app_jar"
+          for resource in mcp-map-app.html mcp-gantt-app.html; do
+            source_hash="$(sha256sum "src/main/resources/META-INF/resources/static/$resource" | cut -d' ' -f1)"
+            jar_hash="$(unzip -p "$app_jar" "META-INF/resources/static/$resource" | sha256sum | cut -d' ' -f1)"
+            test "$source_hash" = "$jar_hash"
+          done
+          ! unzip -Z1 "$app_jar" | grep -Eq '^META-INF/resources/static/(node_modules/|mcp-app\.html$)'
 
   native-build:
     runs-on: ubuntu-latest

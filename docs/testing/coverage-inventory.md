@@ -70,24 +70,21 @@ Script 测试当前覆盖 `devctl.sh` 的运行环境隔离、`.env` 加载、�
 
 精确命令以静态资源目录的 `package.json` 为准。
 
-### 6.1 独立 MCP Apps View
+### 6.1 双资源 MCP Apps View
 
-独立 View 的验证与旧 Scenario/控制台分开，命令和隔离规则见[测试说明](../operations/testing.md#81-独立-mcp-apps-view)，源码及交付状态见[组件说明](../components/mcp-app.md)。以下记录测试职责，不代表尚未执行的真实外部链路已通过。
+双资源验证与旧 Scenario/控制台分开；命令见[测试说明](../operations/testing.md#81-独立-mcp-apps-view)，边界见[组件说明](../components/mcp-app.md)。
 
 | 测试文件/层次 | 当前覆盖重点 |
 | --- | --- |
-| `presentation.spec.mjs` | 在严格 CSP 下对照控制台生产 CSS 的共享任务条、序号、图例与等宽字体；阶段配色、键盘选择、长整数字符串分数、窄屏/平板/桌面及深色全屏 |
-| `model.test.mjs` | 从人工 canonical goldens 导出的 JavaScript/Python 分析 parity；标量、空集合与未知集合、实体身份、归属、不可播放原因、不变异；无时区业务轴、日历/DST/早期年份与 Java Duration 边界；回放阶段、零距离、零时长、无返程、吸附原几何、跨经度和合成大数据 |
-| `bridge.test.mjs` | 协议处理器注册/连接时序、版本化只读工具调用、外层身份与错误分支、显式刷新、迟到响应、输入和通知覆盖、取消、长 ID、宿主显示模式及资源清理 |
-| `maps.test.mjs` | provider/URL/origin 防错、历史 LOC 转换、原路线索引、路线来源区分、坏几何整段不可用、POI 缺失、纯文本标记、AMAP complete 超时、HERE 样式错误/监听解除、含 eval 的 CSP 分类、旧 object 尺寸传感器的容器级拦截与恢复、尺寸合并/隐藏/失败/销毁及覆盖物生命周期 |
-| `build.test.mjs` 与 `verify:mcp-app` | 严格 manifest 与精确 HTTPS origin、无隐式批准、standalone Schema 校验、浏览器依赖闭包及拒绝 SDK with-deps/嵌套 Zod、第一方代码约束、Gateway 同款动态代码拒绝规则（不豁免被捕获探测）、单文件产物、确定性和过期检测 |
-| `bridge.spec.mjs` | Chromium 中生产内联 HTML/官方 SDK 的握手、严格 CSP 与初始化/收发/刷新/销毁全过程动态编译零调用、探测监测负向控制、非父窗口消息拒绝、协议/身份校验、刷新竞态、取消恢复、长 ID、全屏拒绝、teardown ACK、双卡隔离和认证/权限失败清理 |
-| `viewer.spec.mjs` | AMAP/HERE SDK 替身中的选择与工单联动、HERE 克隆事件及原几何、规划回放边界/暂停和静态覆盖物复用、地图策略失败保留 Gantt、AMAP complete 超时/HERE 样式错误、SDK 延迟加载与刷新竞态、窄屏/主题/语言/键盘、XSS、已知空/未知集合、Gateway 非就绪/终态无模型展示、不可播放向量与合成大数据 |
-| `edge-cases.spec.mjs` | 部分工程师可播放、缺失引用原序号、零时长服务/零距离段、同任务刷新保留选择/视角/游标、Gantt 滚动保持、浏览器时区/DST 一致、失败手动重试不轮询、缺失工程师与窄屏键盘焦点 |
-| `viewer.spec.mjs` 地图适配回归 | AMAP/HERE 替身绘图缓冲区跟随全屏/退出/容器变化；选择、视野与游标保持；捕获的 SDK eval 仍报告 CSP 阻断；配置、超时和未知加载失败提示区分 |
-| `real-sdk-check.mjs`（仅显式联网） | 新产物及实际响应哈希校验，真实 Gateway 只读任务及原 map_context、AMAP 初始化/Worker 瓦片/实际标记、主画布尺寸、播放/筛选/刷新/退出/关闭；严格策略降级与临时执行兼容策略分开记录 |
+| Python 契约 | 同一 59-case 集合的 Map/Gantt 两组 golden、诊断与语义；唯一 Schema；引用 POI 裁剪；Map 几何/回放与 Gantt 空几何/保序段位分离；200/1,000/4,097 大向量 |
+| `model.test.mjs` | 标量、空/未知集合、身份、归属、时间轴、Map 回放资格、阶段边界、原始几何与大结果 |
+| `bridge.test.mjs` | 两种固定工具名与输入 Schema、信封 view/版本/任务/工程师边界、显式刷新、单次 `ui/message`、取消、竞态、显示模式和 teardown |
+| `maps.test.mjs` | Map 独有 provider/origin、历史坐标、原路线索引、坏几何、纯文本标记、加载/CSP/尺寸/销毁 |
+| `build.test.mjs` / `verify:mcp-app` | 严格 `resources.map/gantt`、每资源 4 MiB、确定性、自包含、SDK 2.0.0/共享 Zod/jitless、拒绝动态代码/表单/嵌套页；Gantt 依赖闭包无地图模块、origin 或网络策略 |
+| Playwright | 双资源初始化、固定工具刷新、Gantt 意图消息、全屏拒绝、权限/取消清理、多卡隔离、销毁、双语、主题、窄屏、键盘、恶意文本、大结果及 Gantt 零地图请求 |
+| `real-sdk-check.mjs`（显式联网） | 真实 Gateway/AMAP 的受控诊断入口；不进入默认门禁，也不替代 HERE 与四宿主验收 |
 
-默认测试不读取开发任务数据或真实地图凭据，不引入默认外部地图调用；显式联网脚本的授权、配置和隔离要求见[测试说明](../operations/testing.md#显式启用真实-amap-联调)。模型参考 helper 只用于测试，不进入浏览器构建，也不充当 Gateway 生产投影。模拟宿主验证与离线契约相互补充；SDK 替身不证明真实瓦片、鉴权、HERE worker/WASM 或客户端安全策略可用。
+默认测试不读取开发任务数据或真实地图凭据，不引入默认外部地图调用。模拟宿主与图商替身不证明真实瓦片、鉴权、HERE worker/WASM 或客户端安全策略可用。
 
 ## 7. 已知缺口
 

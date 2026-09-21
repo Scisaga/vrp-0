@@ -7,8 +7,9 @@
 | 文件 | 用途 |
 | --- | --- |
 | `base-source.json` | 合成原始 SolverJob；内部任务 ID 与 Gateway ID 故意不同。 |
-| `base-expected.json` | 人工定义的安全 `engine_view`，不是参考投影器的输出快照。 |
-| `cases.json` | 基于上述两个文件的独立输入/期望补丁、诊断及语义断言。 |
+| `base-expected.json` | 人工定义的 Map profile 安全 `engine_view` 基线。 |
+| `gantt-expected.json` | 同一 59-case 集合的 Gantt profile 完整人工期望、诊断与身份/引用/顺序/班次/计划时间/路线段位语义断言。 |
+| `cases.json` | 基于安全基线的独立输入/Map 期望补丁、诊断及语义断言。 |
 | `large-recipe.json` | 200 个每日工程师、1,000 个工单及高点数折线的确定性生成参数和预期不变量；不是产品规模上限。 |
 | `payloads.json` | 按 issue 公共契约组织的完整正常工具结果、业务错误、资源错误及认证错误交接样例。 |
 
@@ -27,7 +28,7 @@ python -B scripts/tests/mcp_result_view_fixtures.py --case missing-middle-route-
 python -B scripts/tests/mcp_result_view_fixtures.py --large
 ```
 
-单例与大结果输出均包含原始 JSON、完整期望投影和断言，可交给其他语言的投影实现复用，不要求 Gateway 依赖 Python。大结果的计划从已白名单化的合成模板生成，期望保持所有计划字段与点位不变，任务身份取手写安全基线；不调用参考投影器生成预期。大结果在内存中生成，不提交庞大的展开文件，不修改 `data/` 或 `db/`。
+单例包含同一源数据的 Map/Gantt 两组期望。大结果在内存中生成，用于验证 200 个工程师、1,000 个工单和 Map 首段 4,097 点折线不被截断，不修改 `data/` 或 `db/`。
 
 ## 3. 验证与安全边界
 
@@ -37,8 +38,8 @@ python -B scripts/tests/mcp_result_view_fixtures.py --large
 python -B -m unittest discover -s scripts/tests -p 'test_mcp_result_view_contract.py' -v
 ```
 
-验证包含标准 Draft 2020-12 Schema、字段映射 golden 比较、引用/顺序/时间/路线的语义断言、不同 `TZ` 的一致性及大结果无截断检查。参考映射和语义工具仅供测试，不是引擎或 Gateway 的生产实现。
+验证包含唯一 Draft 2020-12 Schema、两 Profile golden 比较、引用 POI 裁剪、Gantt 空几何/保序段位、Map 几何与回放、不同 `TZ` 的一致性及大结果无截断检查。参考映射和语义工具仅供测试，不是引擎或 Gateway 的生产实现。
 
 所有 `TEST_ONLY_*` 值均为故意注入的合成测试标记，包括不可用的地图 key；`example.invalid` 链接不会被请求。公开 SDK URL 仅用于展示配置形状，不代表 CSP 已获批准。错误 `details` 对象形状来自 issue 的交接设计，不表示 Gateway 当前实现已迁移。
 
-外层样例固定 `result_summary=null`，绘图数据只在 `_meta.gateway_ui.engine_view`，模型可见摘要不复制折线。不能把该示例集合当作另一份 Gateway 协议：状态映射、禁用地图配置及错误兼容仍以 issue 所引用的 Gateway 权威契约为准。
+外层样例固定 `result_summary=null`，分别覆盖 Map/Gantt 的 ready、空结果与失败/未就绪；非成功状态不携带模型。Gantt map_context 固定禁用且清空网络配置。不能把该示例集合当作另一份 Gateway 协议，权威外层契约仍在 Gateway 仓库。

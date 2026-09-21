@@ -25,7 +25,7 @@ manifest 的 `request_schema_source.file: docs/openapi.yaml` 相对**引擎仓�
 - `skills/vrp0-metadata/` 生成器默认将这三份元数据写入 `gateway/`，将参考 `request-schema.json` 写入 `docs/integrations/gateway/`。
 - 生成器仍支持显式 `--output-dir` 指定元数据输出目录，不要为修改目录而重新生成并覆盖已有配置或 Schema。
 - 修改 Schema 或 `mcp_ui` 时按[测试说明](../../operations/testing.md#81-独立-mcp-apps-view)重建、校验和回归；仅路径迁移也须确认构建/测试仍能定位资料。
-- MCP HTML 仍交付到 `src/main/resources/META-INF/resources/static/mcp-app.html`，不迁入文档目录。
+- MCP HTML 交付到 `src/main/resources/META-INF/resources/static/mcp-map-app.html` 与 `mcp-gantt-app.html`，不保留旧单资源文件，也不迁入文档目录。
 
 ## 3. Gateway 导入交接
 

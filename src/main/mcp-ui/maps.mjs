@@ -1,9 +1,9 @@
 import { poiPosition, routePosition } from './model.mjs';
 import { connectDomains, resourceDomains } from 'mcp-network-policy';
+import { colorFor } from './palette.mjs';
+export { colorFor } from './palette.mjs';
 
 const ROAD = new Set(['AMAP_TRUCK','AMAP_DRIVING','AMAP_BICYCLE','HERE_TRUCK','HERE_DRIVING','HERE_BICYCLE','CAR_FALLBACK']);
-const PALETTE = ['#4338ca','#047857','#b45309','#be123c','#0e7490','#7e22ce','#4d7c0f','#9f1239'];
-export function colorFor(id) { let hash = 0; for (const c of String(id)) hash = ((hash * 31) + c.codePointAt(0)) >>> 0; return PALETTE[hash % PALETTE.length]; }
 export function mapError(code) { return Object.assign(new Error(code), { code }); }
 function allowedURL(value, origins) {
   if (typeof value !== 'string') throw mapError('MAP_CONFIG');

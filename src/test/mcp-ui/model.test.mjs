@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 import {
-  analyze, buildReplay, buildViewModel, formatPlanTime,
-  isPlanDuration, parsePlanTime, poiPosition, routePosition, validateViewSemantics,
+  analyze, buildGanttViewModel, buildReplay, buildViewModel, formatPlanTime,
+  isPlanDuration, parsePlanTime, poiPosition, routePosition, validateGanttSemantics, validateViewSemantics,
 } from "../../main/mcp-ui/model.mjs";
 import { contractCases, largeView } from "./model-fixtures.mjs";
 
@@ -11,6 +12,18 @@ const cases = contractCases();
 const fixture = (name = "ready-amap-single") => structuredClone(cases.find((item) => item.name === name).view);
 const time = (clock) => parsePlanTime(`2026-09-17 ${clock}`);
 const clone = (value) => structuredClone(value);
+
+test("Gantt model accepts only the geometry-free profile and does not create replay analysis", () => {
+  const payloads=JSON.parse(readFileSync(new URL("../../../docs/integrations/gateway/fixtures/mcp-result-view/payloads.json",import.meta.url),"utf8"));
+  const gantt=clone(payloads.find(item=>item.name==="gantt-ready").message._meta.gateway_ui.engine_view);
+  assert.equal(validateGanttSemantics(gantt),true);
+  const model=buildGanttViewModel(gantt);
+  assert.equal(Object.hasOwn(model,"analysis"),false);
+  assert.ok(model.pois.every(poi=>poi.location===null));
+  assert.ok(model.agents[0].routes.every(route=>route===null||[route.origin,route.destination,route.polyline,route.transit].every(value=>value===null)));
+  gantt.solver_job.plan.pois[0].location="120,30";
+  assert.equal(validateGanttSemantics(gantt),false);
+});
 
 function freeze(value) {
   if (value !== null && typeof value === "object") {

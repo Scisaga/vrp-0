@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
-import { createViewerBridge, readEnvelope, ViewerBridgeError } from '../../main/mcp-ui/bridge.mjs';
+import { createViewerBridge, readEnvelope as readEnvelopeRaw, ViewerBridgeError } from '../../main/mcp-ui/bridge.mjs';
 
 const payloads = JSON.parse(await readFile(new URL('../../../docs/integrations/gateway/fixtures/mcp-result-view/payloads.json', import.meta.url), 'utf8'));
 const sample = (name = 'ready') => structuredClone(payloads.find((item) => item.name === name).message);
+const readEnvelope = (result, options = {}) => readEnvelopeRaw(result, { viewKind: result?._meta?.gateway_ui?.view ?? 'map', ...options });
 const envelope = () => readEnvelope(sample());
 const deferred = () => {
   let resolve; let reject;
@@ -45,6 +46,7 @@ class FakeApp {
     return Promise.resolve(this.nextDisplayResult ?? { mode: params.mode });
   }
   async sendSizeChanged(size) { this.sizes.push(size); }
+  async sendMessage(message, options) { this.messages ??= []; this.messages.push({ message, options }); return this.nextMessageResult ?? {}; }
   async close() { this.closed += 1; this.onclose?.(); }
 }
 
@@ -54,7 +56,7 @@ async function setup(extraHandlers = {}) {
     onInput: (...value) => inputs.push(value), onResult: (...value) => results.push(value),
     onHostContext: (value) => contexts.push(value), onError: (value) => errors.push(value),
     onTeardown: () => { teardowns += 1; }, ...extraHandlers,
-  }, { AppClass: FakeApp });
+  }, { AppClass: FakeApp, viewKind: 'map' });
   assert.equal(await bridge.connect(), true);
   return { bridge, app: FakeApp.instances.at(-1), inputs, results, contexts, errors, teardownCount: () => teardowns };
 }
@@ -144,11 +146,13 @@ test('normalizes only standard tool arguments and suppresses old-task notificati
   const { bridge, app, inputs, results } = await setup();
   const data = envelope();
   app.ontoolinput({ arguments: { job_id: data.job_id, ignored: 'never consumed' } });
-  assert.deepEqual(inputs[0][0], { job_id: data.job_id, view: 'map' });
+  assert.deepEqual(inputs, []);
+  app.ontoolinput({ arguments: { job_id: data.job_id } });
+  assert.deepEqual(inputs[0][0], { job_id: data.job_id });
   app.ontoolresult(sample());
   assert.equal(results.length, 1);
-  assert.deepEqual(results[0][1], { kind: 'notification', requestJobId: data.job_id, requestEpoch: 1 });
-  app.ontoolinput({ arguments: { job_id: 'new-task', view: 'gantt' } });
+  assert.deepEqual(results[0][1], { kind: 'notification', requestJobId: data.job_id, requestEpoch: 2 });
+  app.ontoolinput({ arguments: { job_id: 'new-task' } });
   app.ontoolresult(sample());
   assert.equal(results.length, 1);
   await bridge.destroy();
@@ -157,8 +161,8 @@ test('normalizes only standard tool arguments and suppresses old-task notificati
 test('refreshes using supplied verified tool only; long engineer IDs are omitted, never truncated', async () => {
   const { bridge, app, results } = await setup();
   const data = envelope();
-  const pending = bridge.refresh(data, { view: 'gantt', engineerId: 'engineer-'.repeat(30) });
-  assert.deepEqual(app.calls[0].params, { name: data.display_tool_name, arguments: { job_id: data.job_id, view: 'gantt' } });
+  const pending = bridge.refresh(data, { engineerId: 'engineer-'.repeat(30) });
+  assert.deepEqual(app.calls[0].params, { name: data.display_tool_name, arguments: { job_id: data.job_id } });
   app.calls[0].resolve(sample());
   assert.ok(await pending);
   assert.equal(results[0][1].kind, 'refresh');
@@ -167,6 +171,26 @@ test('refreshes using supplied verified tool only; long engineer IDs are omitted
   app.calls[1].resolve(sample());
   await short;
   await bridge.destroy();
+});
+
+test('map sends one exact user text intent while Gantt has no message or engineer extension', async () => {
+  const { bridge, app } = await setup();
+  const data = envelope();
+  const sent = await bridge.sendGanttIntent(data);
+  const text = JSON.stringify({ intent:'show_job_gantt', job_id:data.job_id, image_version_id:data.image_version_id });
+  assert.deepEqual(sent, { sent:true, status:'sent', text });
+  assert.deepEqual(app.messages, [{ message:{ role:'user', content:[{ type:'text', text }] }, options:{ timeout:10000 } }]);
+  await bridge.destroy();
+
+  const inputs=[];
+  const gantt=createViewerBridge({onInput:value=>inputs.push(value)}, {AppClass:FakeApp,viewKind:'gantt'});
+  assert.equal(await gantt.connect(),true);
+  const ganttApp=FakeApp.instances.at(-1),ganttResult=sample('gantt-ready'),ganttEnvelope=readEnvelope(ganttResult);
+  ganttApp.ontoolinput({arguments:{job_id:ganttEnvelope.job_id,engineer_id:'forbidden'}});
+  assert.deepEqual(inputs,[]);
+  assert.deepEqual(await gantt.sendGanttIntent(ganttEnvelope),{sent:false,status:'failed',text:''});
+  const pending=gantt.refresh(ganttEnvelope);assert.deepEqual(ganttApp.calls[0].params.arguments,{job_id:ganttEnvelope.job_id});
+  ganttApp.calls[0].resolve(ganttResult);assert.ok(await pending);await gantt.destroy();
 });
 
 test('refuses tool guessing or in-place mutation to a write tool', async () => {
@@ -285,7 +309,7 @@ test('host teardown acknowledges before transport close and cleans handlers once
 test('connection errors and callback failures never report private payloads', async () => {
   const errors = [];
   class RejectingApp extends FakeApp { async connect() { throw new Error('secret credentials in SDK error'); } }
-  const rejected = createViewerBridge({ onError: (error) => errors.push(error) }, { AppClass: RejectingApp });
+  const rejected = createViewerBridge({ onError: (error) => errors.push(error) }, { AppClass: RejectingApp, viewKind: 'map' });
   assert.equal(await rejected.connect(), false);
   assert.deepEqual(errors, [{ code: 'MCP_UI_BRIDGE_FAILED', clearData: false }]);
   await rejected.destroy();
@@ -304,7 +328,7 @@ test('concurrent connect shares one handshake and destroy suppresses its late co
   const before = FakeApp.instances.length;
   const bridge = createViewerBridge({
     onHostContext: (value) => contexts.push(value), onError: (value) => errors.push(value),
-  }, { AppClass: PendingApp });
+  }, { AppClass: PendingApp, viewKind: 'map' });
   const first = bridge.connect(); const second = bridge.connect();
   assert.equal(first, second);
   assert.equal(FakeApp.instances.length, before + 1);
@@ -320,7 +344,7 @@ test('unsupported handshake protocol fails closed while other SDK requests are t
   class UnsupportedApp extends FakeApp {
     async request() { return { protocolVersion: 'unsupported-protocol' }; }
   }
-  const bridge = createViewerBridge({ onError: error => errors.push(error) }, { AppClass: UnsupportedApp });
+  const bridge = createViewerBridge({ onError: error => errors.push(error) }, { AppClass: UnsupportedApp, viewKind: 'map' });
   assert.equal(await bridge.connect(), false);
   assert.deepEqual(errors, [{ code: 'MCP_UI_PROTOCOL_UNSUPPORTED', clearData: true }]);
   await bridge.destroy();

@@ -2,7 +2,6 @@
 const CONTRACT = 'gateway_mcp_result_v1';
 const APP_PROTOCOL = '2026-01-26'; // Negotiated MCP Apps protocol of the pinned official SDK 2.0.
 const VERSION_ID = /^[0-9a-f]{32}$/;
-const DISPLAY_TOOL = /^gateway\.ui\.result_([0-9a-f]{32})$/;
 const RESULT_STATES = new Set(['ready', 'running', 'not_ready', 'failed', 'canceled', 'timed_out', 'archive_failed']);
 const AUTH_CODES = new Set(['UNAUTHORIZED', 'FORBIDDEN', 'INVALID_TOKEN', 'INVALID_PAT', 'INSUFFICIENT_SCOPE', 'USER_DISABLED']);
 const GATEWAY_CODES = new Set([
@@ -18,7 +17,16 @@ const CLEAR_CODES = new Set([
 const own = (object, key) => Object.prototype.hasOwnProperty.call(object, key);
 const record = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
 const identity = (value) => typeof value === 'string' && value.trim().length > 0 && !/[\u0000-\u001f\u007f]/.test(value);
-const supportedView = (value) => value === 'map' || value === 'gantt';
+const VIEW_CONFIG = Object.freeze({
+  map: { tool: /^gateway\.ui\.map_result_([0-9a-f]{32})$/, input: new Set(['job_id', 'engineer_id']) },
+  gantt: { tool: /^gateway\.ui\.gantt_result_([0-9a-f]{32})$/, input: new Set(['job_id']) },
+});
+
+function viewConfig(viewKind) {
+  const config = VIEW_CONFIG[viewKind];
+  if (!config) throw new ViewerBridgeError('MCP_UI_VIEW_UNSUPPORTED');
+  return config;
+}
 
 /** UI-local safe error: never retains the server message, details, or payload. */
 export class ViewerBridgeError extends Error {
@@ -51,8 +59,9 @@ function safeError(error, fallback = 'MCP_UI_BRIDGE_FAILED') {
  * Missing UI metadata is an explicit fallback, never parsed from model text.
  */
 export function readEnvelope(result, {
-  expectedJobId, expectedVersionId, expectedToolName, validateView,
+  viewKind, expectedJobId, expectedVersionId, expectedToolName, validateView,
 } = {}) {
+  const config = viewConfig(viewKind);
   if (!record(result)) throw new ViewerBridgeError('MCP_UI_ENVELOPE_INVALID');
   if (record(result.error)) throw gatewayError(result.error.data);
   if (result.isError === true) throw gatewayError(result.structuredContent);
@@ -60,14 +69,24 @@ export function readEnvelope(result, {
   if (!record(envelope)) throw new ViewerBridgeError('MCP_UI_META_MISSING');
   if (envelope.contract_version !== CONTRACT || !identity(envelope.job_id)
       || !VERSION_ID.test(envelope.image_version_id)
-      || !RESULT_STATES.has(envelope.result_state) || !supportedView(envelope.view)
+      || !RESULT_STATES.has(envelope.result_state) || envelope.view !== viewKind
       || !(envelope.engineer_id === null || identity(envelope.engineer_id))
       || envelope.platform_timezone !== '+08:00' || !record(envelope.task)
-      || !own(envelope, 'engine_view')) {
+      || envelope.result_summary !== null || !own(envelope, 'engine_view') || !record(envelope.map_context)) {
+    throw new ViewerBridgeError('MCP_UI_ENVELOPE_INVALID');
+  }
+  if ((viewKind === 'gantt' && envelope.engineer_id !== null)
+      || (viewKind === 'map' && envelope.engineer_id !== null && [...envelope.engineer_id].length > 128)) {
+    throw new ViewerBridgeError('MCP_UI_ENVELOPE_INVALID');
+  }
+  if (viewKind === 'gantt' && (envelope.map_context.enabled !== false
+      || !['AMAP', 'HERE'].includes(envelope.map_context.provider)
+      || envelope.map_context.browser_key !== null || envelope.map_context.js_url !== ''
+      || envelope.map_context.css_url !== null || !identity(envelope.map_context.locale))) {
     throw new ViewerBridgeError('MCP_UI_ENVELOPE_INVALID');
   }
   const toolMatch = typeof envelope.display_tool_name === 'string'
-    ? DISPLAY_TOOL.exec(envelope.display_tool_name) : null;
+    ? config.tool.exec(envelope.display_tool_name) : null;
   if (!toolMatch || toolMatch[1] !== envelope.image_version_id
       || envelope.task.job_id !== envelope.job_id
       || envelope.task.image_version_id !== envelope.image_version_id
@@ -78,13 +97,18 @@ export function readEnvelope(result, {
   }
   const model = envelope.engine_view;
   if (model === null) {
-    if (envelope.result_state === 'ready') throw new ViewerBridgeError('MCP_UI_MODEL_INVALID');
+    if (envelope.result_state === 'ready' || envelope.engineer_id !== null) throw new ViewerBridgeError('MCP_UI_MODEL_INVALID');
   } else {
-    if (!record(model) || model.kind !== 'vrp0' || model.schema_version !== 2
+    if (envelope.result_state !== 'ready' || envelope.task.status !== 'succeeded'
+        || !record(model) || model.kind !== 'vrp0' || model.schema_version !== 2
         || model.display_model !== 'vrp0_solver_job' || !record(model.solver_job)) {
       throw new ViewerBridgeError('MCP_UI_MODEL_INVALID');
     }
     if (model.solver_job.id !== envelope.job_id) throw new ViewerBridgeError('MCP_UI_IDENTITY_MISMATCH');
+    if (viewKind === 'map' && envelope.engineer_id !== null
+        && !model.solver_job.plan?.agents?.some((agent) => record(agent) && agent.id === envelope.engineer_id)) {
+      throw new ViewerBridgeError('MCP_UI_IDENTITY_MISMATCH');
+    }
     if (validateView !== undefined) {
       try {
         if (typeof validateView !== 'function' || validateView(model) !== true) {
@@ -107,6 +131,8 @@ const defaultApp = async () => (await import('./sdk.mjs')).App;
  * failure. readEnvelope itself deliberately throws so callers can show fallback.
  */
 export function createViewerBridge(handlers = {}, options = {}) {
+  const viewKind = options.viewKind;
+  const config = viewConfig(viewKind);
   let app;
   let connected = false;
   let destroyed = false;
@@ -120,6 +146,7 @@ export function createViewerBridge(handlers = {}, options = {}) {
   let notificationsCancelled = false;
   let flight;
   let displayFlight;
+  let messageFlight;
   let closeTimer;
   let teardownCalled = false;
 
@@ -169,9 +196,9 @@ export function createViewerBridge(handlers = {}, options = {}) {
     instance.ontoolinput = (params) => {
       if (destroyed) return;
       const args = params?.arguments;
-      if (!record(args) || !identity(args.job_id) || [...args.job_id].length > 128
-          || (args.view !== undefined && !supportedView(args.view))
-          || (args.engineer_id !== undefined
+      if (!record(args) || Object.keys(args).some((key) => !config.input.has(key))
+          || !identity(args.job_id) || [...args.job_id].length > 128
+          || (viewKind === 'map' && args.engineer_id !== undefined
             && (!identity(args.engineer_id) || [...args.engineer_id].length > 128))) {
         invalidate();
         notificationsCancelled = true;
@@ -182,8 +209,8 @@ export function createViewerBridge(handlers = {}, options = {}) {
       notificationsCancelled = false;
       jobId = args.job_id;
       invoke('onInput', {
-        job_id: args.job_id, view: args.view ?? 'map',
-        ...(args.engineer_id !== undefined ? { engineer_id: args.engineer_id } : {}),
+        job_id: args.job_id,
+        ...(viewKind === 'map' && args.engineer_id !== undefined ? { engineer_id: args.engineer_id } : {}),
       }, { requestEpoch: epoch });
     };
     instance.ontoolresult = (result) => {
@@ -285,15 +312,17 @@ export function createViewerBridge(handlers = {}, options = {}) {
     return connecting;
   }
 
-  async function refresh(envelope, { view, engineerId } = {}) {
+  async function refresh(envelope, { engineerId } = {}) {
     if (destroyed) return null;
     if (!connected) { notifyError(new ViewerBridgeError('MCP_UI_NOT_CONNECTED')); return null; }
     if (flight) { notifyError(new ViewerBridgeError('MCP_UI_REFRESH_BUSY')); return null; }
     let checked;
     try {
-      checked = readEnvelope({ _meta: { gateway_ui: envelope } }, { expectedJobId: jobId });
-      if (!supportedView(view ?? checked.view)) throw new ViewerBridgeError('MCP_UI_INPUT_INVALID');
-      if (engineerId !== undefined && engineerId !== null && !identity(engineerId)) {
+      checked = readEnvelope({ _meta: { gateway_ui: envelope } }, { viewKind, expectedJobId: jobId });
+      if (viewKind === 'gantt' && engineerId !== undefined && engineerId !== null) {
+        throw new ViewerBridgeError('MCP_UI_INPUT_INVALID');
+      }
+      if (viewKind === 'map' && engineerId !== undefined && engineerId !== null && !identity(engineerId)) {
         throw new ViewerBridgeError('MCP_UI_INPUT_INVALID');
       }
     } catch (error) { notifyError(error); return null; }
@@ -303,9 +332,9 @@ export function createViewerBridge(handlers = {}, options = {}) {
       controller: new AbortController(),
     };
     flight = token;
-    const args = { job_id: checked.job_id, view: view ?? checked.view };
+    const args = { job_id: checked.job_id };
     // Long IDs remain intact in local UI state; the optional input is omitted.
-    if (identity(engineerId) && [...engineerId].length <= 128) args.engineer_id = engineerId;
+    if (viewKind === 'map' && identity(engineerId) && [...engineerId].length <= 128) args.engineer_id = engineerId;
     const current = () => !destroyed && token.epoch === epoch
       && token.revision === notificationRevision && flight === token && jobId === token.jobId;
     try {
@@ -314,7 +343,7 @@ export function createViewerBridge(handlers = {}, options = {}) {
       );
       if (!current()) return null;
       readEnvelope(result, {
-        expectedJobId: checked.job_id, expectedVersionId: checked.image_version_id,
+        viewKind, expectedJobId: checked.job_id, expectedVersionId: checked.image_version_id,
         expectedToolName: checked.display_tool_name,
       });
       invoke('onResult', result, { kind: 'refresh', requestJobId: token.jobId, requestEpoch: token.epoch });
@@ -323,6 +352,33 @@ export function createViewerBridge(handlers = {}, options = {}) {
       if (current()) notifyError(error, 'MCP_UI_REFRESH_FAILED');
       return null;
     } finally { if (flight === token) flight = undefined; }
+  }
+
+  async function sendGanttIntent(envelope, { timeout = 10000 } = {}) {
+    const fallback = { sent: false, status: 'failed', text: '' };
+    if (viewKind !== 'map' || destroyed || !connected || messageFlight) return fallback;
+    let checked;
+    try {
+      checked = readEnvelope({ _meta: { gateway_ui: envelope } }, { viewKind: 'map', expectedJobId: jobId });
+    } catch (error) {
+      notifyError(error);
+      return fallback;
+    }
+    const text = JSON.stringify({
+      intent: 'show_job_gantt', job_id: checked.job_id, image_version_id: checked.image_version_id,
+    });
+    messageFlight = (async () => {
+      try {
+        const result = await app.sendMessage({ role: 'user', content: [{ type: 'text', text }] }, { timeout });
+        if (destroyed) return { sent: false, status: 'failed', text };
+        return result?.isError === true
+          ? { sent: false, status: 'rejected', text }
+          : { sent: true, status: 'sent', text };
+      } catch {
+        return { sent: false, status: 'unknown', text };
+      } finally { messageFlight = undefined; }
+    })();
+    return messageFlight;
   }
 
   async function requestDisplayMode(mode) {
@@ -365,7 +421,7 @@ export function createViewerBridge(handlers = {}, options = {}) {
   }
 
   return {
-    connect, refresh, requestDisplayMode, reportSize,
+    connect, refresh, sendGanttIntent, requestDisplayMode, reportSize,
     getHostContext: () => ({ ...hostContext }),
     destroy() { destroying ??= release(true); return destroying; },
   };

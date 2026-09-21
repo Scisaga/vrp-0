@@ -58,12 +58,23 @@ def patched(value, operations):
 def cases():
     source = read_json("base-source.json")
     expected = read_json("base-expected.json")
+    gantt_expected = read_json("gantt-expected.json")
     for case in read_json("cases.json"):
+        map_expected = None if case.get("expected_null") else patched(expected, case.get("expected_patch", []))
+        if map_expected is not None and map_expected["solver_job"]["plan"]["pois"] is not None:
+            plan = map_expected["solver_job"]["plan"]
+            referenced = {agent.get("start_loc") for agent in plan["agents"] or []}
+            referenced.update(ticket.get("loc") for ticket in plan["tickets"] or [])
+            plan["pois"] = [poi for poi in plan["pois"] if poi["id"] in referenced]
         yield {
             **case,
             "gateway_job_id": case.get("gateway_job_id", expected["solver_job"]["id"]),
             "source": patched(source, case.get("source_patch", [])),
-            "expected": None if case.get("expected_null") else patched(expected, case.get("expected_patch", [])),
+            "expected": map_expected,
+            "profiles": {
+                "map": {"engine_view": map_expected, "diagnostics": case["diagnostics"]},
+                "gantt": gantt_expected[case["name"]],
+            },
         }
 
 

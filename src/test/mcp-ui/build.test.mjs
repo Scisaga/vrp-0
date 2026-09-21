@@ -10,8 +10,10 @@ const { verifyDocument, verifyInputs, verifyFirstPartySource } = require('./scri
 const { build } = require('esbuild');
 const manifest = () => ({ mcp_ui: {
   contract_version: 'gateway_mcp_result_v1', result_view_kind: 'vrp0', result_view_schema_version: 2,
-  views: ['map','gantt'], display_modes: ['inline','fullscreen'],
-  csp: { connect_domains: ['https://z.example','https://a.example'], resource_domains: ['https://sdk.example:8443'] }
+  resources: {
+    map: { file:'mcp-map-app.html', display_modes:['inline','fullscreen'], csp:{ connect_domains:['https://z.example','https://a.example'], resource_domains:['https://sdk.example:8443'] } },
+    gantt: { file:'mcp-gantt-app.html', display_modes:['inline','fullscreen'], csp:{ connect_domains:[], resource_domains:[] } }
+  }
 } });
 const document = (script = '"use strict";') => `<!doctype html><html><head><meta charset="utf-8"><style>body{color:red}</style></head><body><script>${script}</script></body></html>`;
 
@@ -21,7 +23,7 @@ test('manifest build policy is a strict, normalized copy, not an implicit approv
     connectDomains: ['https://a.example','https://z.example'], resourceDomains: ['https://sdk.example:8443']
   });
   assert.deepEqual(original, snapshot);
-  const empty = manifest(); empty.mcp_ui.csp = {connect_domains:[],resource_domains:[]};
+  const empty = manifest(); empty.mcp_ui.resources.map.csp = {connect_domains:[],resource_domains:[]};
   assert.deepEqual(networkPolicyFromManifest(empty), {connectDomains:[],resourceDomains:[]}, 'empty arrays express a valid declaration, not a working map');
   assert.ok(readNetworkPolicy().resourceDomains.includes('https://js.api.here.com'));
   assert.ok(readNetworkPolicy().resourceDomains.includes('https://vdata.amap.com'));
@@ -30,17 +32,17 @@ test('manifest build policy is a strict, normalized copy, not an implicit approv
   for (const change of [
     value => { delete value.mcp_ui; },
     value => { value.mcp_ui.entry_path = '/other.html'; },
-    value => { delete value.mcp_ui.views; },
+    value => { delete value.mcp_ui.resources; },
     value => { value.mcp_ui.contract_version = 'unknown'; },
     value => { value.mcp_ui.result_view_kind = 'other'; },
     value => { value.mcp_ui.result_view_schema_version = '2'; },
-    value => { value.mcp_ui.views = ['map']; },
-    value => { value.mcp_ui.views = ['map','gantt','map']; },
-    value => { value.mcp_ui.display_modes = ['inline','fullscreen','pip']; },
-    value => { value.mcp_ui.csp = null; },
-    value => { value.mcp_ui.csp.frame_domains = ['https://evil.example']; },
-    value => { value.mcp_ui.csp.connect_domains = 'https://api.example'; },
-    value => { value.mcp_ui.csp.resource_domains = ['https://sdk.example/path']; }
+    value => { value.mcp_ui.resources = {map:value.mcp_ui.resources.map}; },
+    value => { value.mcp_ui.resources.extra = value.mcp_ui.resources.map; },
+    value => { value.mcp_ui.resources.map.display_modes = ['inline','fullscreen','pip']; },
+    value => { value.mcp_ui.resources.map.csp = null; },
+    value => { value.mcp_ui.resources.map.csp.frame_domains = ['https://evil.example']; },
+    value => { value.mcp_ui.resources.map.csp.connect_domains = 'https://api.example'; },
+    value => { value.mcp_ui.resources.map.csp.resource_domains = ['https://sdk.example/path']; }
   ]) {
     const value = manifest(); change(value);
     assert.throws(() => networkPolicyFromManifest(value));

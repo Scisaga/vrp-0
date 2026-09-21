@@ -313,6 +313,18 @@ export function validateViewSemantics(engineView) {
     && (poi.location === null || poiPosition(poi) !== null));
 }
 
+/** Gantt profile deliberately has no map geometry or replay qualification. */
+export function validateGanttSemantics(engineView) {
+  if (!validateViewSemantics(engineView)) return false;
+  const plan = planOf(engineView);
+  const allowedSources = new Set([...ROAD_SOURCES, "ESTIMATED", "ZERO_DISTANCE", null]);
+  if (Array.isArray(plan?.pois) && plan.pois.some((poi) => poi.location !== null)) return false;
+  if (!Array.isArray(plan?.agents)) return true;
+  return plan.agents.every((agent) => agent.routes === null || agent.routes.every((route) => route === null
+    || (allowedSources.has(route.route_source) && route.origin === null && route.destination === null
+      && route.polyline === null && route.transit === null)));
+}
+
 /** Conservative counts and per-engineer eligibility; no new fields in the wire. */
 export function analyze(engineView) {
   const plan = planOf(engineView);
@@ -339,6 +351,23 @@ export function buildViewModel(engineView) {
       || (Array.isArray(plan?.tickets) && tickets === null)
       || (Array.isArray(plan?.pois) && pois === null),
     analysis: analyzeIndexes(agents, tickets, pois),
+  };
+}
+
+/** Presentation indexes for Gantt. Never invokes map/replay analysis. */
+export function buildGanttViewModel(engineView) {
+  const plan = planOf(engineView);
+  const agents = entityIndex(plan?.agents);
+  const tickets = entityIndex(plan?.tickets);
+  const pois = entityIndex(plan?.pois);
+  return {
+    agents: Array.isArray(plan?.agents) ? plan.agents : null,
+    tickets: Array.isArray(plan?.tickets) ? plan.tickets : null,
+    pois: Array.isArray(plan?.pois) ? plan.pois : null,
+    indexes: { agents: agents || new Map(), tickets: tickets || new Map(), pois: pois || new Map() },
+    invalidIdentity: (Array.isArray(plan?.agents) && agents === null)
+      || (Array.isArray(plan?.tickets) && tickets === null)
+      || (Array.isArray(plan?.pois) && pois === null),
   };
 }
 

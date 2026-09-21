@@ -1,7 +1,7 @@
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
-const { buildMcpApp, staticRoot, projectRoot, sourceRoot, outputFile } = require("./build-mcp-app.cjs");
+const { buildMcpApps, staticRoot, projectRoot, sourceRoot, outputFiles } = require("./build-mcp-app.cjs");
 
 function verifyDocument(html) {
   assert(/^\s*<!doctype html>/i.test(html), "MCP App must be a complete HTML document");
@@ -28,7 +28,8 @@ function verifyDocument(html) {
   assert(!/\bconsole\s*(?:(?:\?\.|\.)\s*[a-z]+|(?:\?\.)?\s*\[\s*["'][a-z]+["']\s*\])\s*(?:\?\.)?\s*\(/i.test(scripts[0][0]), "MCP App must not log protocol messages or credentials");
   const shell = html.replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, "")
     .replace(/<style\b[^>]*>[\s\S]*?<\/style\s*>/gi, "");
-  assert(!/<(?:iframe|link|base|object|embed)\b/i.test(shell), "MCP App cannot embed another page or require external shell assets");
+  assert(!/<(?:iframe|link|base|object|embed|form)\b/i.test(shell), "MCP App cannot embed another page, form or require external shell assets");
+  assert(!/<meta\b[^>]*http-equiv\s*=\s*["']?refresh/i.test(shell), "MCP App cannot redirect with meta refresh");
   assert(!/\son[a-z]+\s*=/i.test(shell), "MCP App cannot use inline event handlers");
   assert(!/\bsrcset\s*=/i.test(shell), "MCP App shell must not fetch image variants");
   for (const match of shell.matchAll(/\b(?:src|href|action|formaction)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/gi)) {
@@ -70,13 +71,20 @@ function verifyFirstPartySource(source) {
 
 async function verify() {
   assert(process.argv.slice(2).every((arg) => arg === "--check"), "Only --check is supported");
-  const first = await buildMcpApp();
-  const second = await buildMcpApp();
-  assert.equal(first.html, second.html, "MCP App build must be deterministic");
-  assert.equal(fs.readFileSync(outputFile, "utf8"), first.html, "mcp-app.html is stale; run npm run build:mcp-app");
-  verifyDocument(first.html);
-  verifyInputs(first.inputs);
-  console.log("[verify:mcp-app] deterministic, self-contained artifact and manifest checks passed (no files written)");
+  const first = await buildMcpApps();
+  const second = await buildMcpApps();
+  for (const kind of ["map", "gantt"]) {
+    assert.equal(first[kind].html, second[kind].html, `${kind} MCP App build must be deterministic`);
+    const outputBytes = fs.readFileSync(outputFiles[kind]);
+    const trackedHtml = new TextDecoder("utf-8", { fatal: true }).decode(outputBytes);
+    assert.equal(trackedHtml, first[kind].html, `${kind} artifact is stale; run npm run build:mcp-app`);
+    verifyDocument(first[kind].html);
+    verifyInputs(first[kind].inputs);
+  }
+  assert(!first.gantt.inputs.some((input) => /(?:^|\/)maps\.mjs$/.test(input) || input === "mcp-contract:mcp-network-policy"), "Gantt dependency closure must not contain map modules or network policy");
+  assert(!/https:\/\/(?:webapi\.amap\.com|js\.api\.here\.com|maps\.hereapi\.com|vdata\.amap\.com)/.test(first.gantt.html), "Gantt artifact must not contain map origins");
+  assert(!fs.existsSync(path.join(staticRoot, "mcp-app.html")), "legacy mcp-app.html must be absent");
+  console.log("[verify:mcp-app] both deterministic, self-contained artifacts and manifest checks passed (no files written)");
 }
 
 if (require.main === module) verify().catch((error) => { console.error(error); process.exitCode = 1; });

@@ -129,7 +129,10 @@ def _same_point(first: tuple[float, float], second: tuple[float, float]) -> bool
 
 
 class _Projection:
-    def __init__(self) -> None:
+    def __init__(self, profile: str) -> None:
+        if profile not in {"map", "gantt"}:
+            raise ValueError("profile must be map or gantt")
+        self.profile = profile
         self.diagnostics: list[dict[str, str]] = []
         self.diagnostic_keys: set[tuple[str, str]] = set()
         self.fatal = False
@@ -202,7 +205,9 @@ class _Projection:
             return None
         projected = {"id": entity_id}
         for key in ("name", "address", "location"):
-            projected[key] = self.scalar(source, key, path, "location" if key == "location" else "string")
+            projected[key] = None if key == "location" and self.profile == "gantt" else self.scalar(
+                source, key, path, "location" if key == "location" else "string"
+            )
         if inline:
             self.inline_pois_found = True
         previous = self.pois.get(entity_id)
@@ -269,6 +274,12 @@ class _Projection:
         if not isinstance(source, dict):
             self.diagnostic("invalid_type", path)
             return None
+        if self.profile == "gantt":
+            return {
+                "origin": None, "destination": None, "polyline": None,
+                "route_source": self.scalar(source, "route_source", path, "route_source"),
+                "transit": None,
+            }
         polyline = self.collection(source, "polyline", path)
         projected_line = None
         if polyline is not None:
@@ -351,7 +362,7 @@ class _Projection:
         return result
 
 
-def project(source: Any, gateway_job_id: Any) -> dict[str, Any]:
+def project(source: Any, gateway_job_id: Any, profile: str = "map") -> dict[str, Any]:
     """Return a strict, non-mutating test projection and JSON-Pointer diagnostics.
 
     Invalid identities, conflicting POIs, and invalid non-null ticket owners
@@ -359,7 +370,7 @@ def project(source: Any, gateway_job_id: Any) -> dict[str, Any]:
     keep their indices and an invalid assignment list becomes wholly unknown.
     Diagnostics refer to raw source fields (``/id`` for the supplied Gateway ID).
     """
-    state = _Projection()
+    state = _Projection(profile)
     if not isinstance(source, dict):
         state.diagnostic("invalid_source", "", fatal=True)
     if not _identity(gateway_job_id):
@@ -382,7 +393,9 @@ def project(source: Any, gateway_job_id: Any) -> dict[str, Any]:
     state.entities(raw_pois, "poi")
     agents = state.entities(raw_agents, "agent")
     tickets = state.entities(raw_tickets, "ticket")
-    pois = list(state.pois.values()) if raw_pois is not None or state.inline_pois_found else None
+    referenced_pois = {entity_id for kind, entity_id, _ in state.references if kind == "poi"}
+    pois = ([poi for entity_id, poi in state.pois.items() if entity_id in referenced_pois]
+            if raw_pois is not None or state.inline_pois_found else None)
     job["plan"] = {"agents": agents, "tickets": tickets, "pois": pois}
     indexes = {
         "agent": {item["id"] for item in agents or []},

@@ -32,6 +32,31 @@ def nodes(value, path=""):
             yield from nodes(child, f"{path}/{index}")
 
 
+def gantt_assertions(engine_view):
+    if engine_view is None:
+        return {"has_model": False}
+    plan = engine_view["solver_job"]["plan"]
+    entity_order = lambda key: None if plan[key] is None else [item["id"] for item in plan[key]]
+    return {
+        "has_model": True,
+        "agent_order": entity_order("agents"),
+        "ticket_order": entity_order("tickets"),
+        "poi_order": entity_order("pois"),
+        "agents": None if plan["agents"] is None else [{
+            "id": agent["id"], "start_loc": agent["start_loc"], "tickets": agent["tickets"],
+            "route_sources": None if agent["routes"] is None else [
+                None if route is None else route["route_source"] for route in agent["routes"]
+            ],
+            "shift_times": [agent["shift_start_time"], agent["shift_off_time"], agent["tickets_done_time"]],
+        } for agent in plan["agents"]],
+        "tickets": None if plan["tickets"] is None else [{
+            "id": ticket["id"], "agent": ticket["agent"], "loc": ticket["loc"],
+            "plan_times": [ticket["min_start_time"], ticket["max_end_time"], ticket["arrival_time"],
+                           ticket["start_service_time"], ticket["departure_time"]],
+        } for ticket in plan["tickets"]],
+    }
+
+
 class ContractTests(unittest.TestCase):
     def assert_subset(self, actual, expected, path=""):
         if isinstance(expected, dict):
@@ -58,25 +83,42 @@ class ContractTests(unittest.TestCase):
     def test_golden_mapping_and_semantic_vectors(self):
         names = set()
         for case in cases():
-            with self.subTest(case=case["name"]):
-                self.assertNotIn(case["name"], names)
-                names.add(case["name"])
+          for profile in ("map", "gantt"):
+            with self.subTest(case=case["name"], profile=profile):
+                if profile == "map":
+                    self.assertNotIn(case["name"], names)
+                    names.add(case["name"])
                 original = deepcopy(case["source"])
-                result = project(case["source"], case["gateway_job_id"])
+                result = project(case["source"], case["gateway_job_id"], profile)
                 self.assertEqual(case["source"], original, "Projection mutated archive JSON")
-                self.assertEqual(result["engine_view"], case["expected"])
-                if not case["diagnostics"]:
+                expected = case["profiles"][profile]
+                self.assertEqual(result["engine_view"], expected["engine_view"])
+                if not expected["diagnostics"]:
                     self.assertEqual(result["diagnostics"], [])
-                for required in case["diagnostics"]:
+                for required in expected["diagnostics"]:
                     self.assertTrue(any(all(item.get(k) == v for k, v in required.items())
                                         for item in result["diagnostics"]),
                                     f"Missing {required}: {result['diagnostics']}")
                 for item in result["diagnostics"]:
                     self.assertEqual(set(item), {"code", "path"})
                     self.assertTrue(item["path"] == "" or item["path"].startswith("/"))
-                if case["expected"] is None:
+                if profile == "gantt":
+                    self.assertEqual(gantt_assertions(result["engine_view"]), expected["assertions"])
+                if expected["engine_view"] is None:
                     continue
                 VALIDATOR.validate(result["engine_view"])
+                plan = result["engine_view"]["solver_job"]["plan"]
+                referenced = {agent.get("start_loc") for agent in plan["agents"] or []}
+                referenced.update(ticket.get("loc") for ticket in plan["tickets"] or [])
+                self.assertTrue(all(poi["id"] in referenced for poi in plan["pois"] or []))
+                if profile == "gantt":
+                    self.assertTrue(all(poi["location"] is None for poi in plan["pois"] or []))
+                    for agent in plan["agents"] or []:
+                        if agent["routes"] is not None:
+                            for route in agent["routes"]:
+                                if route is not None:
+                                    self.assertTrue(all(route[key] is None for key in ("origin", "destination", "polyline", "transit")))
+                    continue
                 before_analysis = deepcopy(result["engine_view"])
                 actual = analyze(result["engine_view"])
                 self.assertEqual(result["engine_view"], before_analysis, "Analysis mutated wire model")
@@ -267,7 +309,12 @@ print(json.dumps([analyze(project(c['source'],c['gateway_job_id'])['engine_view'
                 self.assertEqual(envelope["platform_timezone"], "+08:00")
                 self.assertEqual(envelope["task"]["job_id"], envelope["job_id"])
                 self.assertEqual(envelope["task"]["image_version_id"], envelope["image_version_id"])
-                self.assertEqual(envelope["display_tool_name"], "gateway.ui.result_" + envelope["image_version_id"])
+                self.assertEqual(envelope["display_tool_name"], f"gateway.ui.{envelope['view']}_result_" + envelope["image_version_id"])
+                if envelope["view"] == "gantt":
+                    self.assertIsNone(envelope["engineer_id"])
+                    self.assertEqual(envelope["map_context"]["enabled"], False)
+                    self.assertEqual(envelope["map_context"]["browser_key"], None)
+                    self.assertEqual(envelope["map_context"]["js_url"], "")
                 self.assertIsNone(envelope["result_summary"])
                 summary = message["structuredContent"]
                 self.assertEqual(set(summary), {"contract_version", "job_id", "image_version_id", "status", "view", "engineer_id", "result_summary", "ui_available", "detail_page_url"})
@@ -281,6 +328,7 @@ print(json.dumps([analyze(project(c['source'],c['gateway_job_id'])['engine_view'
                 self.assertEqual(envelope["result_state"], sample["expectation"]["result_state"])
                 states.add(envelope["result_state"])
                 self.assertEqual(envelope["engine_view"] is not None, sample["expectation"]["has_model"])
+                self.assertEqual(envelope["engine_view"] is not None, envelope["result_state"] == "ready")
                 if envelope["engine_view"] is not None:
                     VALIDATOR.validate(envelope["engine_view"])
                     self.assertEqual(envelope["engine_view"]["solver_job"]["id"], envelope["job_id"])

@@ -1,6 +1,7 @@
 @import "./result-presentation.css";
 @import "tailwindcss";
-@source not "../../mcp-app.html";
+@source not "../../mcp-map-app.html";
+@source not "../../mcp-gantt-app.html";
 @source not "../../scripts/build-mcp-app.cjs";
 @source not "../../scripts/verify-mcp-app.cjs";
 
