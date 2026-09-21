@@ -32,11 +32,11 @@ SDK 固定为 `@modelcontextprotocol/ext-apps@2.0.0` 普通入口，共享 Zod�
 
 页面只读取 `_meta.gateway_ui`，强制校验当前资源的固定 `view`、当前工具名、ImageVersion、任务身份、`result_summary=null` 和工程师定位：Map 的 `engineer_id` 为已验证焦点或 `null`，Gantt 固定为 `null`。只有 `result_state=ready`（Gateway 成功任务的展示态）且安全投影成功时 `engine_view` 才能非空；其他状态必须为 `null`。
 
-每个卡片实例独立保存选择、视窗、滚动、全屏和播放状态。不使用 Cookie、Web Storage、全局任务缓存、REST 或对象存储。刷新只调用信封中已验证的当前资源工具；Map 可携带当前合法工程师，Gantt 只携带任务 ID。取消、新输入、较新通知、权限失效和 teardown 都会使旧请求失效；销毁时释放地图、计时器、监听器和 SDK。
+每个卡片实例独立保存选择、视窗、滚动、全屏和播放状态。不使用 Cookie、Web Storage、全局任务缓存、REST 或对象存储。页面隐藏结果刷新按钮且不轮询；保留的只读刷新边界只允许调用信封中已验证的当前资源工具，Map 可携带当前合法工程师，Gantt 只携带任务 ID。取消、新输入、较新通知、权限失效和 teardown 都会使旧请求失效；销毁时释放地图、计时器、监听器和 SDK。
 
 ## 4. Map App
 
-Inline Map 只展示全部/单工程师本地切换、点位、工单序号、路线方向、图例、平移、缩放与适配路线；不重复任务名称、任务状态、平台时间、结果指标或独立对象详情。切换工程师不请求后端，显式刷新仍只调用 Map Tool。页面下方的“查看 Gantt 排程”只有用户点击才调用 `ui/message`，内容严格为一个 `user` 文本 ContentBlock：
+Inline Map 只展示全部/单工程师本地切换、点位、工单序号、路线方向、图例、平移、缩放与适配路线；不重复任务名称、任务状态、平台时间、结果指标或独立对象详情。切换工程师不请求后端，页面不显示结果刷新按钮。页面下方的“查看 Gantt 排程”只有用户点击才调用 `ui/message`，内容严格为一个 `user` 文本 ContentBlock：
 
 ```json
 {"intent":"show_job_gantt","job_id":"<已验证任务>","image_version_id":"<已验证版本>"}
@@ -64,6 +64,6 @@ Inline Gantt 使用真实业务时间轴、工程师本地筛选、行程/等待
 
 ## 7. 验证与发布交接
 
-测试命令和分层见 [`docs/operations/testing.md`](../operations/testing.md)，覆盖构建确定性、双资源初始化、固定工具刷新、`ui/message`、全屏拒绝、权限清理、多卡隔离、销毁、双语、主题、窄屏、键盘、恶意文本、大结果及 Gantt 零地图请求。发布前还需执行 `./gradlew allStableTest` 和 JVM 打包，核对 JAR 内两份 HTML 与工作区逐字节一致，且任何 JAR 都不含 `static/node_modules`。
+测试命令和分层见 [`docs/operations/testing.md`](../operations/testing.md)，覆盖构建确定性、双资源初始化、刷新按钮隐藏及固定工具边界、`ui/message`、全屏拒绝、权限清理、多卡隔离、销毁、双语、主题、窄屏、键盘、恶意文本、大结果及 Gantt 零地图请求。发布前还需执行 `./gradlew allStableTest` 和 JVM 打包，核对 JAR 内两份 HTML 与工作区逐字节一致，且任何 JAR 都不含 `static/node_modules`。
 
 Gateway 双资源能力已实现，但真实导入与宿主验收仍按 §1 标为未验证。Map CSP 只是精确来源申请，不是地图可用证明；不得用通配符、代理、空 CSP 或服务端密钥绕过。正式发布不得覆盖当前 `1.1.0-alpha-SNAPSHOT` tag。

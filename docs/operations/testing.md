@@ -177,7 +177,7 @@ Node 测试需要可执行的 `python3`：模型 fixture helper 以 `python3 -B`
 | View 桥 Node | 官方 SDK 边界替身；先注册处理器再连接、结果身份、白名单错误映射、只读工具名、Map/Gantt 固定工具与输入边界、显式刷新、`ui/message`、输入/通知竞态、取消、显示模式与 teardown |
 | 地图 Node | AMAP/HERE 上下文及 URL 策略、原段位/坐标轴/几何、不可播放来源、缺失数据、纯文本 marker、AMAP complete 超时、HERE 样式错误、含 eval 的 CSP 分类、容器级旧尺寸传感器拦截/恢复、尺寸合并/隐藏/销毁及失败、覆盖物与实例释放 |
 | 构建 Node 与产物校验 | manifest 字段/精确 origin、Ajv standalone、第一方依赖闭包、共享 Zod/拒绝 SDK with-deps、HTML/CSS/JS 自包含、敏感信息、Gateway 同款动态代码静态拒绝规则、确定性与过期产物 |
-| 模拟浏览器 | 使用真实构建 HTML 与官方 View SDK，在模拟宿主和图商 SDK 替身中检查双资源初始化、布局、选择、固定工具刷新、消息发送、地图/Gantt、全屏拒绝、回放、Gantt 零地图请求、安全降级、实例隔离和生命周期；具体执行结果见当次记录 |
+| 模拟浏览器 | 使用真实构建 HTML 与官方 View SDK，在模拟宿主和图商 SDK 替身中检查双资源初始化、布局、选择、刷新按钮隐藏与固定工具边界、消息发送、地图/Gantt、全屏拒绝、回放、Gantt 零地图请求、安全降级、实例隔离和生命周期；具体执行结果见当次记录 |
 
 浏览器测试以不同合成 origin 的宿主与 App iframe 运行，iframe 使用 `sandbox="allow-scripts"`，不授予同源权限。测试 CSP 禁止普通 `unsafe-eval`，并通过路由拦截提供合成宿主页面及 AMAP/HERE SDK 替身，未知请求中止；不请求真实瓦片、读取 `.env` 或使用真实 key。此配置验证第一方/桥的受限执行，不证明 HERE 真实 worker/WASM 或图商鉴权可用。
 

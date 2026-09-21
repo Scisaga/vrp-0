@@ -177,7 +177,7 @@ try {
       await frame.locator('#fullscreen').click();await expect(page.locator('#display-mode')).toHaveValue('fullscreen');
       await sized('reenter_fullscreen_size'); await expect(frame.locator('#play')).toHaveAttribute('aria-pressed','false');
       assert.equal(await frame.locator('#cursor').inputValue(),cursor);
-      await frame.locator('#refresh').click();await expect(frame.locator('#refresh')).toBeEnabled();await expect(frame.locator('#map-state')).toBeHidden();
+      await expect(frame.locator('#refresh')).toBeHidden();await frame.locator('#refresh').evaluate(el=>el.click());await expect(frame.locator('#map-state')).toBeHidden();
       assert.equal(await frame.locator('#engineer').inputValue(),selected);assert.equal(await frame.locator('#cursor').inputValue(),cursor);
       await frame.locator('#engineer').selectOption('');await frame.locator('#cursor').fill('990');await frame.locator('#play').click();
       await expect(frame.locator('#play')).toHaveAttribute('aria-pressed','false',{timeout:10000});assert.equal(await frame.locator('#cursor').inputValue(),'1000');

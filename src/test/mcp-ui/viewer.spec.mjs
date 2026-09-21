@@ -3,12 +3,12 @@ import { largeView } from './model-fixtures.mjs';
 
 function asGantt(result=message('gantt-ready')) { return result; }
 
-test('map inline stays focused on routes, filters locally, refreshes the fixed map tool and sends exact Gantt intent',async({page})=>{
+test('map inline hides refresh, stays focused on routes, and sends exact Gantt intent',async({page})=>{
   const host=await openHost(page),frame=await host.add();await mapReady(frame);
   await expect(frame.locator('#task-title,#task-meta,#summary,#inline-detail')).toHaveCount(0);
   await frame.locator('#engineer').selectOption(AGENT);await expect(frame.locator('.mcp-marker[data-kind="ticket"]')).toHaveCount(2);
   expect((await host.pending('card')).length).toBe(0);
-  await frame.locator('#refresh').click();await expect.poll(async()=>(await host.pending('card')).length).toBe(1);
+  await expect(frame.locator('#refresh')).toBeHidden();await frame.locator('#refresh').evaluate(el=>el.click());await expect.poll(async()=>(await host.pending('card')).length).toBe(1);
   const call=(await host.pending('card'))[0];expect(call.params).toMatchObject({name:message()._meta.gateway_ui.display_tool_name,arguments:{job_id:message()._meta.gateway_ui.job_id,engineer_id:AGENT}});
   await host.respond('card',0,message());await mapReady(frame);
   await frame.locator('#open-gantt').click();await expect.poll(async()=>(await host.messages('card')).length).toBe(1);
@@ -29,7 +29,7 @@ test('map fullscreen provides isolated sidebar, fit, replay and pauses on hide o
 
 test('Gantt artifact has no map surface or network request, filters locally, zooms and exposes fullscreen right sidebar',async({page})=>{
   const host=await openHost(page),frame=await host.add({result:asGantt()});
-  await expect(frame.locator('#map-canvas,#fit-map,#open-gantt')).toHaveCount(0);await expect(frame.locator('.gantt-bar')).toHaveCount(5);
+  await expect(frame.locator('#map-canvas,#fit-map,#open-gantt')).toHaveCount(0);await expect(frame.locator('#refresh')).toBeHidden();await expect(frame.locator('.gantt-bar')).toHaveCount(5);
   expect(host.requests.some(url=>url.startsWith('https://'))).toBe(false);
   await frame.locator('#engineer').selectOption(AGENT);expect((await host.pending('card')).length).toBe(0);
   const before=await frame.locator('.gantt-grid').evaluate(el=>el.getBoundingClientRect().width);await frame.locator('#gantt-in').click();expect(await frame.locator('.gantt-grid').evaluate(el=>el.getBoundingClientRect().width)).toBeGreaterThan(before);
