@@ -157,6 +157,39 @@ test('malicious business labels stay plain text and marker construction never co
   }
 });
 
+test('HERE omits lineDash for solid routes and sets it only for dashed return legs', () => {
+  const previous = globalThis.document, styles = [];
+  globalThis.document = {
+    addEventListener() {}, removeEventListener() {},
+    createElement() { return {style:{},setAttribute() {},addEventListener() {}}; }
+  };
+  class LineString { constructor() { this.points = []; } pushLatLngAlt(lat,lng) { this.points.push([lng,lat]); } }
+  class Polyline { constructor(points,{style}) { this.points = points; styles.push(style); } }
+  class DomIcon { constructor(element) { this.element = element; } }
+  class DomMarker { constructor(position,options) { this.position = position; this.options = options; } }
+  const adapter = new MapView({}, {onSelect() {},onFailure(error) { throw error; }});
+  try {
+    adapter.kind = 'HERE';
+    adapter.map = {
+      getCenter:() => ({lng:120,lat:30}), getZoom:() => 12,
+      removeObjects() {}, addObjects() {}, setCenter() {}, setZoom() {}, dispose() {}
+    };
+    adapter.api = {geo:{LineString},map:{Polyline,DomIcon,DomMarker}};
+    adapter.update({markers:[],lines:[
+      {key:'solid',agentId:'agent',positions:[[120,30],[120.1,30.1]],color:'#123456',returnLeg:false},
+      {key:'return',agentId:'agent',positions:[[120.1,30.1],[120,30]],color:'#654321',returnLeg:true}
+    ],warnings:[]});
+    assert.deepEqual(styles, [
+      {strokeColor:'#123456',lineWidth:4},
+      {strokeColor:'#654321',lineWidth:4,lineDash:[5,4]}
+    ]);
+    assert.equal(Object.hasOwn(styles[0], 'lineDash'), false);
+  } finally {
+    adapter.dispose();
+    if (previous === undefined) delete globalThis.document; else globalThis.document = previous;
+  }
+});
+
 test('map context accepts only enabled matching providers and nonblank public browser credentials', () => {
   for (const provider of ['AMAP','HERE']) {
     const value = Object.freeze(context(provider));

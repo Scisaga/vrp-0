@@ -226,7 +226,9 @@ export class MapView {
       if (this.kind === 'AMAP') shape = new this.api.Polyline({ path:line.positions, strokeColor:line.color, strokeWeight:4, strokeOpacity:line.returnLeg ? .55 : .85, strokeStyle:line.returnLeg ? 'dashed' : 'solid', showDir:true });
       else {
         const points = new this.api.geo.LineString(); for (const [lng,lat] of line.positions) points.pushLatLngAlt(lat,lng,0);
-        shape = new this.api.map.Polyline(points, { style:{ strokeColor:line.color,lineWidth:4,lineDash:line.returnLeg ? [5,4] : undefined } });
+        const style = { strokeColor:line.color,lineWidth:4 };
+        if (line.returnLeg) style.lineDash = [5,4];
+        shape = new this.api.map.Polyline(points, { style });
       }
       this.objects.push(shape);
       if (this.kind === 'HERE') {

@@ -38,7 +38,10 @@ export const mapSdkFixture = `(() => {
     setGeometry(value){this.position=value;stats.moves.push({label:this.content?.textContent,position:[value.lng,value.lat]})}
   }
   class LineString {constructor(){this.points=[]}pushLatLngAlt(lat,lng){this.points.push([lng,lat])}}
-  class HPolyline {constructor(points,options){this.options=options;stats.lines.push({path:points.points,...options})}}
+  class HPolyline {constructor(points,options){
+    if(Object.hasOwn(options.style,'lineDash')&&options.style.lineDash===undefined)throw new Error('HERE rejects undefined lineDash');
+    this.options=options;stats.lines.push({path:points.points,...options})
+  }}
   class Group {constructor(){this.objects=[]}addObject(value){this.objects.push(value)}getBoundingBox(){return this.objects.length?{}:null}dispose(){}}
   class Style {
     static State={ERROR:-1,READY:2};constructor(){this.state=2;this.listeners=new Map()}
