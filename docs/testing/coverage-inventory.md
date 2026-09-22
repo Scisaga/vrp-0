@@ -79,9 +79,9 @@ Script 测试当前覆盖 `devctl.sh` 的运行环境隔离、`.env` 加载、�
 | Python 契约 | 同一 59-case 集合的 Map/Gantt 两组 golden、诊断与语义；唯一 Schema；引用 POI 裁剪；Map 几何/回放与 Gantt 空几何/保序段位分离；200/1,000/4,097 大向量 |
 | `model.test.mjs` | 标量、空/未知集合、身份、归属、时间轴、Map 回放资格、阶段边界、原始几何与大结果 |
 | `bridge.test.mjs` | 两种固定工具名与输入 Schema、信封 view/版本/任务/工程师边界、显式刷新、单次 `ui/message`、取消、竞态、显示模式和 teardown |
-| `maps.test.mjs` | Map 独有 provider/origin、历史坐标、原路线索引、坏几何、纯文本标记、加载/CSP/尺寸/销毁 |
+| `maps.test.mjs` / `map-diagnostics.test.mjs` / `iframe-map.test.mjs` | Map 独有 provider/origin、历史坐标、原路线索引、坏几何、纯文本标记、加载/CSP/尺寸/销毁；诊断阶段与错误码白名单、iframe 失败、阶段单调性及原始异常脱敏 |
 | `build.test.mjs` / `verify:mcp-app` | 严格 `resources.map/gantt`、每资源 4 MiB、确定性、自包含、SDK 2.0.0/共享 Zod/jitless、拒绝动态代码/表单/嵌套页；Gantt 依赖闭包无地图模块、origin 或网络策略 |
-| Playwright | 双资源初始化、刷新按钮隐藏与固定工具边界、Gantt 意图消息、全屏拒绝、权限/取消清理、多卡隔离、销毁、双语、主题、窄屏、键盘、恶意文本、大结果及 Gantt 零地图请求 |
+| Playwright | 双资源初始化、刷新按钮隐藏与固定工具边界、Gantt 意图消息、全屏拒绝、权限/取消清理、多卡隔离、销毁、双语、主题、窄屏、键盘、恶意文本、大结果及 Gantt 零地图请求；图商替身覆盖 AMap 脚本/SDK/构造/ready/覆盖物/fit 分阶段失败、renderer 通道失败、中英文安全诊断和成功态隐藏 |
 | `real-sdk-check.mjs`（显式联网） | 真实 Gateway/AMAP 的受控诊断入口；不进入默认门禁，也不替代 HERE 与四宿主验收 |
 
 默认测试不读取开发任务数据或真实地图凭据，不引入默认外部地图调用。模拟宿主与图商替身不证明真实瓦片、鉴权、HERE worker/WASM 或客户端安全策略可用。

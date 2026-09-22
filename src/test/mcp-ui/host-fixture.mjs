@@ -94,7 +94,7 @@ try{eval('window.__unexpectedDynamicExecution=true')}catch{window.__caughtDynami
 window.__publishDynamicCodeState();
 </script>`;
 
-export async function openHost(page, { mapFailure=false, mapCsp=false, probeCsp=false, monitorDynamicCode=false, probeDynamicCode=false }={}) {
+export async function openHost(page, { mapFailure=false, rendererFailure=false, shortMapTimeouts=false, mapCsp=false, probeCsp=false, monitorDynamicCode=false, probeDynamicCode=false }={}) {
   if (probeDynamicCode && !monitorDynamicCode) throw new Error('Dynamic-code negative control requires the parser-installed monitor');
   if (probeCsp && monitorDynamicCode) throw new Error('Native CSP self-test must run separately from SDK zero-attempt monitoring');
   const logs=[];const errors=[];const requests=[];const unexpected=[];
@@ -109,6 +109,7 @@ export async function openHost(page, { mapFailure=false, mapCsp=false, probeCsp=
     if(url.origin==='http://mcp-host.test')return route.fulfill({contentType:'text/html',body:hostDocument});
     if(url.origin==='http://mcp-app.test'){
       const kind=url.searchParams.get('kind')==='gantt'?'gantt':'map';let body=fs.readFileSync(artifacts[kind],'utf8');
+      if(shortMapTimeouts&&kind==='map')body=body.replace('<head>','<head><script>{const nativeSetTimeout=setTimeout;window.setTimeout=(callback,delay,...args)=>nativeSetTimeout(callback,delay>=20000?500:delay,...args)}</script>');
       // A parser-executed test-only probe proves unsafe-eval is blocked. A script
       // appended by Playwright's debugger evaluate inherits its CSP bypass.
       if(probeCsp)body=body.replace('<head>','<head><script>try{new Function("window.__unsafeExecuted=true")()}catch{window.__unsafeEvalBlocked=true}</script>');
@@ -116,12 +117,16 @@ export async function openHost(page, { mapFailure=false, mapCsp=false, probeCsp=
       return route.fulfill({contentType:'text/html',body,headers:{'content-security-policy':mapCsp?strictCsp(kind).replace(' https://webapi.amap.com',''):strictCsp(kind)}});
     }
     if(url.origin==='https://renderer.planly.test'){
+      if(rendererFailure==='load')return route.abort();
+      if(rendererFailure==='channel')return route.fulfill({contentType:'text/html',body:'<!doctype html><html><body>no channel</body></html>'});
       let csp=rendererCsp();if(mapCsp)csp=csp.replace(' https://webapi.amap.com','');
-      return route.fulfill({contentType:'text/html',body:fs.readFileSync(artifacts.renderer,'utf8'),headers:{'content-security-policy':csp}});
+      let body=fs.readFileSync(artifacts.renderer,'utf8');
+      if(shortMapTimeouts)body=body.replace('<head>','<head><script>{const nativeSetTimeout=setTimeout;window.setTimeout=(callback,delay,...args)=>nativeSetTimeout(callback,delay>=20000?500:delay,...args)}</script>');
+      return route.fulfill({contentType:'text/html',body,headers:{'content-security-policy':csp}});
     }
     if(['https://webapi.amap.com','https://js.api.here.com'].includes(url.origin)){
-      if(mapFailure)return route.abort();
-      return route.fulfill({contentType:'text/javascript',body:mapSdkFixture});
+      if(mapFailure===true||mapFailure==='script')return route.abort();
+      return route.fulfill({contentType:'text/javascript',body:`window.__mapFailureMode=${JSON.stringify(mapFailure||'')};`+mapSdkFixture});
     }
     unexpected.push(url.href);return route.abort();
   });

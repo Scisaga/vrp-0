@@ -3,6 +3,7 @@ export const mapSdkFixture = `(() => {
   const stats = window.__mapStats ||= { maps:[], destroyed:0, fits:0, moves:[], lines:[] };
   class MapFixture {
     constructor(container, layer, options) {
+      if(window.__mapFailureMode==='map-create')throw new Error('sensitive constructor detail https://secret.invalid/?key=never-render');
       this.container=container;this.options=options || layer;this.center=this.options.center;this.zoom=this.options.zoom;this.objects=[];this.listeners=new Map();
       stats.maps.push(this);container.dataset.mockMap='ready';
       this.canvas=document.createElement('canvas');container.appendChild(this.canvas);this.triggerResize();
@@ -19,16 +20,16 @@ export const mapSdkFixture = `(() => {
     remove(objects){this.removeObjects(objects)}
     removeObjects(objects){for(const item of objects)item.content?.remove();this.objects=this.objects.filter(item=>!objects.includes(item))}
     getCenter(){return Array.isArray(this.center)?{lng:this.center[0],lat:this.center[1]}:this.center}
-    on(type,listener){if(!this.listeners.has(type))this.listeners.set(type,new Set());this.listeners.get(type).add(listener);if(type==='complete'&&!window.__disableMapComplete)setTimeout(()=>this.emit('complete'),0)}
+    on(type,listener){if(window.__mapFailureMode==='ready')throw new Error('sensitive ready detail');if(!this.listeners.has(type))this.listeners.set(type,new Set());this.listeners.get(type).add(listener);if(type==='complete'&&!window.__disableMapComplete)setTimeout(()=>this.emit('complete'),0)}
     off(type,listener){this.listeners.get(type)?.delete(listener)}emit(type){for(const listener of this.listeners.get(type)||[])listener({type})}
     getZoom(){return this.zoom}setZoom(value){this.zoom=value}setCenter(value){this.center=value}
     setZoomAndCenter(zoom,center){this.zoom=zoom;this.center=center}
-    setFitView(){stats.fits++}getViewModel(){return {setLookAtData:()=>{stats.fits++}}}
+    setFitView(){if(window.__mapFailureMode==='fit')throw new Error('sensitive fit detail');stats.fits++}getViewModel(){return {setLookAtData:()=>{stats.fits++}}}
     triggerResize(){this.size={width:this.container.clientWidth,height:this.container.clientHeight};this.canvas.width=this.size.width;this.canvas.height=this.size.height;this.canvas.style.cssText='position:absolute;pointer-events:none;width:'+this.size.width+'px;height:'+this.size.height+'px'}getViewPort(){return {resize:()=>this.triggerResize()}}
     destroy(){this.dispose()}dispose(){if(this.disposed)return;this.disposed=true;this.removeObjects([...this.objects]);this.canvas.remove();stats.destroyed++;delete this.container.dataset.mockMap}
   }
   class AMapMarker {
-    constructor(options){this.position=options.position;this.content=options.content}
+    constructor(options){if(window.__mapFailureMode==='overlay')throw new Error('sensitive overlay detail');this.position=options.position;this.content=options.content}
     setPosition(value){this.position=value;stats.moves.push({label:this.content?.textContent,position:value})}
   }
   class AMapPolyline {constructor(options){this.options=options;stats.lines.push(options)}}
@@ -50,6 +51,6 @@ export const mapSdkFixture = `(() => {
   }
   class Platform {constructor(){}createDefaultLayers(){const style=new Style();stats.style=style;return {vector:{normal:{mapnight:{getProvider:()=>({getStyle:()=>style})}}}}}}
   class Disposable {dispose(){}}
-  window.AMap={Map:MapFixture,Marker:AMapMarker,Polyline:AMapPolyline};
+  window.AMap=window.__mapFailureMode==='sdk'?{}:{Map:MapFixture,Marker:AMapMarker,Polyline:AMapPolyline};
   window.H={Map:MapFixture,service:{Platform},geo:{LineString},map:{render:{Style},DomIcon,DomMarker,Polyline:HPolyline,Group,Marker:class{constructor(position){this.position=position}}},mapevents:{MapEvents:Disposable,Behavior:Disposable}};
 })();`;

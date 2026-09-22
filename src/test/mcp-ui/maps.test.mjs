@@ -280,12 +280,15 @@ test('AMAP readiness resolves only on documented complete and removes its listen
   } finally {restore();}
 });
 
-test('AMAP missing complete times out without inventing an authentication diagnosis', async t => {
+test('AMAP missing complete reports the safe ready phase without inventing an authentication diagnosis', async t => {
   t.mock.timers.enable(['setTimeout']);
   const {view, restore} = isolatedAdapter();
   try {
     view.map = amapEvents(); view.kind = 'AMAP';
-    const expected = assert.rejects(view.waitForAmapComplete(), error => error.code === 'MAP_TIMEOUT' && error.message === 'MAP_TIMEOUT');
+    view.lastSuccessfulStage = 'amap_map_created';
+    const expected = assert.rejects(view.waitForAmapComplete(), error => error.code === 'AMAP_READY_FAILED'
+      && error.message === 'AMAP_READY_FAILED' && error.lastSuccessfulStage === 'amap_map_created'
+      && error.failureStage === 'amap_ready');
     t.mock.timers.tick(20000);
     await expected;
     assert.equal(view.map.listeners.size, 0);

@@ -40,6 +40,8 @@ SDK 固定为 `@modelcontextprotocol/ext-apps@2.0.0` 普通入口，共享 Zod�
 
 Map 父页保留 MCP SDK、信封校验、选择、布局和回放状态；renderer 只接收绘图所需的 marker、路线点、颜色/标签和公开 browser key，不接收 Gateway Token、完整信封或工具名。父页严格校验 HTTPS renderer origin、固定路径、ImageVersion ID 和 hash；随机 nonce 放在 URL fragment 中，首次握手只转移 `MessageChannel`，之后父子消息同时核对协议和 nonce。MCP Host 的父级 sandbox 会把后代 origin 继承为 opaque，因此首次 `postMessage` 不能使用精确 `targetOrigin`；安全边界由精确 iframe URL、父资源 `frameDomains`、HTTPS、无重定向的 Gateway 路由、随机 nonce 和私有 MessagePort 共同组成。销毁时关闭 port 并移除 iframe。
 
+父页与 renderer 在私有通道上只交换白名单化的诊断状态，不传递原始异常、堆栈、URL、Key 或业务数据。成功阶段按 `renderer_iframe_created`、`renderer_document_loaded`、`renderer_channel_connected`、`amap_script_loaded`、`amap_sdk_ready`、`amap_map_created`、`amap_ready`、`amap_overlays_added`、`amap_fit_complete` 单调推进。Renderer iframe、通道、AMap 脚本、SDK、地图构造、ready、覆盖物和视图适配分别转换为稳定安全错误码；卡片失败时显示最后成功阶段与错误码，成功时不显示诊断行。HERE 与既有 CSP、配置、无坐标及尺寸错误语义保持不变。
+
 Inline Map 只展示全部/单工程师本地切换、点位、工单序号、路线方向、图例、平移、缩放与适配路线；不重复任务名称、任务状态、平台时间、结果指标或独立对象详情。切换工程师不请求后端，页面不显示结果刷新按钮。页面下方的“查看 Gantt 排程”只有用户点击才调用 `ui/message`，内容严格为一个 `user` 文本 ContentBlock：
 
 ```json

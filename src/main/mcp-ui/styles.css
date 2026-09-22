@@ -60,6 +60,7 @@ svg{flex:none}
 .map-renderer-frame{display:block;width:100%;height:100%;border:0;background:#162535}
 .map-state{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:25px;background:#162535;color:#dbe7f4;gap:12px}
 .map-state p{max-width:42ch}
+.map-state .map-diagnostic{font:12px ui-monospace,SFMono-Regular,Consolas,monospace;color:#b8c9da;overflow-wrap:anywhere}
 .map-state button{background:#243b50;color:#fff;border-color:#7090aa}
 .map-legend{position:absolute;left:8px;bottom:8px;right:8px;max-height:66px;overflow:auto;display:flex;flex-wrap:wrap;gap:4px;pointer-events:none}
 .map-legend button{pointer-events:auto;display:inline-flex;align-items:center;gap:6px;background:#f8fafcf2;color:#17202f;font-size:12px;border-color:#bac8d5}

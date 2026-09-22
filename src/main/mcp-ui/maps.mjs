@@ -1,6 +1,9 @@
 import { connectDomains, resourceDomains } from 'mcp-network-policy';
+import { mapDiagnosticError, normalizeMapDiagnosticError, safeMapDiagnosticStage } from './map-diagnostics.mjs';
 export { buildMapScene, colorFor } from './map-scene.mjs';
-export function mapError(code) { return Object.assign(new Error(code), { code }); }
+export function mapError(code, lastSuccessfulStage = null, failureStage = null) {
+  return mapDiagnosticError(code, lastSuccessfulStage, failureStage);
+}
 function allowedURL(value, origins) {
   if (typeof value !== 'string') throw mapError('MAP_CONFIG');
   let url; try { url = new URL(value); } catch { throw mapError('MAP_CONFIG'); }
@@ -21,7 +24,7 @@ export function validateMapContext(context, provider, policy = { connectDomains,
   }
   return { ...context, js_url:js.href };
 }
-function loadScript(url, signal) {
+function loadScript(url, signal, { loadFailure = 'MAP_LOAD_FAILED', timeoutFailure = 'MAP_TIMEOUT' } = {}) {
   return new Promise((resolve, reject) => {
     const script = document.createElement('script');
     let done = false, failedTimer;
@@ -31,12 +34,12 @@ function loadScript(url, signal) {
       if (error) { script.remove(); reject(error); } else resolve(script);
     };
     const abort = () => finish(mapError(signal.reason?.code || 'MAP_ABORTED'));
-    const timer = setTimeout(() => finish(mapError('MAP_TIMEOUT')), 20000);
+    const timer = setTimeout(() => finish(mapError(timeoutFailure)), 20000);
     script.src = url; script.async = true; script.referrerPolicy = 'strict-origin-when-cross-origin';
     script.onload = () => finish();
     // Let the browser deliver its CSP event before reducing a script error to
     // an unknown loading failure. Never include URLs/keys in the error text.
-    script.onerror = () => { failedTimer = setTimeout(() => finish(mapError('MAP_LOAD_FAILED')), 0); };
+    script.onerror = () => { failedTimer = setTimeout(() => finish(mapError(loadFailure)), 0); };
     signal.addEventListener('abort', abort, { once:true });
     if (signal.aborted) abort(); else document.head.append(script);
   });
@@ -60,11 +63,12 @@ function arrowPoints(positions) {
   return { position:b, angle:Math.atan2(dx * Math.cos(b[1] * Math.PI / 180), b[1] - a[1]) * 180 / Math.PI };
 }
 export class MapView {
-  constructor(container, { onSelect, onFailure }) {
-    this.container = container; this.onSelect = onSelect; this.onFailure = onFailure;
+  constructor(container, { onSelect, onFailure, onProgress = () => {} }) {
+    this.container = container; this.onSelect = onSelect; this.onFailure = onFailure; this.onProgress = onProgress;
     this.map = null; this.markers = new Map(); this.objects = []; this.scripts = [];
     this.sdkCleanup = []; this.failureCode = null; this.resizeFrame = null; this.lastSize = null;
     this.abort = new AbortController(); this.disposed = false; this.viewport = null; this.kind = null; this.scene = null;
+    this.lastSuccessfulStage = null;
     this.violation = event => {
       if (this.disposed) return;
       if (event.disposition === 'report') return;
@@ -74,11 +78,21 @@ export class MapView {
     };
     document.addEventListener('securitypolicyviolation', this.violation);
   }
-  fail(code) {
+  advanceStage(stage) {
+    const safeStage = safeMapDiagnosticStage(stage);
+    if (!safeStage) return;
+    this.lastSuccessfulStage = safeStage;
+    this.onProgress(safeStage);
+  }
+  diagnosticError(error, fallback, failureStage = null) {
+    return normalizeMapDiagnosticError(error, fallback, this.lastSuccessfulStage, failureStage);
+  }
+  fail(code, failureStage = null) {
     if (this.disposed || this.failureCode) return;
     this.failureCode = code;
-    this.abort.abort(mapError(code));
-    this.onFailure(mapError(code));
+    const error = mapError(code, this.lastSuccessfulStage, failureStage);
+    this.abort.abort(error);
+    this.onFailure(error);
   }
   replaceAmapResizeSensor() {
     const container = this.container;
@@ -107,22 +121,24 @@ export class MapView {
   }
   waitForAmapComplete() {
     const map = this.map, signal = this.abort.signal;
-    if (typeof map?.on !== 'function' || typeof map?.off !== 'function') return Promise.reject(mapError('MAP_LOAD_FAILED'));
+    if (typeof map?.on !== 'function' || typeof map?.off !== 'function') return Promise.reject(
+      mapError('AMAP_READY_FAILED', this.lastSuccessfulStage, 'amap_ready')
+    );
     // AMap documents `complete` as initial map-tile loading completion, not a
     // general authentication/error event. Absence means timeout, not bad keys.
     return new Promise((resolve, reject) => {
       let finished = false;
       const finish = error => {
         if (finished) return; finished = true;
-        clearTimeout(timer); map.off('complete', complete);
+        clearTimeout(timer); try { map.off('complete', complete); } catch { /* cleanup only */ }
         signal.removeEventListener('abort', abort);
         if (error) reject(error); else resolve();
       };
       const complete = () => finish();
       const abort = () => finish(mapError(this.failureCode || 'MAP_ABORTED'));
-      const timer = setTimeout(() => finish(mapError('MAP_TIMEOUT')), 20000);
+      const timer = setTimeout(() => finish(mapError('AMAP_READY_FAILED', this.lastSuccessfulStage, 'amap_ready')), 20000);
       signal.addEventListener('abort', abort, {once:true});
-      try { map.on('complete', complete); } catch { finish(mapError('MAP_LOAD_FAILED')); }
+      try { map.on('complete', complete); } catch { finish(mapError('AMAP_READY_FAILED', this.lastSuccessfulStage, 'amap_ready')); }
       if (signal.aborted) abort();
     });
   }
@@ -151,12 +167,25 @@ export class MapView {
     let ready = null;
     if (this.kind === 'AMAP') {
       const url = new URL(this.context.js_url); url.searchParams.set('key', this.context.browser_key);
-      this.scripts.push(await loadScript(url.href, this.abort.signal));
+      try {
+        this.scripts.push(await loadScript(url.href, this.abort.signal, {
+          loadFailure:'AMAP_SCRIPT_LOAD_FAILED', timeoutFailure:'AMAP_SCRIPT_LOAD_FAILED'
+        }));
+      } catch (error) {
+        throw this.diagnosticError(error, 'AMAP_SCRIPT_LOAD_FAILED', 'amap_script_loaded');
+      }
       if (this.disposed) return;
-      if (!window.AMap?.Map) throw mapError('MAP_LOAD_FAILED');
+      this.advanceStage('amap_script_loaded');
+      if (!window.AMap?.Map) throw mapError('AMAP_SDK_MISSING', this.lastSuccessfulStage, 'amap_sdk_ready');
       this.api = window.AMap;
+      this.advanceStage('amap_sdk_ready');
       this.replaceAmapResizeSensor();
-      this.map = new this.api.Map(this.container, { center, zoom:12, mapStyle:'amap://styles/darkblue', lang:locale === 'en-US' ? 'en' : 'zh_cn', resizeEnable:false });
+      try {
+        this.map = new this.api.Map(this.container, { center, zoom:12, mapStyle:'amap://styles/darkblue', lang:locale === 'en-US' ? 'en' : 'zh_cn', resizeEnable:false });
+      } catch (error) {
+        throw this.diagnosticError(error, 'AMAP_MAP_CREATE_FAILED', 'amap_map_created');
+      }
+      this.advanceStage('amap_map_created');
       if (typeof this.map.triggerResize !== 'function') throw mapError('MAP_RESIZE_FAILED');
       // Attach a rejection handler immediately: a synchronous overlay/resize
       // failure below may otherwise leave the aborted readiness promise unhandled.
@@ -180,9 +209,18 @@ export class MapView {
       this.events = new this.api.mapevents.MapEvents(this.map);
       this.behavior = new this.api.mapevents.Behavior(this.events);
     }
-    this.update(scene); this.fit();
+    if (ready) {
+      const error = await ready;
+      if (error) throw this.diagnosticError(error, 'AMAP_READY_FAILED', 'amap_ready');
+      this.advanceStage('amap_ready');
+    }
+    try { this.update(scene); }
+    catch (error) { throw this.diagnosticError(error, this.kind === 'AMAP' ? 'AMAP_OVERLAY_FAILED' : 'MAP_LOAD_FAILED', 'amap_overlays_added'); }
+    if (this.kind === 'AMAP') this.advanceStage('amap_overlays_added');
+    try { this.fit(); }
+    catch (error) { throw this.diagnosticError(error, this.kind === 'AMAP' ? 'AMAP_FIT_FAILED' : 'MAP_LOAD_FAILED', 'amap_fit_complete'); }
+    if (this.kind === 'AMAP') this.advanceStage('amap_fit_complete');
     this.resizeObserver = new ResizeObserver(() => this.resize()); this.resizeObserver.observe(this.container);
-    if (ready) { const error = await ready; if (error) throw error; }
     this.lastSize = null; this.resize();
   }
   resize() {
@@ -199,7 +237,7 @@ export class MapView {
         else this.map.getViewPort().resize();
         this.setViewport(viewport);
         this.lastSize = {width, height};
-      } catch { this.fail('MAP_RESIZE_FAILED'); }
+      } catch { this.fail('MAP_RESIZE_FAILED', this.kind === 'AMAP' ? 'amap_resize' : null); }
     });
   }
   getViewport() {
@@ -216,54 +254,64 @@ export class MapView {
     else { this.map.setCenter({lng:value.center[0],lat:value.center[1]}); this.map.setZoom(value.zoom); }
   }
   update(scene) {
-    this.scene = scene; if (!this.map || this.disposed) return;
-    const viewport = this.getViewport();
-    if (this.kind === 'AMAP') { if (this.objects.length) this.map.remove(this.objects); }
-    else if (this.objects.length) this.map.removeObjects(this.objects);
-    this.objects = []; this.markers.clear();
-    for (const line of scene.lines) {
-      let shape;
-      if (this.kind === 'AMAP') shape = new this.api.Polyline({ path:line.positions, strokeColor:line.color, strokeWeight:4, strokeOpacity:line.returnLeg ? .55 : .85, strokeStyle:line.returnLeg ? 'dashed' : 'solid', showDir:true });
-      else {
-        const points = new this.api.geo.LineString(); for (const [lng,lat] of line.positions) points.pushLatLngAlt(lat,lng,0);
-        const style = { strokeColor:line.color,lineWidth:4 };
-        if (line.returnLeg) style.lineDash = [5,4];
-        shape = new this.api.map.Polyline(points, { style });
-      }
-      this.objects.push(shape);
-      if (this.kind === 'HERE') {
-        const arrow = arrowPoints(line.positions);
-        if (arrow) {
-          const element = document.createElement('span'); element.textContent = '↑';
-          element.style.cssText = `display:block;color:${line.color};font-size:25px;font-weight:bold;transform:rotate(${arrow.angle}deg)`;
-          element.setAttribute('aria-hidden','true');
-          this.objects.push(new this.api.map.DomMarker({lng:arrow.position[0],lat:arrow.position[1]}, {icon:new this.api.map.DomIcon(element)}));
+    try {
+      this.scene = scene; if (!this.map || this.disposed) return;
+      const viewport = this.getViewport();
+      if (this.kind === 'AMAP') { if (this.objects.length) this.map.remove(this.objects); }
+      else if (this.objects.length) this.map.removeObjects(this.objects);
+      this.objects = []; this.markers.clear();
+      for (const line of scene.lines) {
+        let shape;
+        if (this.kind === 'AMAP') shape = new this.api.Polyline({ path:line.positions, strokeColor:line.color, strokeWeight:4, strokeOpacity:line.returnLeg ? .55 : .85, strokeStyle:line.returnLeg ? 'dashed' : 'solid', showDir:true });
+        else {
+          const points = new this.api.geo.LineString(); for (const [lng,lat] of line.positions) points.pushLatLngAlt(lat,lng,0);
+          const style = { strokeColor:line.color,lineWidth:4 };
+          if (line.returnLeg) style.lineDash = [5,4];
+          shape = new this.api.map.Polyline(points, { style });
+        }
+        this.objects.push(shape);
+        if (this.kind === 'HERE') {
+          const arrow = arrowPoints(line.positions);
+          if (arrow) {
+            const element = document.createElement('span'); element.textContent = '↑';
+            element.style.cssText = `display:block;color:${line.color};font-size:25px;font-weight:bold;transform:rotate(${arrow.angle}deg)`;
+            element.setAttribute('aria-hidden','true');
+            this.objects.push(new this.api.map.DomMarker({lng:arrow.position[0],lat:arrow.position[1]}, {icon:new this.api.map.DomIcon(element)}));
+          }
         }
       }
+      for (const item of scene.markers) {
+        const content = markerDOM(item, this.onSelect);
+        let marker;
+        if (this.kind === 'AMAP') marker = new this.api.Marker({ position:item.position, content, anchor:'center', zIndex:item.kind === 'agent' ? 150 : 100 });
+        else marker = new this.api.map.DomMarker({ lng:item.position[0],lat:item.position[1] }, { icon:new this.api.map.DomIcon(content, {onAttach:element => {
+          // HERE clones DOM icons, so bind on the attached clone rather than HTML.
+          element.onclick = event => { event.stopPropagation(); this.onSelect(item); };
+        }}), zIndex:item.kind === 'agent' ? 150 : 100 });
+        this.objects.push(marker); this.markers.set(item.key, marker);
+      }
+      if (this.kind === 'AMAP') this.map.add(this.objects); else this.map.addObjects(this.objects);
+      this.setViewport(viewport);
+    } catch (error) {
+      throw this.diagnosticError(error, this.kind === 'AMAP' ? 'AMAP_OVERLAY_FAILED' : 'MAP_LOAD_FAILED',
+        this.kind === 'AMAP' ? 'amap_overlays_added' : null);
     }
-    for (const item of scene.markers) {
-      const content = markerDOM(item, this.onSelect);
-      let marker;
-      if (this.kind === 'AMAP') marker = new this.api.Marker({ position:item.position, content, anchor:'center', zIndex:item.kind === 'agent' ? 150 : 100 });
-      else marker = new this.api.map.DomMarker({ lng:item.position[0],lat:item.position[1] }, { icon:new this.api.map.DomIcon(content, {onAttach:element => {
-        // HERE clones DOM icons, so bind on the attached clone rather than HTML.
-        element.onclick = event => { event.stopPropagation(); this.onSelect(item); };
-      }}), zIndex:item.kind === 'agent' ? 150 : 100 });
-      this.objects.push(marker); this.markers.set(item.key, marker);
-    }
-    if (this.kind === 'AMAP') this.map.add(this.objects); else this.map.addObjects(this.objects);
-    this.setViewport(viewport);
   }
   fit() {
-    if (!this.map || !this.objects.length) return;
-    if (this.kind === 'AMAP') this.map.setFitView(this.objects, true, [35,35,35,35]);
-    else {
-      const group = new this.api.map.Group();
-      // Bounds from supplied coordinates only; group ownership must not move overlays.
-      for (const item of this.scene.markers) group.addObject(new this.api.map.Marker({lng:item.position[0],lat:item.position[1]}));
-      for (const line of this.scene.lines) for (const point of line.positions) group.addObject(new this.api.map.Marker({lng:point[0],lat:point[1]}));
-      const bounds = group.getBoundingBox(); if (bounds) this.map.getViewModel().setLookAtData({bounds});
-      group.dispose?.();
+    try {
+      if (!this.map || !this.objects.length) return;
+      if (this.kind === 'AMAP') this.map.setFitView(this.objects, true, [35,35,35,35]);
+      else {
+        const group = new this.api.map.Group();
+        // Bounds from supplied coordinates only; group ownership must not move overlays.
+        for (const item of this.scene.markers) group.addObject(new this.api.map.Marker({lng:item.position[0],lat:item.position[1]}));
+        for (const line of this.scene.lines) for (const point of line.positions) group.addObject(new this.api.map.Marker({lng:point[0],lat:point[1]}));
+        const bounds = group.getBoundingBox(); if (bounds) this.map.getViewModel().setLookAtData({bounds});
+        group.dispose?.();
+      }
+    } catch (error) {
+      throw this.diagnosticError(error, this.kind === 'AMAP' ? 'AMAP_FIT_FAILED' : 'MAP_LOAD_FAILED',
+        this.kind === 'AMAP' ? 'amap_fit_complete' : null);
     }
   }
   focus(position) { if (!position || !this.map) return; this.map.setCenter(this.kind === 'AMAP' ? position : {lng:position[0],lat:position[1]}); }

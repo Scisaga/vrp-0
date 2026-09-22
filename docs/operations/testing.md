@@ -175,9 +175,9 @@ Node 测试需要可执行的 `python3`：模型 fixture helper 以 `python3 -B`
 | --- | --- |
 | 模型 Node | 人工 fixtures 与 Python 分析 parity；不变异、`null`/空集合、完整 ID、双向归属、标量语义、业务时区轴、回放资格、阶段边界、吸附原折线、跨经度与合成大向量 |
 | View 桥 Node | 官方 SDK 边界替身；先注册处理器再连接、结果身份、白名单错误映射、只读工具名、Map/Gantt 固定工具与输入边界、显式刷新、`ui/message`、输入/通知竞态、取消、显示模式与 teardown |
-| 地图 Node | AMAP/HERE 上下文及 URL 策略、原段位/坐标轴/几何、不可播放来源、缺失数据、纯文本 marker、父页 renderer URL 校验、最小 scene、AMAP complete 超时、HERE 样式错误、容器尺寸合并/隐藏/销毁及失败、覆盖物与实例释放 |
+| 地图 Node | AMAP/HERE 上下文及 URL 策略、原段位/坐标轴/几何、不可播放来源、缺失数据、纯文本 marker、父页 renderer URL 校验、最小 scene、iframe 加载与 MessageChannel 失败、AMap 脚本/SDK/构造/ready/覆盖物/fit 分阶段错误码及最后成功阶段、HERE 样式错误、容器尺寸合并/隐藏/销毁及失败、覆盖物与实例释放；原始异常、URL、Key 和业务数据不得进入通道或卡片诊断 |
 | 构建 Node 与产物校验 | manifest/renderer 字段、精确 origin、Ajv standalone、父页与 renderer 依赖闭包、共享 Zod/拒绝 SDK with-deps、三份 HTML 自包含、敏感信息、第一方动态代码静态拒绝、确定性与过期产物 |
-| 模拟浏览器 | 使用真实构建 HTML 与官方 View SDK，在 opaque-origin MCP App、跨源 renderer 和图商 SDK 替身中检查双资源初始化、nonce/MessageChannel 握手、布局、选择、刷新按钮隐藏与固定工具边界、消息发送、地图/Gantt、全屏拒绝、回放、Gantt 零地图请求、安全降级、实例隔离和生命周期；具体执行结果见当次记录 |
+| 模拟浏览器 | 使用真实构建 HTML 与官方 View SDK，在 opaque-origin MCP App、跨源 renderer 和图商 SDK 替身中检查双资源初始化、nonce/MessageChannel 握手、布局、选择、刷新按钮隐藏与固定工具边界、消息发送、地图/Gantt、全屏拒绝、回放、Gantt 零地图请求、安全降级、实例隔离和生命周期。分阶段故障还须断言中英文卡片仅显示白名单最后成功阶段和错误码，成功地图不显示诊断行；具体执行结果见当次记录 |
 
 浏览器测试以不同合成 origin 的宿主、App iframe 和 renderer iframe 运行。宿主给 App `sandbox="allow-scripts"`，使父页及其后代继承 opaque origin；Map 父资源 CSP 仅允许 renderer origin，renderer HTTP CSP 才允许测试图商和动态执行。路由拦截提供 AMAP/HERE SDK 替身，未知请求中止；不请求真实瓦片、读取 `.env` 或使用真实 key。此配置验证严格父页、跨源握手与隔离绘图，不证明 HERE 真实 worker/WASM 或图商鉴权可用。
 

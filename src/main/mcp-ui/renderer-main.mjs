@@ -1,4 +1,5 @@
 import { MapView, mapError } from './maps.mjs';
+import { safeMapDiagnosticStage, safeMapErrorCode } from './map-diagnostics.mjs';
 
 const PROTOCOL = 'planly-map-renderer-v1';
 const NONCE = /^[A-Za-z0-9_-]{32,128}$/;
@@ -28,6 +29,14 @@ function send(message) {
   if (!disposed) port?.postMessage({ protocol:PROTOCOL, nonce, ...message });
 }
 
+function safeFailure(error) {
+  return {
+    code:safeMapErrorCode(error?.code),
+    lastSuccessfulStage:safeMapDiagnosticStage(error?.lastSuccessfulStage),
+    failureStage:safeMapDiagnosticStage(error?.failureStage)
+  };
+}
+
 function viewport() {
   try { send({ type:'viewport', viewport:view?.getViewport() ?? null }); } catch { /* best effort */ }
 }
@@ -41,7 +50,11 @@ async function command(message) {
       if (view) throw mapError('MAP_CONFIG');
       view = new MapView(document.getElementById('map'), {
         onSelect:item => send({type:'select',item:{kind:item.kind,id:item.id}}),
-        onFailure:error => send({type:'failure',code:error.code || 'MAP_LOAD_FAILED'})
+        onProgress:stage => {
+          const safeStage = safeMapDiagnosticStage(stage);
+          if (safeStage) send({type:'progress',stage:safeStage});
+        },
+        onFailure:error => send({type:'failure',...safeFailure(error)})
       });
       await view.mount(payload.context, payload.provider, scene(payload.scene), payload.locale === 'en-US' ? 'en-US' : 'zh-CN');
     } else if (!view) throw mapError('MAP_LOAD_FAILED');
@@ -60,9 +73,9 @@ async function command(message) {
     if (message.id > 0) send({type:'response',id:message.id,ok:true});
     if (!disposed) viewport();
   } catch (error) {
-    const code = typeof error?.code === 'string' ? error.code : 'MAP_LOAD_FAILED';
-    if (message.id > 0) send({type:'response',id:message.id,ok:false,code});
-    else send({type:'failure',code});
+    const failure = safeFailure(error);
+    if (message.id > 0) send({type:'response',id:message.id,ok:false,...failure});
+    else send({type:'failure',...failure});
   }
 }
 
