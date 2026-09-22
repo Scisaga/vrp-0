@@ -20,7 +20,7 @@ export const mapSdkFixture = `(() => {
     remove(objects){this.removeObjects(objects)}
     removeObjects(objects){for(const item of objects)item.content?.remove();this.objects=this.objects.filter(item=>!objects.includes(item))}
     getCenter(){return Array.isArray(this.center)?{lng:this.center[0],lat:this.center[1]}:this.center}
-    on(type,listener){if(window.__mapFailureMode==='ready')throw new Error('sensitive ready detail');if(!this.listeners.has(type))this.listeners.set(type,new Set());this.listeners.get(type).add(listener);if(type==='complete'&&!window.__disableMapComplete)setTimeout(()=>this.emit('complete'),0)}
+    on(type,listener){if(window.__mapFailureMode==='ready')throw new Error('sensitive ready detail');if(!this.listeners.has(type))this.listeners.set(type,new Set());this.listeners.get(type).add(listener);if(type==='complete'&&window.__mapFailureMode==='optional-csp')document.dispatchEvent(new SecurityPolicyViolationEvent('securitypolicyviolation',{effectiveDirective:'connect-src',disposition:'enforce',blockedURI:'https://secret.invalid/telemetry'}));if(type==='complete'&&!window.__disableMapComplete)setTimeout(()=>this.emit('complete'),0)}
     off(type,listener){this.listeners.get(type)?.delete(listener)}emit(type){for(const listener of this.listeners.get(type)||[])listener({type})}
     getZoom(){return this.zoom}setZoom(value){this.zoom=value}setCenter(value){this.center=value}
     setZoomAndCenter(zoom,center){this.zoom=zoom;this.center=center}

@@ -68,13 +68,16 @@ export class MapView {
     this.map = null; this.markers = new Map(); this.objects = []; this.scripts = [];
     this.sdkCleanup = []; this.failureCode = null; this.resizeFrame = null; this.lastSize = null;
     this.abort = new AbortController(); this.disposed = false; this.viewport = null; this.kind = null; this.scene = null;
-    this.lastSuccessfulStage = null;
+    this.lastSuccessfulStage = null; this.cspViolationObserved = false;
     this.violation = event => {
       if (this.disposed) return;
       if (event.disposition === 'report') return;
-      // eval may be essential SDK module execution, not a harmless probe.
-      // Worker violations are not guaranteed to reach this document.
-      if (/^(script-src|connect-src|img-src|worker-src|child-src|style-src|font-src|object-src|default-src)(?:-|$)/.test(event.effectiveDirective || '')) this.fail('MAP_CSP_BLOCKED');
+      // Vendor SDKs make optional telemetry, cursor, label and capability
+      // requests. A host may block one without preventing the map from
+      // becoming usable, so the violation is evidence rather than a reason to
+      // abort an otherwise healthy map. If an essential load/readiness stage
+      // subsequently fails, diagnosticError attributes that failure to CSP.
+      if (/^(script-src|connect-src|img-src|worker-src|child-src|style-src|font-src|object-src|default-src)(?:-|$)/.test(event.effectiveDirective || '')) this.cspViolationObserved = true;
     };
     document.addEventListener('securitypolicyviolation', this.violation);
   }
@@ -85,7 +88,11 @@ export class MapView {
     this.onProgress(safeStage);
   }
   diagnosticError(error, fallback, failureStage = null) {
-    return normalizeMapDiagnosticError(error, fallback, this.lastSuccessfulStage, failureStage);
+    const normalized = normalizeMapDiagnosticError(error, fallback, this.lastSuccessfulStage, failureStage);
+    if (this.cspViolationObserved && ['AMAP_SCRIPT_LOAD_FAILED','AMAP_READY_FAILED','MAP_LOAD_FAILED','MAP_TIMEOUT'].includes(normalized.code)) {
+      return mapError('MAP_CSP_BLOCKED', normalized.lastSuccessfulStage, normalized.failureStage);
+    }
+    return normalized;
   }
   fail(code, failureStage = null) {
     if (this.disposed || this.failureCode) return;

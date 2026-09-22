@@ -339,19 +339,21 @@ test('HERE listens only to documented Style failures, sanitizes details and rele
   } finally {next.restore();}
 });
 
-test('all enforced map CSP violations including eval are failures; report-only is not', () => {
+test('enforced map CSP violations are evidence until an essential stage actually fails', () => {
   for (const [directive,blocked] of [['script-src','eval'],['script-src-elem','https://restapi.amap.com'],
     ['worker-src','blob'],['connect-src','https://vdata.amap.com'],['style-src-elem','inline'],
     ['font-src','https://js.api.here.com'],['img-src','https://webapi.amap.com'],['object-src','about:blank']]) {
     const errors=[],{view,restore}=isolatedAdapter(error=>errors.push(error));
     try {
       view.violation({effectiveDirective:directive,blockedURI:blocked,disposition:'report'});
-      assert.equal(errors.length,0);
+      assert.equal(view.cspViolationObserved,false);
       view.violation({effectiveDirective:directive,blockedURI:blocked,disposition:'enforce'});
-      assert.deepEqual(errors.map(e=>e.code),['MAP_CSP_BLOCKED']);
-      assert.equal(view.abort.signal.reason.code,'MAP_CSP_BLOCKED');
+      assert.equal(view.cspViolationObserved,true);
+      assert.deepEqual(errors,[]);
+      assert.equal(view.abort.signal.aborted,false);
+      assert.equal(view.diagnosticError({code:'AMAP_READY_FAILED'},'AMAP_READY_FAILED','amap_ready').code,'MAP_CSP_BLOCKED');
       view.violation({effectiveDirective:directive,blockedURI:blocked});
-      assert.equal(errors.length,1);
+      assert.deepEqual(errors,[]);
     } finally {restore();}
   }
 });

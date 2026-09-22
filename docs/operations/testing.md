@@ -185,7 +185,7 @@ Node 测试需要可执行的 `python3`：模型 fixture helper 以 `python3 -B`
 
 模拟测试使用 `playwright.config.mjs`，失败 trace/截图写入 `/tmp/vrp0-mcp-ui-playwright`，不进入业务目录或仓库。测试不向产品新增调试 wire 字段，也不把图商替身放入生产构建。CSP 错误、地图失败与数据/授权失败需分别断言；认证或权限失败应检查已渲染文本和视图缓存已清除，而非只检查错误横幅。地图替身覆盖 AMAP complete 超时及 HERE 样式错误/监听解除，但不能证明真实 SDK 的所有瓦片或 HTTP 401 失败都能被观测，具体检测边界见[地图与安全降级](../components/mcp-app.md#5-地图网络与安全降级)。
 
-修改源码、模板、样式、词典、Schema、依赖锁文件或 `mcp_ui` 后都需重建并运行产物校验。`verify:mcp-app` 不写文件；CI 在重建后还对 `mcp-map-app.html`、`mcp-gantt-app.html` 与 `mcp-map-renderer.html` 执行 `git diff --exit-code`，防止任一产物落后于源码。MCP 构建独立于 `build:scenario`；共享 `result-presentation.css` / `result-presentation.mjs` 变化需运行 `build:css`、`build:scenario`、`build:mcp-app`，并由 `presentation.spec.mjs` 对照两端生产样式。共享展示层或前端工具链变化还需回归原 Node、Scenario 构建校验和 i18n 浏览器测试；不能因新增 View 通过而省略旧页面回归。
+修改源码、模板、样式、词典、Schema、依赖锁文件或 `mcp_ui` 后都需重建并运行产物校验。`verify:mcp-app` 不写文件；CI 在重建后还对 `mcp-map-app.html`、`mcp-gantt-app.html` 与 `mcp-map-renderer.html` 执行 `git diff --exit-code`，防止任一产物落后于源码。MCP 构建独立于 `build:scenario`；共享 `result-presentation.css` / `result-presentation.mjs` 变化需运行 `build:css`、`build:scenario`、`build:mcp-app`，并由 `presentation.spec.mjs` 对照两端生产样式。共享展示层或前端工具链变化还需回归原 Node、Scenario 构建校验和 i18n 浏览器测试；不能因新增 View 通过而省略旧页面回归。地图诊断回归还必须覆盖异步失败后首个错误不被 `MAP_ABORTED` 覆盖，以及非必要资源 CSP 违规发生后地图仍能完成 ready 的场景。
 
 当次通过数量与执行状态只记录在[组件验证记录](../components/mcp-app.md#7-验证记录与未验证项)或测试报告，不在本文固定。真实 Gateway 与四宿主联合验收必须单列客户端版本、批准策略和受限 key 条件；模拟宿主通过不能将外部未验证项标为通过。
 

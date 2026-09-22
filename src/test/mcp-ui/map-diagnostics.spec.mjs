@@ -38,3 +38,11 @@ test('successful map hides diagnostics and English failures localize labels', as
   await expect(english.locator('#map-diagnostic')).toHaveText('Diagnostic: last successful stage amap_script_loaded · error code AMAP_SDK_MISSING');
   await host.assertHealthy();await englishHost.assertHealthy();
 });
+
+test('an optional enforced CSP violation does not abort a map that becomes ready', async({page}) => {
+  const host=await openHost(page,{mapFailure:'optional-csp'});
+  const frame=await host.add({id:'optional-csp'});
+  await mapReady(frame);
+  await expect(frame.locator('#map-diagnostic')).toBeHidden();
+  await host.assertHealthy();
+});
