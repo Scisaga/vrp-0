@@ -153,6 +153,8 @@ test('actual browser bundle uses the ordinary SDK entry and one shared Zod v4 de
     'all SDK schemas and the pre-initialization config must share the same Zod v4 module instance');
 
   const renderer = await buildRenderer();
+  assert.ok(renderer.html.includes('<div id="map" role="main" aria-label="Route map"></div>'));
+  assert.ok(!renderer.html.includes('<main id="map"'));
   for (const domains of Object.values(readNetworkPolicy('renderer'))) {
     assert.ok(renderer.html.includes(`Object.freeze(${JSON.stringify(domains)})`),
       'renderer network policy must match the manifest');
