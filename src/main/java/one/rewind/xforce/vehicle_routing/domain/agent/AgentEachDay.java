@@ -74,7 +74,7 @@ public class AgentEachDay extends Agent {
     private LocalDateTime shiftOffTime;
 
     @JsonIdentityReference(alwaysAsId = true)
-    @Schema(description = "分配工单ID列表",
+    @Schema(description = "按路线顺序填写的已分配工单ID列表。已有指派时须显式提供对应工单ID，并与工单 agent 保持一致；无指派时填写 []，不要使用 null。当前引擎不自动补齐此列表，省略可能导致初始化失败。",
             type = SchemaType.ARRAY,
             implementation = String.class,
             example = "[\"ticket-1\", \"ticket-2\"]")

@@ -40,6 +40,8 @@ The VRP0 Gateway `request_payload` must be directly submit-able to the current e
 
 The request payload is an engine `Scenario` object:
 
+The current engine does not infer `plan.agents[].tickets` from ticket `agent` references. For existing assignments, explicitly supply the corresponding ticket IDs in route order and keep both sides consistent; use `[]` only when there are no assignments, not as a replacement for an assigned route. Avoid `null`. Although the authoritative OpenAPI does not require this field, omitting it with assigned tickets causes initialization to fail. The reference schema has a pre-existing nullable type that differs from OpenAPI; this documentation update does not change validation rules. Always inspect the selected version's authoritative contract.
+
 ```json
 {
   "name": "scenario-1",
