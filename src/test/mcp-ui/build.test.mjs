@@ -140,9 +140,8 @@ test('actual browser bundle uses the ordinary SDK entry and one shared Zod v4 de
   const { html, inputs } = await buildMcpApp();
   verifyDocument(html);
   verifyInputs(inputs);
-  const officialLogo = fs.readFileSync(path.join(staticRoot, 'assets/img/vrp-0-logo-120.png')).toString('base64');
-  assert.ok(html.includes(`data:image/png;base64,${officialLogo}`), 'MCP header must inline the existing VRP-0 logo');
-  assert.ok(!html.includes('M5 8h8l6 16h8M5 24l7-16h15'), 'MCP header must not contain an invented logo');
+  assert.ok(!html.includes('class="brand"'), 'MCP header must not render VRP-0 branding');
+  assert.ok(!html.includes('<img'), 'MCP parent resource must not render a header logo');
   assert.ok(!html.includes('mcp-network-policy'), 'strict parent must not contain vendor policy');
   const nodeModules = path.relative(projectRoot, path.join(staticRoot,'node_modules')).replaceAll(path.sep,'/');
   assert.ok(inputs.includes(`${nodeModules}/@modelcontextprotocol/ext-apps/dist/src/app.js`));

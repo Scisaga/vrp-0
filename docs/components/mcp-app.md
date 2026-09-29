@@ -56,7 +56,7 @@ Fullscreen Map 沿用只读侧栏、焦点、视角、规划回放、速度、�
 
 Inline Gantt 使用真实业务时间轴、工程师本地筛选、行程/等待/服务阶段条、缩小时间轴和局部滚动；缩放操作只展示“缩小时间轴”，不展示“放大时间轴”。页面不包含任务摘要、地图页签、地图 SDK、browser key、adapter 或网络请求。Fullscreen 在完整时间轴右侧提供工程师/工单侧栏、检索、详情和选择联动；不包含地图或回放。
 
-两个 App 都跟随宿主中英文、浅深主题、显示模式和尺寸，保持键盘焦点、读屏名称、非纯色状态表达与 `prefers-reduced-motion` 支持。视觉事实源仍是 [`docs/ui/theme.md`](../ui/theme.md)。
+Map/Gantt 顶栏均不显示 VRP-0 Logo 或系统名称；Gantt 仍显示当前视图标题，Map 顶栏只保留右侧页面操作。两个 App 都跟随宿主中英文、浅深主题、显示模式和尺寸，保持键盘焦点、读屏名称、非纯色状态表达与 `prefers-reduced-motion` 支持。视觉事实源仍是 [`docs/ui/theme.md`](../ui/theme.md)。
 
 ## 6. 双 Profile 与安全投影
 
