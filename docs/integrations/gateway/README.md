@@ -42,4 +42,4 @@ GATEWAY_CODE_REPOSITORY_METADATA_ROOT=gateway
 
 Gateway 的 OpenAPI 路径和 HTML 资源读取目录是独立约定，不随元数据目录一起移动。后续同步外部契约 fixtures 快照时，也需更新其来源路径记录。真实 Gateway 发布、地图网络与四宿主联调仍属于未验证项。
 
-本次地点 Schema 说明属于 `1.1.1-alpha-SNAPSHOT` 的新 ImageVersion 契约。既有 `v1.1.0-alpha-SNAPSHOT` tag 及已导入快照保持不变，禁止移动或覆盖；发布时应构建新镜像、创建新 tag 并导入新的 ImageVersion。本仓此次只准备版本化源码和元数据，不表示镜像、tag、Gateway 导入或启用已经执行。
+本次地点 Schema 说明属于 `1.1.1-alpha-SNAPSHOT` 的新 ImageVersion 契约，使用新 tag `v1.1.1-alpha-SNAPSHOT`。既有 `v1.1.0-alpha-SNAPSHOT` tag 及已导入快照保持不变，禁止移动或覆盖。新 tag 只标识本次版本化源码、Schema 和元数据，不表示新镜像已构建或推送，也不表示 Gateway 已导入或启用新 ImageVersion。
