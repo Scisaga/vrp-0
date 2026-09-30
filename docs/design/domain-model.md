@@ -76,6 +76,8 @@ SolverJob ──> Scenario 名称快照 / 仅内存中的来源标识
 * `SKU` 表示工单涉及的物料定义，Ticket 通过物料项引用它。
 * `TransitMatrix` 保存位置之间的距离、时间和路线相关数据，是到达时间计算和路径成本评分的基础。
 
+`Depo.loc`、`AgentEachDay.startLoc` 和 `Ticket.loc` 在输入契约中均必填。位置编码有且只有两种一致用法：集中式请求在 `RoutePlan.pois` 中声明非空唯一 ID 和合法坐标，再由三个位置字段使用字符串 ID 引用；全内联请求则在每个位置字段直接提供完整 POI，此时可省略 `RoutePlan.pois`。字符串引用与内联对象不应在同一请求中混用。OpenAPI 描述记录了跨字段引用条件，但当前没有新增引擎运行时语义校验。
+
 ### 3.6 SolverJob
 
 `SolverJob` 是一次异步求解的持久化记录，包含：

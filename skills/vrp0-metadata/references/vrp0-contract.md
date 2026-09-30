@@ -40,7 +40,9 @@ The VRP0 Gateway `request_payload` must be directly submit-able to the current e
 
 The request payload is an engine `Scenario` object:
 
-The current engine does not infer `plan.agents[].tickets` from ticket `agent` references. For existing assignments, explicitly supply the corresponding ticket IDs in route order and keep both sides consistent; use `[]` only when there are no assignments, not as a replacement for an assigned route. Avoid `null`. Although the authoritative OpenAPI does not require this field, omitting it with assigned tickets causes initialization to fail. The reference schema has a pre-existing nullable type that differs from OpenAPI; this documentation update does not change validation rules. Always inspect the selected version's authoritative contract.
+The current engine does not infer `plan.agents[].tickets` from ticket `agent` references. For existing assignments, explicitly supply the corresponding ticket IDs in route order and keep both sides consistent; use `[]` only when there are no assignments, not as a replacement for an assigned route. Avoid `null`. Although the authoritative OpenAPI does not require this field, omitting it with assigned tickets causes initialization to fail. Always inspect the selected version's authoritative contract.
+
+For new AI-generated requests, prefer one central `plan.pois` registry and use POI ID strings in every business location field. The IDs must be non-empty and unique, every referenced POI must carry valid coordinates through `location` or `loc`, and every string reference must resolve in `plan.pois`. Do not mix ID references with inline POI objects in one request.
 
 ```json
 {
@@ -51,13 +53,37 @@ The current engine does not infer `plan.agents[].tickets` from ticket `agent` re
   "end_time": "2026-06-22 23:59:59",
   "plan": {
     "skus": [],
-    "pois": [],
-    "depos": [],
-    "agents": [],
-    "tickets": [],
-    "matrix": {},
-    "constraint_configuration": {},
-    "cost_parameter": {}
+    "pois": [
+      {
+        "id": "poi-depo-1",
+        "name": "中心仓",
+        "location": "116.397128,39.916527"
+      },
+      {
+        "id": "poi-ticket-1",
+        "name": "客户点",
+        "location": "116.407526,39.904030"
+      }
+    ],
+    "depos": [
+      {"id": "depo-1", "name": "中心仓", "loc": "poi-depo-1"}
+    ],
+    "agents": [
+      {
+        "id": "agent-1",
+        "depo_id": "depo-1",
+        "start_loc": "poi-depo-1",
+        "tickets": []
+      }
+    ],
+    "tickets": [
+      {
+        "id": "ticket-1",
+        "depo_id": "depo-1",
+        "type": "Delv",
+        "loc": "poi-ticket-1"
+      }
+    ]
   },
   "options": {}
 }
@@ -80,7 +106,7 @@ Required `plan` fields:
 Optional `plan` fields:
 
 - `skus`: SKU master data used by ticket item lines.
-- `pois`: POI records referenced by depots, agents, and tickets.
+- `pois`: central POI records referenced by depots, agents, and tickets. This field remains optional only when every business location is a complete inline POI object.
 - `matrix`: engine transit matrix payload.
 - `constraint_configuration`: engine constraint weights. Gateway will overwrite this with the effective config before calling `/scenario`.
 - `cost_parameter`: engine cost parameter payload.
@@ -112,20 +138,56 @@ Date-time strings used by the engine are local date-time strings formatted as `y
 - `cityname`: string
 - other AMap metadata may appear on engine-produced Scenario payloads
 
-POI references may be either a POI ID string or a POI object because the engine uses Jackson identity references.
+POI references may be either a POI ID string or a POI object because the engine uses Jackson identity references. `depo.loc`, `agent.start_loc`, and `ticket.loc` are required. If any reference is a string, `plan.pois` must be present and non-empty and must contain every referenced ID. Only an all-inline request may omit `plan.pois`; do not mix the two encodings.
+
+Complete all-inline example (there is intentionally no `plan.pois`):
+
+```json
+{
+  "depos": [
+    {
+      "id": "depo-1",
+      "loc": {
+        "id": "poi-depo-1",
+        "location": "116.397128,39.916527"
+      }
+    }
+  ],
+  "agents": [
+    {
+      "id": "agent-1",
+      "start_loc": {
+        "id": "poi-agent-1",
+        "location": "116.397128,39.916527"
+      },
+      "tickets": []
+    }
+  ],
+  "tickets": [
+    {
+      "id": "ticket-1",
+      "type": "Delv",
+      "loc": {
+        "id": "poi-ticket-1",
+        "location": "116.407526,39.904030"
+      }
+    }
+  ]
+}
+```
 
 `depo`:
 
 - `id`: string
 - `name`: string
-- `loc`: POI reference
+- `loc`: required POI reference
 
 `agent`:
 
 - `id`: string
 - `depo_id`: string
 - `name`: string
-- `start_loc`: POI reference
+- `start_loc`: required POI reference
 - `skills`: string array
 - `qualification_levels`: object
 - `vehicle_type`: `TRUCK`, `CAR`, or `E_BIKE`
@@ -143,7 +205,7 @@ POI references may be either a POI ID string or a POI object because the engine 
 - `depo_id`: string
 - `type`: `Delv`, `Delv_BH`, or `Inst`
 - `status`: `New`, `Assigned`, `Accepted`, `Transit`, `Working`, `Agent_Done`, or `Done`
-- `loc`: POI reference
+- `loc`: required POI reference
 - `items`: optional array of `{ "sku": string, "value": number }`
 - `weight`: optional number, minimum `0`
 - `vol`: optional number, minimum `0`

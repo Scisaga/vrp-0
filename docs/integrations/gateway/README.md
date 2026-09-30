@@ -17,7 +17,7 @@
 
 字段映射和降级语义仍以 [MCP 结果展示契约](../../components/mcp-result-view-contract.md) 为准，页面实现及验收边界见 [独立 MCP Apps 结果查看器](../../components/mcp-app.md)。不在本目录重复维护实现文档。
 
-manifest 的 `request_schema_source.file: docs/openapi.yaml` 相对**引擎仓库根目录**解释，不相对元数据目录；此次目录调整不改变其含义、契约版本、Schema `$id`、字段或求解行为。
+manifest 的 `request_schema_source.file: docs/openapi.yaml` 相对**引擎仓库根目录**解释，不相对元数据目录；该目录约定本身不改变契约版本、Schema `$id`、字段或求解行为。
 
 ## 2. 本仓维护
 
@@ -25,6 +25,7 @@ manifest 的 `request_schema_source.file: docs/openapi.yaml` 相对**引擎仓�
 - `skills/vrp0-metadata/` 生成器默认将这三份元数据写入 `gateway/`，将参考 `request-schema.json` 写入 `docs/integrations/gateway/`。
 - 生成器仍支持显式 `--output-dir` 指定元数据输出目录，不要为修改目录而重新生成并覆盖已有配置或 Schema。
 - 修改 Schema 或 `mcp_ui` 时按[测试说明](../../operations/testing.md#81-独立-mcp-apps-view)重建、校验和回归；仅路径迁移也须确认构建/测试仍能定位资料。
+- 请求 Schema 的位置契约保留集中式 `plan.pois` + ID 引用和全内联 POI 两种形式；`plan.pois` 不是全局必填，但三个业务位置字段必填。集中式标准示例由 OpenAPI `RoutePlan` 提供，全内联示例见 [REST API 说明](../../interfaces/api.md#21-地点编码模式)。
 - MCP HTML 交付到 `src/main/resources/META-INF/resources/static/mcp-map-app.html`、`mcp-gantt-app.html` 与内部 `mcp-map-renderer.html`，三者原子交接；不保留旧单资源文件，也不迁入文档目录。Renderer 不是第三个 MCP Tool/Resource。
 
 ## 3. Gateway 导入交接
@@ -40,3 +41,5 @@ GATEWAY_CODE_REPOSITORY_METADATA_ROOT=gateway
 **该配置目前是 Gateway 实例级，而非每个引擎或 tag 独立配置。** 变更前须核对同实例的其他引擎及历史 tag 的目录布局，不能宣称透明兼容。本次目录调整未修改 Gateway 代码、部署配置、已有 tag 或已导入快照；同步目标 tag 必须包含 `gateway/image-version.yaml`，仅移动工作区文件不会改变已发布版本。
 
 Gateway 的 OpenAPI 路径和 HTML 资源读取目录是独立约定，不随元数据目录一起移动。后续同步外部契约 fixtures 快照时，也需更新其来源路径记录。真实 Gateway 发布、地图网络与四宿主联调仍属于未验证项。
+
+本次地点 Schema 说明属于 `1.1.1-alpha-SNAPSHOT` 的新 ImageVersion 契约。既有 `v1.1.0-alpha-SNAPSHOT` tag 及已导入快照保持不变，禁止移动或覆盖；发布时应构建新镜像、创建新 tag 并导入新的 ImageVersion。本仓此次只准备版本化源码和元数据，不表示镜像、tag、Gateway 导入或启用已经执行。

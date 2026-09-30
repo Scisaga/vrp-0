@@ -13,6 +13,57 @@ DEFAULT_IMAGE_VERSION_DESCRIPTION = (
     "支持 AMAP 和 HERE 图商的 VRP0 车辆路径求解；地图图商由请求中的 map_provider 选择。"
 )
 
+LOCATION_ENCODING_DESCRIPTION = (
+    "规划方案支持两种位置编码：集中式 plan.pois + POI ID 字符串引用，或所有地点均使用完整内联 "
+    "POI 对象。只要 depos[].loc、agents[].start_loc 或 tickets[].loc 中存在字符串引用，plan.pois "
+    "就必须存在且非空，并包含对应的完整 POI；只有所有地点均为完整内联 POI 对象时才可省略 "
+    "plan.pois。AI 客户端新建请求应首选集中式编码，同一请求不要混用两种形式。"
+)
+
+
+def location_reference_description(label: str) -> str:
+    return (
+        f"必填{label}。可传 plan.pois 中 POI 的 ID 字符串，或直接传完整 POI 对象。"
+        "使用字符串时 plan.pois 必须存在且非空，并包含该 ID 的完整 POI；"
+        "仅当全部仓库 loc、车辆/工程师 start_loc 和工单 loc 都是完整内联对象时才可省略 plan.pois。"
+        "完整 POI 的 ID 必须非空且唯一，并通过 location 或 loc 携带合法经纬度坐标。"
+        "AI 客户端新建请求应首选集中式 plan.pois + ID 引用，同一请求不要混用两种形式。"
+    )
+
+
+def centralized_route_plan_example() -> dict:
+    return {
+        "pois": [
+            {
+                "id": "poi-depo-1",
+                "name": "中心仓",
+                "location": "116.397128,39.916527",
+            },
+            {
+                "id": "poi-ticket-1",
+                "name": "客户点",
+                "location": "116.407526,39.904030",
+            },
+        ],
+        "depos": [{"id": "depo-1", "name": "中心仓", "loc": "poi-depo-1"}],
+        "agents": [
+            {
+                "id": "agent-1",
+                "depo_id": "depo-1",
+                "start_loc": "poi-depo-1",
+                "tickets": [],
+            }
+        ],
+        "tickets": [
+            {
+                "id": "ticket-1",
+                "depo_id": "depo-1",
+                "type": "Delv",
+                "loc": "poi-ticket-1",
+            }
+        ],
+    }
+
 
 def date_time_schema() -> dict:
     return {
@@ -82,10 +133,13 @@ def poi_schema() -> dict:
 
 def poi_ref_schema() -> dict:
     return {
+        "description": (
+            "必填 POI 位置引用。只允许 plan.pois 中的非空 ID 字符串或带非空唯一 ID 和合法坐标的"
+            "完整内联 POI 对象。"
+        ),
         "oneOf": [
             {"type": "string", "minLength": 1},
             {"$ref": "#/$defs/poi"},
-            {"type": "null"},
         ]
     }
 
@@ -120,12 +174,15 @@ def sku_schema() -> dict:
 def depo_schema() -> dict:
     return {
         "type": "object",
-        "required": ["id"],
+        "required": ["id", "loc"],
         "additionalProperties": True,
         "properties": {
             "id": {"type": "string", "minLength": 1, "title": "仓库 ID"},
             "name": {"type": "string", "title": "仓库名称"},
-            "loc": {"$ref": "#/$defs/poiRef"},
+            "loc": {
+                "$ref": "#/$defs/poiRef",
+                "description": location_reference_description("仓库位置"),
+            },
         },
     }
 
@@ -135,13 +192,16 @@ def agent_schema() -> dict:
     non_negative_number = non_negative_number_schema()
     return {
         "type": "object",
-        "required": ["id"],
+        "required": ["id", "start_loc"],
         "additionalProperties": True,
         "properties": {
             "id": {"type": "string", "minLength": 1, "title": "车辆/工程师 ID"},
             "depo_id": {"type": "string", "title": "所属仓库 ID"},
             "name": {"type": "string", "title": "名称"},
-            "start_loc": {"$ref": "#/$defs/poiRef"},
+            "start_loc": {
+                "$ref": "#/$defs/poiRef",
+                "description": location_reference_description("开始位置"),
+            },
             "skills": {
                 "type": "array",
                 "items": {"type": "string"},
@@ -180,7 +240,7 @@ def ticket_schema() -> dict:
     non_negative_number = non_negative_number_schema()
     return {
         "type": "object",
-        "required": ["id"],
+        "required": ["id", "type", "loc"],
         "additionalProperties": True,
         "properties": {
             "id": {"type": "string", "minLength": 1, "title": "工单 ID"},
@@ -200,7 +260,10 @@ def ticket_schema() -> dict:
                 "title": "工单状态",
                 "description": "New（新生成）：尚未指派；Assigned（已指派）：已分配工程师；Accepted（已接受）：工程师已接单；Transit（在途）：正在前往现场；Working（工作中）：正在服务；Agent_Done（工程师完成）：等待客户确认；Done（客户确认）：工单已完成。",
             },
-            "loc": {"$ref": "#/$defs/poiRef"},
+            "loc": {
+                "$ref": "#/$defs/poiRef",
+                "description": location_reference_description("客户位置"),
+            },
             "items": {
                 "type": "array",
                 "title": "SKU 明细",
@@ -271,6 +334,8 @@ def route_plan_schema() -> dict:
         "type": "object",
         "required": ["depos", "agents", "tickets"],
         "additionalProperties": True,
+        "description": LOCATION_ENCODING_DESCRIPTION,
+        "examples": [centralized_route_plan_example()],
         "properties": {
             "skus": {
                 "type": "array",
@@ -281,6 +346,13 @@ def route_plan_schema() -> dict:
                 "type": "array",
                 "items": {"$ref": "#/$defs/poi"},
                 "title": "地址 POI 列表",
+                "description": (
+                    "可选的集中式 plan.pois 列表。任一仓库 loc、车辆/工程师 start_loc 或工单 loc 使用字符串 "
+                    "ID 时，本列表必须存在且非空，并包含每个被引用 ID 对应的完整 POI。列表内 ID 必须"
+                    "非空且唯一，每个被引用 POI 必须通过 location 或 loc 携带合法经纬度坐标。仅当所有"
+                    "地点都直接使用完整内联 POI 对象时才可省略本字段。AI 客户端新建请求应首选本列表加"
+                    "字符串引用的集中式形式，同一请求不要混用两种形式。"
+                ),
             },
             "depos": {
                 "type": "array",

@@ -16,6 +16,63 @@
 
 场景输入中的工程师工单列表省略、空数组和 `null` 不能混为一谈。OpenAPI 的 `AgentEachDay.tickets` 是数组且未列入 `required`，但当前引擎不自动补齐列表，已有指派时省略会导致初始化失败。应显式填写与工单 `agent` 一致的工单 ID 列表，无指派时填写 `[]`，不要使用 `null`；不新增必填校验或错误映射。现有初始化行为与路线顺序见[领域模型](../design/domain-model.md#33-agent-与-agenteachday)。
 
+### 2.1 地点编码模式
+
+`Depo.loc`、`AgentEachDay.start_loc` 和 `Ticket.loc` 均为必填，并接受 POI ID 字符串或完整 POI 对象。一个请求应统一选择以下一种模式：
+
+* **集中式（AI 客户端新建请求首选）**：在 `plan.pois` 中声明 ID 非空且唯一、带合法坐标的 POI，三个位置字段只使用这些 ID；只要存在字符串引用，`plan.pois` 就必须存在且非空，并覆盖全部引用。
+* **全内联**：三个位置字段全部直接提供带非空 ID 和合法坐标的完整 POI，此时可以省略 `plan.pois`。
+
+不得在同一请求中混用字符串引用和内联 POI。下面是省略 `plan.pois` 的完整内联示例：
+
+```json
+{
+  "name": "inline-location-scenario",
+  "planning_date": "2026-09-29",
+  "start_time": "2026-09-29 08:00:00",
+  "end_time": "2026-09-29 18:00:00",
+  "plan": {
+    "depos": [
+      {
+        "id": "depo-1",
+        "name": "中心仓",
+        "loc": {
+          "id": "poi-depo-1",
+          "name": "中心仓",
+          "location": "116.397128,39.916527"
+        }
+      }
+    ],
+    "agents": [
+      {
+        "id": "agent-1",
+        "depo_id": "depo-1",
+        "start_loc": {
+          "id": "poi-agent-1",
+          "name": "车辆起点",
+          "location": "116.397128,39.916527"
+        },
+        "tickets": []
+      }
+    ],
+    "tickets": [
+      {
+        "id": "ticket-1",
+        "depo_id": "depo-1",
+        "type": "Delv",
+        "loc": {
+          "id": "poi-ticket-1",
+          "name": "客户点",
+          "location": "116.407526,39.904030"
+        }
+      }
+    ]
+  }
+}
+```
+
+OpenAPI 通过 `required` 表达三个位置字段必须出现，并在描述中表达跨字段引用、唯一性和坐标要求；当前版本未使用条件 Schema 关键字，也未新增运行时业务校验，因此不能把 Schema 说明误解为引擎已对悬空引用提供结构化错误兜底。
+
 ## 3. 当前场景与当前任务语义
 
 ### 3.1 当前场景

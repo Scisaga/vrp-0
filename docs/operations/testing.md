@@ -68,7 +68,7 @@ deactivate
 
 ### 4.2 Gateway 元数据目录
 
-`scripts/tests/test_gateway_metadata_layout.py` 验证根目录 `gateway/` 仅包含 Gateway 导入的三份元数据，参考 Schema、说明和 fixtures 留在 `docs/integrations/gateway/`；生成器默认输出及显式 `--output-dir` 均在临时目录验证，不覆盖仓库文件。
+`scripts/tests/test_gateway_metadata_layout.py` 验证根目录 `gateway/` 仅包含 Gateway 导入的三份元数据，参考 Schema、说明和 fixtures 留在 `docs/integrations/gateway/`；生成器默认输出及显式 `--output-dir` 均在临时目录验证，不覆盖仓库文件。该测试同时断言地点字段必填、`plan.pois` 保持条件可选、POI ID/对象双形式、集中式示例引用闭合，以及仓库参考 Schema 与生成器输出一致。
 
 ```bash
 python3 -B -m unittest discover -s scripts/tests -p 'test_gateway_metadata_layout.py' -v
@@ -98,6 +98,7 @@ Agent/Ticket 链变化需要覆盖到达时间级联、取消指派、pinned 行
 * Repository 测试覆盖当前场景、任务历史、最新指针、矩阵拆分、状态重置和删除。
 * REST 测试同时断言 HTTP 状态与稳定业务错误，不只检查返回文本。
 * API 或模型变化时同步更新 OpenAPI 注解和 `docs/openapi.yaml`，并增加字段或响应契约断言。
+* `OpenApiLocationContractTest` 同时检查运行时 `/q/openapi` 与已发布 `docs/openapi.yaml` 的地点 required、字符串/内联双形式、条件说明、集中式示例和版本，防止注解与发布契约漂移。
 * MCP 测试覆盖 Bearer Token、Origin、预检、初始化、Tool 列表、Tool 调用，以及与 REST 状态一致性。
 * 大对象响应测试应确认任务查询和回调不携带矩阵，矩阵专用接口仍可工作；启动和终止响应按当前实现单独断言。
 

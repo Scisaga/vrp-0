@@ -81,6 +81,8 @@ Do not add a separate Agent selection-condition field or instruct callers to sub
 - Model `plan` as the VRP0 engine `RoutePlan`: `depos`, `agents`, `tickets`, optional `skus`, `pois`, `matrix`, `constraint_configuration`, and `cost_parameter`.
 - Use `tickets`, not `orders`, inside `plan`. Do not generate top-level `depos`, `agents`, or `orders` unless Gateway gains an explicit adapter layer.
 - Keep POI references compatible with engine JSON identity handling: allow either a POI ID string or a POI object where engine fields can reference a POI.
+- Keep `plan.pois` optional. Require `depos[].loc`, `agents[].start_loc`, and `tickets[].loc`, and document the conditional rule: any string location reference requires a non-empty `plan.pois` containing that ID; only an all-inline request may omit `plan.pois`.
+- Give `RoutePlan` a centralized `plan.pois` + ID-reference example. Tell AI clients to prefer that form for new requests and not to mix it with inline POI objects; document that POI IDs are non-empty and unique and referenced POIs carry valid coordinates.
 - For every enum field, keep engine-facing machine values in `enum` and document each value's Chinese name and short business meaning in `description`.
 - Put operational tuning in `constraint-config.yaml`, not in `request_payload`, unless it is true per-request input.
 - Expose only safe OptaPlanner score weights in `overridable`; never expose platform-owned fields such as raw engine config, scheduler config, archive refs, or credentials.

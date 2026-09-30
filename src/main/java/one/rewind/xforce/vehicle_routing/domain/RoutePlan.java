@@ -46,7 +46,43 @@ import java.util.stream.Collectors;
  * 规划方案类
  */
 
-@Schema(requiredProperties = {"depos", "agents", "tickets"})
+@Schema(
+        description = "规划方案支持两种位置编码：集中式 plan.pois + POI ID 字符串引用，或所有地点均使用完整内联 POI 对象。"
+                + "只要 depos[].loc、agents[].start_loc 或 tickets[].loc 中存在字符串引用，plan.pois 就必须存在且非空，"
+                + "并包含对应的完整 POI；只有所有地点均为完整内联 POI 对象时才可省略 plan.pois。"
+                + "AI 客户端新建请求应首选集中式编码，同一请求不要混用两种形式。",
+        requiredProperties = {"depos", "agents", "tickets"},
+        example = """
+                {
+                  "pois": [
+                    {
+                      "id": "poi-depo-1",
+                      "name": "中心仓",
+                      "location": "116.397128,39.916527"
+                    },
+                    {
+                      "id": "poi-ticket-1",
+                      "name": "客户点",
+                      "location": "116.407526,39.904030"
+                    }
+                  ],
+                  "depos": [
+                    {"id": "depo-1", "name": "中心仓", "loc": "poi-depo-1"}
+                  ],
+                  "agents": [
+                    {
+                      "id": "agent-1",
+                      "depo_id": "depo-1",
+                      "start_loc": "poi-depo-1",
+                      "tickets": []
+                    }
+                  ],
+                  "tickets": [
+                    {"id": "ticket-1", "depo_id": "depo-1", "type": "Delv", "loc": "poi-ticket-1"}
+                  ]
+                }
+                """
+)
 @PlanningSolution
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
@@ -62,7 +98,11 @@ public class RoutePlan implements Serializable {
     @ProblemFactCollectionProperty
     @JsonProperty(index = 2)
     @Schema(
-            description = "地址信息"
+            description = "可选的集中式 plan.pois 列表。任一仓库 loc、车辆/工程师 start_loc 或工单 loc 使用字符串 ID 时，"
+                    + "本列表必须存在且非空，并包含每个被引用 ID 对应的完整 POI。列表内 ID 必须非空且唯一，"
+                    + "每个被引用 POI 必须通过 location 或 loc 携带合法经纬度坐标。"
+                    + "仅当所有地点都直接使用完整内联 POI 对象时才可省略本字段。"
+                    + "AI 客户端新建请求应首选本列表加字符串引用的集中式形式，同一请求不要混用两种形式。"
     )
     private List<POI> pois = new ArrayList<>();
 

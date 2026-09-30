@@ -13,11 +13,15 @@ import java.io.Serializable;
 import java.util.List;
 
 @Schema(
-        requiredProperties = {"id"},
+        requiredProperties = {"id", "loc"},
         properties = {
                 @SchemaProperty(
                         name = "loc",
-                        description = "位置。可传 plan.pois 中 POI 的 ID 字符串，或直接传 POI 对象。",
+                        description = "必填仓库位置。可传 plan.pois 中 POI 的 ID 字符串，或直接传完整 POI 对象。"
+                                + "使用字符串时 plan.pois 必须存在且非空，并包含该 ID 的完整 POI；"
+                                + "仅当全部仓库 loc、车辆/工程师 start_loc 和工单 loc 都是完整内联对象时才可省略 plan.pois。"
+                                + "完整 POI 的 ID 必须非空且唯一，并通过 location 或 loc 携带合法经纬度坐标。"
+                                + "AI 客户端新建请求应首选集中式 plan.pois + ID 引用，同一请求不要混用两种形式。",
                         oneOf = {String.class, POI.class},
                         example = "B0G2X7N5D2"
                 )
