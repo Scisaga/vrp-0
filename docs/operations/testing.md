@@ -157,6 +157,8 @@ npm run verify:scenario
 
 ### 8.1 独立 MCP Apps View
 
+短展示工具名验收覆盖 `gw_map_<32位ID>` / `gw_gantt_<32位ID>` 的初始化、刷新、视图与版本匹配，以及对旧名和非法后缀的拒绝。断言原始长度 39 / 41、当前 Quick 前缀下长度 51 / 53；名称缩短不改变投影 golden。Python 交接样例与 Gateway 快照联动更新工具名及相应来源指纹。Quick 真实客户端的工具调用成功与卡片渲染成功必须分别记录；没有真机测试时仍标记未验证。
+
 源码和构建边界见[独立 MCP Apps 查看器](../components/mcp-app.md)，测试位于 `src/test/mcp-ui/`，不复用官网页面测试作为替代验收。运行目录仍为 `src/main/resources/META-INF/resources/static/`：
 
 ```bash

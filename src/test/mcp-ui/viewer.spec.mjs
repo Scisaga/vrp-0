@@ -9,7 +9,7 @@ test('map inline hides refresh, stays focused on routes, and sends exact Gantt i
   await frame.locator('#engineer').selectOption(AGENT);await expect(renderer.locator('.mcp-marker[data-kind="ticket"]')).toHaveCount(2);
   expect((await host.pending('card')).length).toBe(0);
   await expect(frame.locator('#refresh')).toBeHidden();await frame.locator('#refresh').evaluate(el=>el.click());await expect.poll(async()=>(await host.pending('card')).length).toBe(1);
-  const call=(await host.pending('card'))[0];expect(call.params).toMatchObject({name:message()._meta.gateway_ui.display_tool_name,arguments:{job_id:message()._meta.gateway_ui.job_id,engineer_id:AGENT}});
+  const call=(await host.pending('card'))[0];expect(call.params).toMatchObject({name:`gw_map_${message()._meta.gateway_ui.image_version_id}`,arguments:{job_id:message()._meta.gateway_ui.job_id,engineer_id:AGENT}});
   await host.respond('card',0,message());await mapReady(frame);
   await frame.locator('#open-gantt').click();await expect.poll(async()=>(await host.messages('card')).length).toBe(1);
   expect((await host.messages('card'))[0]).toEqual({role:'user',content:[{type:'text',text:JSON.stringify({intent:'show_job_gantt',job_id:message()._meta.gateway_ui.job_id,image_version_id:message()._meta.gateway_ui.image_version_id})}]});
@@ -32,6 +32,11 @@ test('Gantt keeps only zoom-out, makes no map request, filters locally and expos
   await expect(frame.locator('#map-canvas,#fit-map,#open-gantt')).toHaveCount(0);await expect(frame.locator('#refresh')).toBeHidden();await expect(frame.locator('.gantt-bar')).toHaveCount(5);
   expect(host.requests.some(url=>url.startsWith('https://'))).toBe(false);
   await frame.locator('#engineer').selectOption(AGENT);expect((await host.pending('card')).length).toBe(0);
+  await frame.locator('#refresh').evaluate(el=>el.click());await expect.poll(async()=>(await host.pending('card')).length).toBe(1);
+  const refresh=(await host.pending('card'))[0];expect(refresh.params.name).toBe(`gw_gantt_${asGantt()._meta.gateway_ui.image_version_id}`);
+  expect(refresh.params.arguments).toEqual({job_id:asGantt()._meta.gateway_ui.job_id}); // The SDK may add standard _meta.progressToken.
+  await host.respond('card',0,asGantt());await expect(frame.locator('.gantt-bar')).toHaveCount(5);
+  expect(host.requests.some(url=>url.startsWith('https://'))).toBe(false);
   await expect(frame.locator('#gantt-out')).toBeVisible();await expect(frame.locator('#gantt-in')).toBeHidden();const before=await frame.locator('.gantt-grid').evaluate(el=>el.getBoundingClientRect().width);await frame.locator('#gantt-out').click();expect(await frame.locator('.gantt-grid').evaluate(el=>el.getBoundingClientRect().width)).toBeLessThan(before);
   await fullscreen(frame);await expect(frame.locator('#sidebar')).toBeVisible();expect(await frame.locator('#sidebar').evaluate(el=>getComputedStyle(el).borderLeftWidth)).not.toBe('0px');
   await frame.locator('.gantt-bar').last().click();await expect(frame.locator('#side-detail')).toContainText('ticket-a');await host.assertHealthy();

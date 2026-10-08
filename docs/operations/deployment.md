@@ -131,6 +131,8 @@ npm run build:mcp-app
 npm run verify:mcp-app
 ```
 
+短名切换时，Map/Gantt HTML 与 Gateway 工具目录必须同时适配 `gw_map_` / `gw_gantt_`。开发严格 `-SNAPSHOT` 版本可按 Gateway 既有受控流程重新导入；正式版本发布新 ImageVersion，不覆盖旧 tag。切换时只启用已导入短名页面的版本，被替代旧正式版本停用；历史任务仍可查询并通过网页查看。页面变化产生新资源 hash/URI，客户端需同步目录、重开卡片；不保留旧工具名调用兼容。本次代码交付不自动部署、发布 tag 或修改线上版本状态，模拟测试也不代表真实宿主展示通过。
+
 返回仓库根目录后再执行本文件原有引擎构建步骤。Node 仅为构建/测试依赖；不要假定 Gradle 打包会自动重建 MCP HTML。校验发现产物过期时应从对应源码重建，不手改压缩 HTML。第一方资源自包含，部署不需要另设第一方 CDN。
 
 [`gateway/image-version.yaml`](../../gateway/image-version.yaml) 中的 `mcp_ui.resources` 与三份 HTML 需作为原子集合一起交接。Map/Gantt 父资源网络数组固定为空；`resources.map.renderer.csp` 才声明精确图商 origin 及所需 eval/blob Worker 能力。Gateway 还必须配置独立 renderer 的公开 HTTPS origin。当前 AMAP 后续来源完整性、HERE worker/WASM 能力及真实宿主配置仍需实际验证；不能使用通配域名、服务端密钥或放宽父页 CSP 绕过校验，也不能把构建成功当作地图可用证明。

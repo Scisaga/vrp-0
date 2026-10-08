@@ -18,8 +18,8 @@ const own = (object, key) => Object.prototype.hasOwnProperty.call(object, key);
 const record = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
 const identity = (value) => typeof value === 'string' && value.trim().length > 0 && !/[\u0000-\u001f\u007f]/.test(value);
 const VIEW_CONFIG = Object.freeze({
-  map: { tool: /^gateway\.ui\.map_result_([0-9a-f]{32})$/, input: new Set(['job_id', 'engineer_id']) },
-  gantt: { tool: /^gateway\.ui\.gantt_result_([0-9a-f]{32})$/, input: new Set(['job_id']) },
+  map: { tool: /^gw_map_([0-9a-f]{32})$/, input: new Set(['job_id', 'engineer_id']) },
+  gantt: { tool: /^gw_gantt_([0-9a-f]{32})$/, input: new Set(['job_id']) },
 });
 
 function viewConfig(viewKind) {

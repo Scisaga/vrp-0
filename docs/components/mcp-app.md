@@ -12,8 +12,10 @@ Issue #183 的引擎侧双资源能力已实现。实施基线是 Gateway 契约
 
 | 资源 | 文件 | 工具 | 输入 | CSP |
 | --- | --- | --- | --- | --- |
-| Map | `mcp-map-app.html` | `gateway.ui.map_result_<32位image_version_id>` | `job_id`、可选 `engineer_id` | 父页不直接获得图商网络，只允许 Gateway renderer origin |
-| Gantt | `mcp-gantt-app.html` | `gateway.ui.gantt_result_<32位image_version_id>` | 仅 `job_id` | 两个域名数组均为空 |
+| Map | `mcp-map-app.html` | `gw_map_<32位image_version_id>` | `job_id`、可选 `engineer_id` | 父页不直接获得图商网络，只允许 Gateway renderer origin |
+| Gantt | `mcp-gantt-app.html` | `gw_gantt_<32位image_version_id>` | 仅 `job_id` | 两个域名数组均为空 |
+
+Gateway 展示工具采用 `gw_map_` / `gw_gantt_` 短前缀，完整 32 位小写 ImageVersion ID 不变，原始名称长度为 39 / 41；当前 Quick `planly_mcp__` 包装后为 51 / 53。这不是 MCP 的统一长度上限。引擎 View 只接受新名称，继续严格核对视图、任务和版本；页面刷新只使用已校验信封返回的工具名，不猜测名称，也不接受旧前缀。Gateway 与本仓 HTML 必须成套切换，旧会话需要同步目录并重开卡片。
 
 `mcp-map-renderer.html` 不是第三个 Tool 或 MCP Resource。Gateway 与前两份页面原子导入它，并以带 ImageVersion ID 和 renderer bundle hash 的 HTTPS 地址发布。Map 父页从已校验 `map_context` 取得该精确地址，在运行时创建跨源 sandbox iframe；图商 SDK、瓦片、`unsafe-eval`、WASM 动态求值和 blob Worker 只存在于 renderer 的 HTTP CSP。父页、Gantt 和 MCP Host 的严格 CSP 不因此放宽。
 
@@ -73,3 +75,13 @@ Map/Gantt 顶栏均不显示 VRP-0 Logo 或系统名称；Gantt 仍显示当前�
 测试命令和分层见 [`docs/operations/testing.md`](../operations/testing.md)，覆盖构建确定性、双资源初始化、renderer 握手、刷新按钮隐藏及固定工具边界、`ui/message`、全屏拒绝、权限清理、多卡隔离、销毁、双语、主题、窄屏、键盘、恶意文本、大结果及 Gantt 零地图请求。发布前还需执行 `./gradlew allStableTest` 和 JVM 打包，核对 JAR 内三份 HTML 与工作区逐字节一致，且任何 JAR 都不含 `static/node_modules`。
 
 Gateway 双资源与隔离 renderer 能力已实现，但真实导入与宿主验收仍按 §1 标为未验证。Renderer CSP 只是精确来源申请，不是地图可用证明；不得用通配符、服务端密钥或放宽 MCP 父页 CSP 绕过。正式发布不得覆盖当前 `1.1.0-alpha-SNAPSHOT` tag。
+
+### 2026-10-08 短展示工具名验证记录
+
+本地使用 Node 24.21.0 完成 `npm run build:mcp-app`、`npm run verify:mcp-app`、`npm run test:mcp-unit`（135 项通过）与 `npm run test:mcp-ui`（22 项通过）；`python3 -B -m unittest discover -s scripts/tests -p 'test_mcp_result_view_contract.py' -v`（17 项通过）。npm 命令在静态资源目录执行。Map/Gantt HTML 已重新生成，renderer 字节不变，业务投影 golden 不变。Gateway 对应 JVM 183 项、前端 215 项通过。
+
+此记录不是全量 `allStableTest` 或发布验收。未执行线上部署、tag 发布、版本停用或真实导入；Quick 真机工具调用与卡片渲染均待分别验收。发布与切换步骤仍按部署文档执行。
+
+### 1.1.2-alpha-SNAPSHOT 源码发布门禁
+
+版本升级后再次通过 MCP 产物验证、135 项 Node 单元测试、17 项 Python 契约测试和 22 项 Playwright 页面测试。在线 Gradle 首次执行因本机代理连接拒绝而失败；随后 `./gradlew --offline allStableTest quarkusBuild` 使用缓存依赖成功，稳定测试 138 项单元、76 项进程内应用测试均通过。`vrp-0-1.1.2-alpha-SNAPSHOT.jar` 中三份 MCP HTML 与工作区逐字节一致，且不包含 `static/node_modules`。源码推送仍不包含镜像发布、线上部署、Gateway 导入或版本启用，Quick 真机验收仍待执行。

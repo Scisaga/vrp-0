@@ -1,5 +1,18 @@
 import { test,expect,openHost,message } from './host-fixture.mjs';
 
+test('Map and Gantt refuse old names, another view and another version before rendering',async({page})=>{
+ const host=await openHost(page);let index=0;
+ for(const [view,sample]of[['map','ready'],['gantt','gantt-ready']]){
+  const version=message(sample)._meta.gateway_ui.image_version_id,otherView=view==='map'?'gantt':'map';
+  for(const name of [`gateway.ui.${view}_result_${version}`,`gw_${otherView}_${version}`,`gw_${view}_${'a'.repeat(32)}`]){
+   const result=message(sample);result._meta.gateway_ui.display_tool_name=name;const id=`identity-${index++}`,frame=await host.add({id,result});
+   await expect(frame.locator('#notice')).toBeVisible();await expect(frame.locator('#notice')).toHaveAttribute('data-error','true');
+   await expect(frame.locator('.map-renderer-frame,.gantt-bar')).toHaveCount(0);expect((await host.pending(id)).length).toBe(0);
+  }
+ }
+ expect(host.requests.some(url=>url.startsWith('https://renderer.planly.test/'))).toBe(false);await host.assertHealthy();
+});
+
 test('non-ready and failed envelopes never retain a model or trigger map requests',async({page})=>{
  const host=await openHost(page);for(const [index,name]of['running-no-model','not-ready','failed','canceled','timed_out','archive_failed'].entries()){const frame=await host.add({id:`c${index}`,result:message(name)});await expect(frame.locator('#map-state')).toBeVisible();await expect(frame.locator('.map-renderer-frame')).toHaveCount(0);}expect(host.requests.some(url=>url.startsWith('https://'))).toBe(false);await host.assertHealthy();
 });

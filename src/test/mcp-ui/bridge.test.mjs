@@ -83,6 +83,24 @@ test('reads every existing success envelope without inventing a state mapping', 
   }
 });
 
+test('short tool names retain full view/version identity and reject old or malformed names', () => {
+  for (const [view, sampleName, length] of [['map', 'ready', 39], ['gantt', 'gantt-ready', 41]]) {
+    const result = sample(sampleName), data = readEnvelope(result);
+    assert.equal(data.display_tool_name, `gw_${view}_${data.image_version_id}`);
+    assert.equal(data.display_tool_name.length, length);
+    // Budget for the currently observed Quick prefix, not the MCP specification.
+    assert.equal(`planly_mcp__${data.display_tool_name}`.length, length + 12);
+    const wrongView = view === 'map' ? 'gantt' : 'map';
+    for (const name of [`gateway.ui.${view}_result_${data.image_version_id}`,
+      `gw_${wrongView}_${data.image_version_id}`, `gw_${view}_${'a'.repeat(32)}`,
+      `gw_${view}_${data.image_version_id.slice(1)}`, `${data.display_tool_name}a`,
+      `gw_${view}_${'A'.repeat(32)}`, `gw_${view}_${'g'.repeat(32)}`]) {
+      const invalid = sample(sampleName); invalid._meta.gateway_ui.display_tool_name = name;
+      throwsCode(() => readEnvelope(invalid), 'MCP_UI_IDENTITY_MISMATCH', true);
+    }
+  }
+});
+
 test('accepts the frozen Gateway Gantt empty browser key and rejects null or non-empty variants', () => {
   const gatewayResult = sample('gantt-ready');
   assert.equal(gatewayResult._meta.gateway_ui.map_context.browser_key, '');

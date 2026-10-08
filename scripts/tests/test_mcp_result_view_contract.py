@@ -309,7 +309,11 @@ print(json.dumps([analyze(project(c['source'],c['gateway_job_id'])['engine_view'
                 self.assertEqual(envelope["platform_timezone"], "+08:00")
                 self.assertEqual(envelope["task"]["job_id"], envelope["job_id"])
                 self.assertEqual(envelope["task"]["image_version_id"], envelope["image_version_id"])
-                self.assertEqual(envelope["display_tool_name"], f"gateway.ui.{envelope['view']}_result_" + envelope["image_version_id"])
+                self.assertEqual(envelope["display_tool_name"], f"gw_{envelope['view']}_" + envelope["image_version_id"])
+                self.assertRegex(envelope["image_version_id"], r"^[0-9a-f]{32}$")
+                expected_length = 39 if envelope["view"] == "map" else 41
+                self.assertEqual(len(envelope["display_tool_name"]), expected_length)
+                self.assertEqual(len("planly_mcp__" + envelope["display_tool_name"]), expected_length + 12)
                 if envelope["view"] == "gantt":
                     self.assertIsNone(envelope["engineer_id"])
                     self.assertEqual(envelope["map_context"]["enabled"], False)

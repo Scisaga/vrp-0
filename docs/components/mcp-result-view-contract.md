@@ -17,7 +17,7 @@
 
 Gateway 的权威公共契约是其 `docs/design/mcp-apps-contract.md`；工具、产物与 UI 语义分别由该仓对应 API、ImageVersion 和 MCP Apps UI 文档负责。Issue #183 附有原文快照及 SHA-256。本文件只负责该交接中 `engine_view` 的安全白名单与引擎映射，不另行定义 Gateway 工具、鉴权、传输或资源发布规则。
 
-固定外层语义包括 `_meta.gateway_ui.contract_version=gateway_mcp_result_v1`，Gateway `job_id`/`image_version_id`、当前资源固定 `display_tool_name`/`view`、`result_state`、`engineer_id`、`platform_timezone`、白名单 `task`、固定 `result_summary=null`、`engine_view` 与 `map_context`。Map 工具为 `gateway.ui.map_result_<32hex>`，Gantt 为 `gateway.ui.gantt_result_<32hex>`；只有成功展示态允许非空模型，Gantt 的工程师定位固定为空。
+固定外层语义包括 `_meta.gateway_ui.contract_version=gateway_mcp_result_v1`，Gateway `job_id`/`image_version_id`、当前资源固定 `display_tool_name`/`view`、`result_state`、`engineer_id`、`platform_timezone`、白名单 `task`、固定 `result_summary=null`、`engine_view` 与 `map_context`。Map 工具为 `gw_map_<32hex>`，Gantt 为 `gw_gantt_<32hex>`；只有成功展示态允许非空模型，Gantt 的工程师定位固定为空。
 
 本文 Schema 的根是**非空 `engine_view` 对象**，不是整个 tool result，也不允许根 `null`；Gateway 外层允许 `engine_view=null`。参考投影不能形成安全模型时返回 `null` 并附测试诊断，调用者不能拿空根对象伪装成功。测试诊断和分析结果不新增 wire 字段。
 
