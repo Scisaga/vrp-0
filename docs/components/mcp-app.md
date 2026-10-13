@@ -137,3 +137,9 @@ Map 会话与全屏移除“只读结果 · 业务计划时间”说明行、分
 ### 2026-10-13 1.1.3-alpha-SNAPSHOT 本地源码交付
 
 本次界面调整、生成的 MCP HTML、回归测试、版本声明和对应文档统一提交，在该提交上创建本地 annotated tag `v1.1.3-alpha-SNAPSHOT`。既有 tag 不移动或覆盖；不推送提交或 tag，不发布容器镜像、部署或导入 Gateway。上节版本升级门禁和此前界面回归结果保持，源码 tag 不表示真实宿主或图商验收完成。
+
+### 2026-10-13 稳定构建图商隔离修复（工作区）
+
+构建失败日志中的场景导入在 App 测试中继承了 HERE 接入配置并触发逆地理编码，网络超时造成两个导入用例失败，另有资源不存在断言失败。新增配置检查在带合成 HERE shell 配置的未隔离测试中复现了 AMAP/HERE 选择不符；稳定任务改为固定高德（AMAP）合成配置，并仅在稳定测试中选用位置补全替身，保留曼哈顿矩阵准备所需校验。专项 AMAP/HERE 上下文 Profile、真实位置补全的 Unit Fixture，以及生产和显式外部测试不改。全量回归还暴露了指标测试临时 Gauge 状态的弱引用问题，测试 Fixture 改为保留强引用，生产指标采样及原断言不变。
+
+在显式设置合成 HERE provider/key、远程矩阵与地址服务模式的 shell 环境下，`./gradlew --offline allStableTest` 通过（138 项单元、77 项 App 测试，失败/错误/跳过均为 0），随后使用原运行环境执行 `./gradlew --offline quarkusBuild` 通过。新增隔离检查、两个场景导入及 AMAP/HERE 上下文回归均通过，日志无 HERE 逆地理编码超时。MCP 产物确定性校验通过，JAR 内三份 HTML 与工作区逐字节一致，生产包不含测试替身或 `static/node_modules`。本轮未变更 API、Schema、应用运行图商配置或版本号，未提交/推送修复，也未移动或覆盖已有 `v1.1.3-alpha-SNAPSHOT` tag。

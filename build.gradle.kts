@@ -130,7 +130,22 @@ jacoco {
     toolVersion = "0.8.12"
 }
 
+// Stable tests must not inherit real map access from the shell or local .env.
+// Explicit QuarkusTestProfile overrides still supply synthetic endpoint metadata.
+val stableMapTestEnvironment = mapOf(
+    "MAP_PROVIDER" to "AMAP",
+    "AMAP_ENABLED" to "true",
+    "AMAP_APP_KEY" to "test-stable-amap-key",
+    "HERE_API_KEY" to "change-me",
+    "HERE_MATRIX_ROUTING_ENABLED" to "false",
+    "AMAP_GEOCODE_PROVIDER" to "AMAP",
+    "AMAP_ADDRESS_RESOLVER_FALLBACK_TO_AMAP" to "false"
+)
+
 tasks.named<Test>("test") {
+    environment(stableMapTestEnvironment)
+    systemProperty("quarkus.arc.selected-alternatives",
+        "one.rewind.xforce.vehicle_routing.service.OfflineScenarioLocationEnricher")
     useJUnitPlatform {
         excludeTags("app", "external", "manual")
     }
@@ -142,6 +157,9 @@ tasks.register<Test>("appTest") {
     testClassesDirs = sourceSets.test.get().output.classesDirs
     classpath = sourceSets.test.get().runtimeClasspath
     maxHeapSize = "4g"
+    environment(stableMapTestEnvironment)
+    systemProperty("quarkus.arc.selected-alternatives",
+        "one.rewind.xforce.vehicle_routing.service.OfflineScenarioLocationEnricher")
     shouldRunAfter(tasks.named("test"))
     useJUnitPlatform {
         includeTags("app")

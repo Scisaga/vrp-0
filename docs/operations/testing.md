@@ -46,6 +46,9 @@
 * test profile 将场景和任务仓库指向 `build/test-data/scenarios/` 与 `build/test-data/solver_jobs/`。
 * 测试在开始和结束时清理自己创建的数据，不依赖执行顺序，不读取开发环境的 `data/`。
 * 测试所需 token 或地图配置使用测试值、环境变量或临时配置文件，不能写入仓库。
+* Gradle 的 `test`、`appTest` 默认固定选择高德（AMAP），使用合成 AMap key 保持本地曼哈顿矩阵前置校验有效，同时通过测试专用的位置补全替身隔离地理编码；HERE 默认使用不可用占位 key，关闭其远程矩阵和地址解析服务回退。不得继承开发 `.env` 或 shell 中的真实图商接入设置。地图上下文等专项 App 测试可通过既有 `QuarkusTestProfile` 显式使用合成配置，不发起真实请求。`externalTest`、`manualTest` 及应用打包/运行不启用该替身，不受稳定测试隔离设置影响；真实位置补全逻辑继续由其独立 Unit Fixture 覆盖。
+* `StableMapConfigurationTest` 检查默认稳定 App 测试的 AMAP 选择、合成 key、本地矩阵前置条件、HERE 不可用及位置补全替身已启用；使用合成的 HERE/AMAP shell 配置执行时仍须通过。场景导入与后续资源不存在断言不应因地图网络超时或未结束的导入请求相互污染，不通过增加超时或跳过测试处理。
+* 指标采样测试的合成 Gauge 状态在注册表生命周期内须保留强引用，避免临时数值对象被 GC 回收后变为非有限值而产生偶发失败；仅调整 Fixture 生命周期，不改变生产指标的读取逻辑或得分断言。
 
 ### 4.1 MCP 结果展示离线契约
 

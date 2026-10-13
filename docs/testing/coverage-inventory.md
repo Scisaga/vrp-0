@@ -31,6 +31,8 @@
 | 场景处理 | `ScenarioLocationEnricherTest`、`ScenarioReferenceNormalizerTest` | 位置补全和反序列化对象引用归一化 |
 | 基础设施 | `StoragePathResolverTest`、`SingletonOperationCoordinatorTest`、`ExceptionMappersTest` | 路径解析、单实例互斥和错误映射 |
 
+`SolverSearchProgressTrackerTest` 的合成指标状态在测试注册表中保留强引用，保证 hard/medium/soft 值不随 GC 偶发丢失；生产采样逻辑及多任务隔离断言保持不变。
+
 ## 4. App 覆盖
 
 | 功能域 | 代表性测试类 | 当前覆盖重点 |
@@ -41,6 +43,7 @@
 | 求解 REST | `SolverJobResourceTest` | 启动、查询、列表、终止、应用、删除和任务历史 |
 | OpenAPI 契约 | `OpenApiLocationContractTest` | 运行时、发布文件与 Gateway 镜像元数据版本一致，以及地点必填性、双编码说明及集中式示例一致性 |
 | 节点与地图 REST | `NodeResourceTest`、`NodeHereResourceTest`、`PoiResourceDisabledTest` | `/quota`、`/map_context`、`/matrix`、MCP 摘要及地图不可用路径 |
+| 稳定测试地图隔离 | `StableMapConfigurationTest` | 默认 AMAP 选择、合成 key、本地矩阵前置条件、HERE 禁用及位置补全替身启用；开发环境或 `.env` 不得使稳定测试访问真实图商，专项合成 Profile 保持可用 |
 | MCP | `McpServerTest` | Bearer Token、Origin、初始化、Tool 清单、调用和共享状态 |
 | 错误映射 | `VrpApplicationFacadeExceptionMappingTest` | 门面到稳定业务错误的映射 |
 

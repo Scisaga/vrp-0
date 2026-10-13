@@ -98,12 +98,15 @@ class SolverSearchProgressTrackerTest {
 
     private static void register(SimpleMeterRegistry registry, String name, UUID jobId, AtomicLong value) {
         Gauge.builder(name, value, AtomicLong::doubleValue)
+                .strongReference(true)
                 .tag(SolverSearchProgressTracker.PROBLEM_ID_TAG, jobId.toString())
                 .register(registry);
     }
 
     private static void registerUntagged(SimpleMeterRegistry registry, String name, AtomicLong value) {
-        Gauge.builder(name, value, AtomicLong::doubleValue).register(registry);
+        Gauge.builder(name, value, AtomicLong::doubleValue)
+                .strongReference(true)
+                .register(registry);
     }
 
     private record MetricValues(
