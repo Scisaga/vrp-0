@@ -267,6 +267,43 @@ function amapEvents() {
     off(name, listener) {if (listeners.get(name) === listener) listeners.delete(name);}};
 }
 
+test('AMAP and HERE fit leave label padding and use only the supplied overlays and coordinates', () => {
+  for (const kind of ['AMAP', 'HERE']) {
+    const {view, restore} = isolatedAdapter();
+    const objects = [{id:'existing-overlay'}], bounds = {id:'supplied-bounds'};
+    const coordinates = [], padding = [], fits = [];
+    let groupDisposed = false;
+    try {
+      view.kind = kind; view.objects = objects;
+      view.scene = {markers:[{position:[120,30]}],lines:[{positions:[[120.01,30.02],[120.03,30.04]]}]};
+      view.map = {
+        setFitView: (...args) => fits.push(args),
+        getViewPort: () => ({setPadding: (...args) => padding.push(args)}),
+        getViewModel: () => ({setLookAtData: value => fits.push(value)})
+      };
+      view.api = {map:{
+        Marker: class {constructor(position) {this.position = position;}},
+        Group: class {
+          addObject(marker) {coordinates.push(marker.position);}
+          getBoundingBox() {return bounds;}
+          dispose() {groupDisposed = true;}
+        }
+      }};
+      view.fit();
+      if (kind === 'AMAP') {
+        assert.equal(fits[0][0], objects);
+        assert.equal(fits[0][1], true);
+        assert.deepEqual(fits[0][2], [60,60,60,60]);
+      } else {
+        assert.deepEqual(padding, [[60,60,60,60]]);
+        assert.deepEqual(fits, [{bounds}]);
+        assert.deepEqual(coordinates, [{lng:120,lat:30},{lng:120.01,lat:30.02},{lng:120.03,lat:30.04}]);
+        assert.equal(groupDisposed, true);
+      }
+    } finally {restore();}
+  }
+});
+
 test('AMAP readiness resolves only on documented complete and removes its listener', async () => {
   const {view, restore} = isolatedAdapter();
   try {

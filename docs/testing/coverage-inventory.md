@@ -39,7 +39,7 @@
 | 任务存储 | `SolverJobRepositoryTest` | 任务历史、最新指针、指标、状态重置和删除 |
 | 场景 REST | `ScenarioResourceTest`、`ScenarioResourceAuxTest`、`ScenarioResourceRegressionTest` | 当前场景保存、替换、删除、运行中变更限制和回归场景 |
 | 求解 REST | `SolverJobResourceTest` | 启动、查询、列表、终止、应用、删除和任务历史 |
-| OpenAPI 契约 | `OpenApiLocationContractTest` | 运行时与发布文件的版本、地点必填性、双编码说明及集中式示例一致性 |
+| OpenAPI 契约 | `OpenApiLocationContractTest` | 运行时、发布文件与 Gateway 镜像元数据版本一致，以及地点必填性、双编码说明及集中式示例一致性 |
 | 节点与地图 REST | `NodeResourceTest`、`NodeHereResourceTest`、`PoiResourceDisabledTest` | `/quota`、`/map_context`、`/matrix`、MCP 摘要及地图不可用路径 |
 | MCP | `McpServerTest` | Bearer Token、Origin、初始化、Tool 清单、调用和共享状态 |
 | 错误映射 | `VrpApplicationFacadeExceptionMappingTest` | 门面到稳定业务错误的映射 |
@@ -86,6 +86,16 @@ Script 测试当前覆盖 `devctl.sh` 的运行环境隔离、`.env` 加载、�
 | `real-sdk-check.mjs`（显式联网） | 真实 Gateway/AMAP 的受控诊断入口；不进入默认门禁，也不替代 HERE 与四宿主验收 |
 
 默认测试不读取开发任务数据或真实地图凭据，不引入默认外部地图调用。模拟宿主与图商替身不证明真实瓦片、鉴权、HERE worker/WASM 或客户端安全策略可用。
+
+Map 布局回归覆盖桌面 3:2、窄屏 1:1、工具栏合并、图例不遮挡画布、宿主尺寸通知适配、全屏进入/退出及视角与实例保留；地图 Node 测试同时断言 AMAP/HERE 适配路线的标签边距。
+
+Map 路线取景图标回归覆盖图标与本地化可访问名称保留、悬浮/聚焦提示、提示悬浮与 Escape 关闭/恢复、窄屏/全屏边界、既有适配调用及筛选保留、未就绪禁用和销毁清理。
+
+Map 页脚移除回归覆盖桌面/窄屏、会话/全屏、筛选及双语/主题切换后无只读说明行或占位，页面底部紧接 Gantt 入口区域，既有查看意图与规划回放提示保持。
+
+Gantt 布局回归覆盖默认紧凑密度及缩放按钮移除、行高与工单条高度、虚拟工程师展示过滤、未知类型保留、时间/日期分区及完整时间提示、单工程师详情与宿主高度收缩、多行滚动、页脚移除，以及全屏、窄屏、双语、跨日和选中对象变为虚拟后的清理。
+
+Gantt 图例/筛选合并回归同时检查桌面/窄屏的同行左右位置、无独立筛选行、双语可访问名称、页头对象列表入口，以及未选择/清除选择时空详情无注释、选择后详情恢复。
 
 ## 7. 已知缺口
 

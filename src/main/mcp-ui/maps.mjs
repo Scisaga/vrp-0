@@ -1,5 +1,6 @@
 import { connectDomains, resourceDomains } from 'mcp-network-policy';
 import { mapDiagnosticError, normalizeMapDiagnosticError, safeMapDiagnosticStage } from './map-diagnostics.mjs';
+const MAP_FIT_PADDING = 60;
 export { buildMapScene, colorFor } from './map-scene.mjs';
 export function mapError(code, lastSuccessfulStage = null, failureStage = null) {
   return mapDiagnosticError(code, lastSuccessfulStage, failureStage);
@@ -307,13 +308,19 @@ export class MapView {
   fit() {
     try {
       if (!this.map || !this.objects.length) return;
-      if (this.kind === 'AMAP') this.map.setFitView(this.objects, true, [35,35,35,35]);
+      // Fit geometry with room for the centered name/sequence markers, not
+      // just their coordinate anchors. The legend lives outside the canvas.
+      if (this.kind === 'AMAP') this.map.setFitView(this.objects, true, Array(4).fill(MAP_FIT_PADDING));
       else {
         const group = new this.api.map.Group();
         // Bounds from supplied coordinates only; group ownership must not move overlays.
         for (const item of this.scene.markers) group.addObject(new this.api.map.Marker({lng:item.position[0],lat:item.position[1]}));
         for (const line of this.scene.lines) for (const point of line.positions) group.addObject(new this.api.map.Marker({lng:point[0],lat:point[1]}));
-        const bounds = group.getBoundingBox(); if (bounds) this.map.getViewModel().setLookAtData({bounds});
+        const bounds = group.getBoundingBox();
+        if (bounds) {
+          this.map.getViewPort().setPadding(MAP_FIT_PADDING, MAP_FIT_PADDING, MAP_FIT_PADDING, MAP_FIT_PADDING);
+          this.map.getViewModel().setLookAtData({bounds});
+        }
         group.dispose?.();
       }
     } catch (error) {

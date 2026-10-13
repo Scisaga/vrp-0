@@ -45,3 +45,5 @@ Gateway 的 OpenAPI 路径和 HTML 资源读取目录是独立约定，不随元
 本次地点 Schema 说明属于 `1.1.1-alpha-SNAPSHOT` 的新 ImageVersion 契约，使用新 tag `v1.1.1-alpha-SNAPSHOT`。既有 `v1.1.0-alpha-SNAPSHOT` tag 及已导入快照保持不变，禁止移动或覆盖。新 tag 只标识本次版本化源码、Schema 和元数据，不表示新镜像已构建或推送，也不表示 Gateway 已导入或启用新 ImageVersion。
 
 短展示工具名改造使用新版本 `1.1.2-alpha-SNAPSHOT` 和新 tag `v1.1.2-alpha-SNAPSHOT`，仅支持 `gw_map_<ID>` / `gw_gantt_<ID>`，须与适配短名的 Gateway 成套切换。Gradle、OpenAPI 版本和 `gateway/image-version.yaml` 同步更新；既有 tag 不移动或覆盖。源码 tag 推送不表示容器镜像已发布、Gateway 已导入或启用版本，也不表示 Quick 真机卡片渲染已通过。
+
+地图与 Gantt 紧凑布局、路线取景图标及底部说明行清理归入 `1.1.3-alpha-SNAPSHOT`，源码交付使用本地 annotated tag `v1.1.3-alpha-SNAPSHOT`。Gradle、OpenAPI 的 `info.version` 和 `gateway/image-version.yaml` 同步；API 字段、请求/结果 Schema、MCP 公共契约版本及资源声明保持不变。本次不推送提交或 tag，也不发布镜像、部署或导入 Gateway；既有 tag 不移动或覆盖。

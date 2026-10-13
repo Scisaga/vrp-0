@@ -38,6 +38,8 @@ java -jar build/quarkus-app/quarkus-run.jar
 
 正式构建前通常先运行 `./gradlew allStableTest`。JVM 容器使用 `src/main/docker/Dockerfile.jvm`，以非 root 用户运行，并预创建 `/data/scenarios` 和 `/data/solver_jobs`。
 
+当前工作区版本为 `1.1.3-alpha-SNAPSHOT`，同步维护 Gradle 应用版本、发布 OpenAPI 的 `info.version` 和 Gateway 镜像元数据版本。该版本包含地图/Gantt 界面整理，不改变 API 或 MCP Schema；版本号修改和本地打包不代表 tag、容器镜像已发布或 Gateway 已导入，既有 tag 不移动或覆盖。
+
 ```bash
 ./gradlew quarkusBuild -x test
 docker build -f src/main/docker/Dockerfile.jvm -t vrp-0:local .

@@ -27,7 +27,7 @@ test('map fullscreen provides isolated sidebar, fit, replay and pauses on hide o
   await host.assertHealthy();
 });
 
-test('Gantt keeps only zoom-out, makes no map request, filters locally and exposes fullscreen right sidebar',async({page})=>{
+test('Gantt defaults to compact density without zoom controls, makes no map request and filters locally',async({page})=>{
   const host=await openHost(page),frame=await host.add({result:asGantt()});
   await expect(frame.locator('#map-canvas,#fit-map,#open-gantt')).toHaveCount(0);await expect(frame.locator('#refresh')).toBeHidden();await expect(frame.locator('.gantt-bar')).toHaveCount(5);
   expect(host.requests.some(url=>url.startsWith('https://'))).toBe(false);
@@ -37,21 +37,29 @@ test('Gantt keeps only zoom-out, makes no map request, filters locally and expos
   expect(refresh.params.arguments).toEqual({job_id:asGantt()._meta.gateway_ui.job_id}); // The SDK may add standard _meta.progressToken.
   await host.respond('card',0,asGantt());await expect(frame.locator('.gantt-bar')).toHaveCount(5);
   expect(host.requests.some(url=>url.startsWith('https://'))).toBe(false);
-  await expect(frame.locator('#gantt-out')).toBeVisible();await expect(frame.locator('#gantt-in')).toBeHidden();const before=await frame.locator('.gantt-grid').evaluate(el=>el.getBoundingClientRect().width);await frame.locator('#gantt-out').click();expect(await frame.locator('.gantt-grid').evaluate(el=>el.getBoundingClientRect().width)).toBeLessThan(before);
+  await expect(frame.locator('#gantt-out,#gantt-in')).toHaveCount(0);
+  const size=await frame.locator('.gantt-grid').evaluate(el=>({width:el.getBoundingClientRect().width,available:document.getElementById('gantt-scroll').clientWidth}));
+  expect(size.width).toBeCloseTo(Math.max(640,size.available/1.5),1);
   await fullscreen(frame);await expect(frame.locator('#sidebar')).toBeVisible();expect(await frame.locator('#sidebar').evaluate(el=>getComputedStyle(el).borderLeftWidth)).not.toBe('0px');
   await frame.locator('.gantt-bar').last().click();await expect(frame.locator('#side-detail')).toContainText('ticket-a');await host.assertHealthy();
 });
 
 test('map and Gantt cards keep selection, viewport, scroll and fullscreen state isolated',async({page})=>{
-  const host=await openHost(page),map=await host.add({id:'map'}),gantt=await host.add({id:'gantt',result:asGantt()});await mapReady(map);
-  await map.locator('#engineer').selectOption(AGENT);await gantt.locator('#gantt-out').click();await fullscreen(gantt);
+  const host=await openHost(page),map=await host.add({id:'map'}),gantt=await host.add({id:'gantt',result:asGantt(),width:375});await mapReady(map);
+  await map.locator('#engineer').selectOption(AGENT);
+  await gantt.locator('#gantt-scroll').evaluate(el=>{el.scrollLeft=80;el.dispatchEvent(new Event('scroll'));});await fullscreen(gantt);
   await expect(map.locator('#app')).toHaveAttribute('data-mode','inline');await expect(gantt.locator('#app')).toHaveAttribute('data-mode','fullscreen');
-  await expect(map.locator('#engineer')).toHaveValue(AGENT);await expect(gantt.locator('#engineer')).toHaveValue('');await host.assertHealthy();
+  await expect(map.locator('#engineer')).toHaveValue(AGENT);await expect(gantt.locator('#engineer')).toHaveValue('');
+  expect(await gantt.locator('#gantt-scroll').evaluate(el=>el.scrollLeft)).toBe(80);await host.assertHealthy();
 });
 
 test('large map and Gantt profiles retain 200 engineers, 1000 tickets and the 4097-point line',async({page})=>{
   test.setTimeout(60000);const large=largeView();const mapResult=message();mapResult._meta.gateway_ui.engine_view=large.view;
   const ganttResult=asGantt();const view=structuredClone(large.view);for(const poi of view.solver_job.plan.pois)poi.location=null;for(const agent of view.solver_job.plan.agents)for(const route of agent.routes)if(route)Object.assign(route,{origin:null,destination:null,polyline:null,transit:null});ganttResult._meta.gateway_ui.engine_view=view;
   const host=await openHost(page),map=await host.add({id:'map',result:mapResult});const renderer=await mapReady(map);expect((await renderer.evaluate(()=>window.__mapStats.lines.map(x=>x.path.length)))[0]).toBe(4097);
+  await expect(map.locator('#map-legend button')).toHaveCount(200);
+  const legend=await map.locator('#map-legend').evaluate(el=>({height:el.getBoundingClientRect().height,scrollHeight:el.scrollHeight,clientHeight:el.clientHeight,
+    top:el.getBoundingClientRect().top,canvasBottom:document.querySelector('#map-canvas').getBoundingClientRect().bottom}));
+  expect(legend.height).toBeLessThanOrEqual(96);expect(legend.scrollHeight).toBeGreaterThan(legend.clientHeight);expect(legend.top).toBeGreaterThanOrEqual(legend.canvasBottom);
   const gantt=await host.add({id:'gantt',result:ganttResult,height:900});await expect(gantt.locator('.gantt-row')).toHaveCount(200);await expect(gantt.locator('.gantt-bar[data-phase="service"]')).toHaveCount(1000);await host.assertHealthy();
 });

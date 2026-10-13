@@ -37,11 +37,14 @@ class OpenApiLocationContractTest {
         assertEquals(200, response.statusCode());
 
         JsonNode runtime = objectMapper.readTree(response.asString());
-        JsonNode published = new ObjectMapper(new YAMLFactory())
-                .readTree(Path.of("docs/openapi.yaml").toFile());
+        ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
+        JsonNode published = yamlMapper.readTree(Path.of("docs/openapi.yaml").toFile());
+        JsonNode metadata = yamlMapper.readTree(Path.of("gateway/image-version.yaml").toFile());
 
         assertLocationContract(runtime);
         assertLocationContract(published);
+        assertEquals(runtime.at("/info/version").asText(), metadata.at("/image/version").asText(),
+                "Gateway image metadata must match the runtime OpenAPI version");
 
         for (String pointer : new String[] {
                 "/components/schemas/RoutePlan/required",
@@ -60,7 +63,7 @@ class OpenApiLocationContractTest {
     }
 
     private void assertLocationContract(JsonNode openApi) {
-        assertEquals("1.1.2-alpha-SNAPSHOT", openApi.at("/info/version").asText());
+        assertEquals("1.1.3-alpha-SNAPSHOT", openApi.at("/info/version").asText());
 
         JsonNode schemas = openApi.at("/components/schemas");
         assertEquals(Set.of("depos", "agents", "tickets"), textSet(schemas.path("RoutePlan").path("required")));

@@ -24,8 +24,8 @@ export const mapSdkFixture = `(() => {
     off(type,listener){this.listeners.get(type)?.delete(listener)}emit(type){for(const listener of this.listeners.get(type)||[])listener({type})}
     getZoom(){return this.zoom}setZoom(value){this.zoom=value}setCenter(value){this.center=value}
     setZoomAndCenter(zoom,center){this.zoom=zoom;this.center=center}
-    setFitView(){if(window.__mapFailureMode==='fit')throw new Error('sensitive fit detail');stats.fits++}getViewModel(){return {setLookAtData:()=>{stats.fits++}}}
-    triggerResize(){this.size={width:this.container.clientWidth,height:this.container.clientHeight};this.canvas.width=this.size.width;this.canvas.height=this.size.height;this.canvas.style.cssText='position:absolute;pointer-events:none;width:'+this.size.width+'px;height:'+this.size.height+'px'}getViewPort(){return {resize:()=>this.triggerResize()}}
+    setFitView(objects,immediately,padding){if(window.__mapFailureMode==='fit')throw new Error('sensitive fit detail');stats.fits++;stats.fitPadding=padding}getViewModel(){return {setLookAtData:()=>{stats.fits++}}}
+    triggerResize(){this.size={width:this.container.clientWidth,height:this.container.clientHeight};this.canvas.width=this.size.width;this.canvas.height=this.size.height;this.canvas.style.cssText='position:absolute;pointer-events:none;width:'+this.size.width+'px;height:'+this.size.height+'px'}getViewPort(){return {resize:()=>this.triggerResize(),setPadding:(...padding)=>{stats.fitPadding=padding}}}
     destroy(){this.dispose()}dispose(){if(this.disposed)return;this.disposed=true;this.removeObjects([...this.objects]);this.canvas.remove();stats.destroyed++;delete this.container.dataset.mockMap}
   }
   class AMapMarker {

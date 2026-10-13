@@ -38,6 +38,14 @@ svg{flex:none}
 .view-tabs,.side-tabs,.gantt-tools{display:flex;gap:5px}
 .engineer-filter{display:flex;align-items:center;gap:7px;margin-left:auto;min-width:0;max-width:55%}
 .engineer-filter select{max-width:250px}
+.map-app .engineer-filter{flex:1;max-width:none;margin-left:0}
+.map-fit-control{position:relative;display:inline-flex;flex:none;align-self:center}
+.map-fit-button{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;min-height:36px;padding:0}
+.map-fit-button svg{display:block;width:20px;height:20px;pointer-events:none}
+.map-fit-tooltip{position:absolute;left:0;top:calc(100% + 8px);z-index:10;padding:6px 8px;border:1px solid var(--line);border-radius:5px;background:var(--ink);color:var(--surface);font-size:12px;white-space:nowrap;visibility:hidden}
+.map-fit-tooltip::before{content:"";position:absolute;left:0;right:0;top:-8px;height:8px}
+.map-fit-control:not([data-tooltip-dismissed="true"]):hover .map-fit-tooltip,
+.map-fit-control:not([data-tooltip-dismissed="true"]):focus-within .map-fit-tooltip{visibility:visible}
 .summary-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-bottom:1px solid var(--line);flex:none}
 .summary-item{display:grid;grid-template-columns:auto minmax(0,1fr);min-width:0;border-right:1px solid var(--line)}
 .summary-item:nth-child(3){border-right:0}
@@ -53,33 +61,42 @@ svg{flex:none}
 .workspace{display:flex;min-height:0;min-width:0;flex:1}
 .stage{display:flex;flex-direction:column;flex:1;min-width:0;min-height:0}
 .map-panel{position:relative;flex:1;min-height:300px;height:400px;background:#162535;overflow:hidden}
+.map-app[data-mode="inline"] .map-panel{width:100%;height:auto;min-height:0;flex:none;aspect-ratio:3/2}
 .map-canvas{position:absolute;inset:0}
 .map-renderer-frame{display:block;width:100%;height:100%;border:0;background:#162535}
 .map-state{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:25px;background:#162535;color:#dbe7f4;gap:12px}
 .map-state p{max-width:42ch}
 .map-state .map-diagnostic{font:12px ui-monospace,SFMono-Regular,Consolas,monospace;color:#b8c9da;overflow-wrap:anywhere}
 .map-state button{background:#243b50;color:#fff;border-color:#7090aa}
-.map-legend{position:absolute;left:8px;bottom:8px;right:8px;max-height:66px;overflow:auto;display:flex;flex-wrap:wrap;gap:4px;pointer-events:none}
-.map-legend button{pointer-events:auto;display:inline-flex;align-items:center;gap:6px;background:#f8fafcf2;color:#17202f;font-size:12px;border-color:#bac8d5}
+.map-legend{flex:none;min-width:0;max-height:96px;overflow:auto;display:flex;flex-wrap:wrap;gap:6px;padding:8px 12px;border-top:1px solid var(--line);background:var(--surface)}
+.map-legend:empty{display:none}
+.map-legend button{display:inline-flex;align-items:center;gap:6px;max-width:100%;overflow-wrap:anywhere;background:var(--surface-alt);color:var(--ink);font-size:12px}
 .swatch{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--agent-color);flex:none}
 .gantt-panel{min-width:0;min-height:300px;flex:1;display:flex;flex-direction:column}
-.gantt-heading{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:12px 16px;border-bottom:1px solid var(--line);flex:none}
+.gantt-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 16px;border-bottom:1px solid var(--line);flex:none;min-width:0}
+.gantt-heading .engineer-filter{flex:none;max-width:55%}
 .gantt-heading h2{font-size:17.5px;font-weight:500;color:var(--brand)}
-.gantt-legend{display:flex;flex-wrap:wrap;gap:6px;color:var(--muted)}
+.gantt-legend{display:flex;flex:1;min-width:0;flex-wrap:wrap;gap:6px;color:var(--muted)}
 .gantt-scroll{height:400px;overflow:auto;position:relative;min-height:180px;overscroll-behavior:contain}
+.gantt-app[data-mode="inline"]{min-height:0}
+.gantt-app[data-mode="inline"] .gantt-panel{flex:none;min-height:0}
+.gantt-app[data-mode="inline"] .gantt-scroll{height:auto;min-height:0;max-height:400px}
 .gantt-grid{position:relative;min-width:640px}
 .gantt-head{position:sticky;top:0;display:flex;height:42px;z-index:3;background:var(--surface-alt);border-bottom:1px solid var(--line)}
 .gantt-label{width:190px;flex:none;padding:8px 16px;background:var(--surface);overflow:hidden;position:sticky;left:0;z-index:2}
 .gantt-head .gantt-label{background:var(--surface-alt);font-size:12px;color:var(--muted)}
-.gantt-label button{border:0;padding:0;display:flex;align-items:center;gap:6px;max-width:100%;min-height:27px;font-size:14px;text-align:left}
+.gantt-label button{border:0;padding:0;display:flex;align-items:center;gap:6px;max-width:100%;min-height:24px;font-size:13px;text-align:left}
 .gantt-label button span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.gantt-label small{display:block;color:var(--muted);font-size:11px;font-family:ui-monospace,monospace;padding-left:16px;overflow-wrap:anywhere}
+.gantt-date{display:block;color:var(--muted);font-size:11px;line-height:14px;font-family:ui-monospace,monospace;padding-left:16px;overflow-wrap:anywhere}
 .gantt-scale{position:relative;flex:1;min-width:0;margin-right:16px}
-.gantt-tick{position:absolute;top:0;height:100%;padding:12px 4px;font-family:ui-monospace,monospace;font-size:11px;white-space:nowrap;color:var(--muted)}
-.gantt-row{display:flex;min-height:66px;border-bottom:1px solid var(--line)}
+.gantt-tick{position:absolute;top:0;height:100%;padding:12px 4px;font-family:ui-monospace,monospace;font-size:11px;white-space:nowrap;color:var(--muted);transform:translateX(-50%)}
+.gantt-tick:first-child{transform:none}
+.gantt-tick:last-child{transform:translateX(-100%)}
+.gantt-row{display:flex;min-height:52px;border-bottom:1px solid var(--line)}
+.gantt-row .gantt-label{padding-block:6px}
 .gantt-row[data-selected="true"],.gantt-row[data-selected="true"] .gantt-label{background:var(--accent-soft)}
-.gantt-track{position:relative;flex:1;min-width:0;min-height:66px;margin-right:16px;background:linear-gradient(var(--line),var(--line)) center / 100% 3px no-repeat}
-.gantt-visit{top:8px;background:var(--stage-base);border-color:var(--stage-border);box-shadow:0 0 0 1px var(--line);color:#047857}
+.gantt-track{position:relative;flex:1;min-width:0;min-height:50px;margin-right:16px;background:linear-gradient(var(--line),var(--line)) center / 100% 3px no-repeat}
+.gantt-visit{top:8px;height:36px;background:var(--stage-base);border-color:var(--stage-border);box-shadow:0 0 0 1px var(--line);color:#047857}
 .gantt-visit[data-selected="true"]{outline:2px solid var(--accent);outline-offset:2px;z-index:1}
 .gantt-bar{position:absolute;top:0;bottom:0;height:100%;min-height:0;min-width:2px;padding:0;border:0;border-radius:0;background:var(--stage-fill);color:var(--stage-ink);box-shadow:inset 1px 0 0 rgb(255 255 255 / .5)}
 .gantt-bar:first-child{border-top-left-radius:6px;border-bottom-left-radius:6px}
@@ -87,7 +104,7 @@ svg{flex:none}
 .gantt-bar:hover:not(:disabled){background:var(--stage-fill);filter:brightness(.92)}
 .gantt-bar[aria-pressed="true"]{background:var(--stage-fill);color:var(--stage-ink)}
 .gantt-bar:focus-visible{outline:2px solid var(--accent);outline-offset:2px;z-index:2}
-.gantt-bar[data-zero="true"]{width:14px!important;min-width:14px;transform:translateX(-7px);border:2px solid var(--surface);border-radius:50%;height:14px;top:17px;background:var(--accent);z-index:1}
+.gantt-bar[data-zero="true"]{width:14px!important;min-width:14px;transform:translateX(-7px);border:2px solid var(--surface);border-radius:50%;height:14px;top:calc(50% - 7px);background:var(--accent);z-index:1}
 .gantt-visit-label{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;font-size:15px}
 :root[data-theme="dark"] .gantt-visit{color:#6ee7b7}
 :root[data-theme="dark"] .result-sequence-badge{background:#203c36}
@@ -125,7 +142,6 @@ svg{flex:none}
 .playback-controls input{flex:1}
 .speed-label{display:flex;align-items:center;gap:5px;font-size:12px}
 .playback-states{display:flex;gap:5px 12px;flex-wrap:wrap;max-height:46px;overflow:auto;font-size:12px;color:var(--muted);margin-top:6px}
-.app-footer{padding:7px 16px;color:var(--muted);font-size:11px;border-top:1px solid var(--line);flex:none}
 .app-switch{padding:9px 16px;border-top:1px solid var(--line);display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}
 .app-switch>div{display:flex;gap:8px;flex:1;min-width:min(100%,320px)}
 .app-switch textarea{flex:1;min-width:180px;resize:vertical;border:1px solid var(--line);background:var(--surface-alt);color:var(--ink);padding:7px;font:11px ui-monospace,monospace}
@@ -141,7 +157,6 @@ svg{flex:none}
 .mcp-root[data-mode="fullscreen"] .gantt-scroll{height:0;flex:1;min-height:0}
 .mcp-root[data-mode="fullscreen"] .inline-detail{display:none}
 .mcp-root[data-mode="fullscreen"] .ordered-tickets{display:none}
-.mcp-root[data-mode="fullscreen"] .app-footer{padding-block:4px}
 
 @media(max-width:700px){.app-header{padding:10px;gap:8px}
 .header-actions button{font-size:12px;padding-inline:7px}
@@ -149,6 +164,8 @@ svg{flex:none}
 .engineer-filter{max-width:100%;flex:1 0 100%;order:2;justify-content:flex-start;font-size:12px;margin-left:0}
 .engineer-filter>span{white-space:nowrap}
 .engineer-filter select{max-width:none;flex:1}
+.map-app .engineer-filter{flex:1 0 100%;order:0}
+.map-app[data-mode="inline"] .map-panel{aspect-ratio:1}
 .summary-strip{grid-template-columns:repeat(3,minmax(0,1fr))}
 .summary-item{display:flex;flex-direction:column}
 .summary-label{border-right:0;padding:6px 8px}
@@ -156,6 +173,8 @@ svg{flex:none}
 .summary-score{display:grid;grid-template-columns:auto minmax(0,1fr)}
 .summary-score .summary-value{gap:4px 12px}
 .gantt-heading{padding:8px 10px}
+.gantt-heading .engineer-filter{flex:0 1 140px;max-width:50%;order:0;margin-left:auto}
+.gantt-heading .engineer-filter>span{display:none}
 .gantt-legend .result-phase-key{font-size:12px;padding:1px 5px}
 .sidebar{width:260px}
 .mcp-root[data-mode="fullscreen"] .workspace{position:relative}
@@ -165,7 +184,7 @@ svg{flex:none}
 .playback-controls output{font-size:11px;width:100%}
 .gantt-label{width:125px}
 .task-heading h1{font-size:15px}
-.map-legend{max-height:54px}
+.map-legend{padding-inline:10px}
 .detail-grid{grid-template-columns:90px minmax(0,1fr)}
 }
 
