@@ -83,11 +83,11 @@ svg{flex:none}
 .gantt-app[data-mode="inline"] .gantt-scroll{height:auto;min-height:0;max-height:400px}
 .gantt-grid{position:relative;min-width:640px}
 .gantt-head{position:sticky;top:0;display:flex;height:42px;z-index:3;background:var(--surface-alt);border-bottom:1px solid var(--line)}
-.gantt-label{width:190px;flex:none;padding:8px 16px;background:var(--surface);overflow:hidden;position:sticky;left:0;z-index:2}
+.gantt-label{width:var(--gantt-label-width,190px);flex:none;padding:8px 16px;background:var(--surface);overflow:hidden;position:sticky;left:0;z-index:2}
 .gantt-head .gantt-label{background:var(--surface-alt);font-size:12px;color:var(--muted)}
 .gantt-label button{border:0;padding:0;display:flex;align-items:center;gap:6px;max-width:100%;min-height:24px;font-size:13px;text-align:left}
 .gantt-label button span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.gantt-date{display:block;color:var(--muted);font-size:11px;line-height:14px;font-family:ui-monospace,monospace;padding-left:16px;overflow-wrap:anywhere}
+.gantt-meta{width:max-content;color:var(--muted);font-size:11px;line-height:14px;font-family:ui-monospace,monospace;padding-left:16px;white-space:pre}
 .gantt-scale{position:relative;flex:1;min-width:0;margin-right:16px}
 .gantt-tick{position:absolute;top:0;height:100%;padding:12px 4px;font-family:ui-monospace,monospace;font-size:11px;white-space:nowrap;color:var(--muted);transform:translateX(-50%)}
 .gantt-tick:first-child{transform:none}
@@ -182,7 +182,6 @@ svg{flex:none}
 .playback{padding:8px 10px}
 .playback-controls{gap:6px}
 .playback-controls output{font-size:11px;width:100%}
-.gantt-label{width:125px}
 .task-heading h1{font-size:15px}
 .map-legend{padding-inline:10px}
 .detail-grid{grid-template-columns:90px minmax(0,1fr)}
