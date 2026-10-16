@@ -14,7 +14,7 @@ async function compactBoxes(frame) {
   });
 }
 
-test('Gantt defaults to the old zoom-out density with compact rows, time-only ticks and no footer', async ({page}) => {
+test('Gantt fills the timeline with independent service blocks, time-only ticks and no footer', async ({page}) => {
   const host = await openHost(page);
   const frame = await host.add({result:ganttLayoutResult([real('real-a'),real('real-b')]),width:1100,autoSize:true});
   await expect(agentRows(frame)).toHaveCount(2);
@@ -22,14 +22,15 @@ test('Gantt defaults to the old zoom-out density with compact rows, time-only ti
   const sizes = await frame.evaluate(() => ({
     grid:document.querySelector('.gantt-grid').getBoundingClientRect().width,
     available:document.querySelector('#gantt-scroll').clientWidth,
+    label:document.querySelector('.gantt-label').getBoundingClientRect().width,
     row:document.querySelector('.gantt-row').getBoundingClientRect().height,
     visit:document.querySelector('.gantt-visit').getBoundingClientRect().height,
     ticks:[...document.querySelectorAll('.gantt-tick')].map(el => ({text:el.textContent,title:el.title,label:el.getAttribute('aria-label')}))
   }));
-  expect(sizes.grid).toBeCloseTo(Math.max(640,sizes.available/1.5),1);
-  expect(sizes.row).toBe(52); expect(sizes.visit).toBe(36);
+  expect(sizes.grid).toBeCloseTo(Math.max(sizes.label+896,sizes.available),1);
+  expect(sizes.row).toBe(76); expect(sizes.visit).toBe(44);
   for (const tick of sizes.ticks) {
-    expect(tick.text).toMatch(/^\d{2}:\d{2}:\d{2}$/);
+    expect(tick.text).toMatch(/^\d{2}:\d{2}(?::\d{2})?$/);
     expect(tick.title).toMatch(/^2026-09-17 \d{2}:\d{2}:\d{2}$/);
     expect(tick.label).toBe(tick.title);
   }
@@ -50,7 +51,7 @@ test('virtual engineers are hidden from rows, filtering and fullscreen lists wit
   await expect(frame.locator('#engineer option[value="virtual-a"]')).toHaveCount(0);
   await expect(frame.locator('#engineer option[value="unknown-a"]')).toHaveCount(1);
   await expect(frame.locator('.gantt-row')).not.toContainText(['虚拟工程师']);
-  await expect(frame.locator('.gantt-tick').first()).toHaveText('08:00:00');
+  await expect(frame.locator('.gantt-tick').first()).toHaveText('08:00');
   await expect(frame.locator('.gantt-date').last()).toHaveText('未提供');
   await expect(frame.locator('.gantt-date').last()).not.toHaveAttribute('datetime',/./);
   expect(await page.evaluate(() => window.host.cards.get('card').result._meta.gateway_ui.engine_view.solver_job.plan.agents.length)).toBe(3);
@@ -64,7 +65,7 @@ test('selecting an engineer brings details directly below the compact chart and 
   const result = ganttLayoutResult(Array.from({length:8},(_,index) => real(`real-${index}`)));
   const host = await openHost(page), frame = await host.add({result,width:920,autoSize:true});
   await expect(agentRows(frame)).toHaveCount(8);
-  await expect.poll(async () => (await compactBoxes(frame)).scroll.height).toBe(400);
+  await expect.poll(async () => (await compactBoxes(frame)).scroll.height).toBe(577);
   const before = (await compactBoxes(frame)).app.height;
   await agentRows(frame).first().locator('.gantt-label button').click();
   await expect(agentRows(frame)).toHaveCount(1);
@@ -111,12 +112,12 @@ test('multi-day schedules retain left-hand business dates and complete tick time
   const host = await openHost(page), frame = await host.add({result});
   await expect(agentRows(frame)).toHaveCount(2);
   expect(await frame.locator('.gantt-date').allTextContents()).toEqual(['2026-09-17','2026-09-18']);
-  await expect(frame.locator('.gantt-tick').first()).toHaveText('08:00:00');
-  await expect(frame.locator('.gantt-tick').last()).toHaveText('09:25:00');
+  await expect(frame.locator('.gantt-tick').first()).toHaveText('08:00');
+  await expect(frame.locator('.gantt-tick').last()).toHaveText('09:25');
   await expect(frame.locator('.gantt-tick').last()).toHaveAttribute('title','2026-09-18 09:25:00');
   await host.context('card',{locale:'en-US',theme:'dark'});
   expect(await frame.locator('.gantt-date').allTextContents()).toEqual(['2026-09-17','2026-09-18']);
-  await expect(frame.locator('.gantt-tick').last()).toHaveText('09:25:00');
+  await expect(frame.locator('.gantt-tick').last()).toHaveText('09:25');
   await host.assertHealthy();
 });
 
@@ -151,7 +152,7 @@ test('all-virtual and unknown collections remain explicit empty or unknown state
   await host.assertHealthy();
 });
 
-test('zero-duration services stay visible and centered in the reduced-height task bar', async ({page}) => {
+test('zero-duration services stay visible and centered in the independent service block', async ({page}) => {
   const result = ganttLayoutResult([real('real-a')]);
   const ticket = result._meta.gateway_ui.engine_view.solver_job.plan.tickets[0];
   ticket.departure_time = ticket.start_service_time; ticket.duration = 'PT0S';

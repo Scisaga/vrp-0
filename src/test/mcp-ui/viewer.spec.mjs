@@ -27,7 +27,7 @@ test('map fullscreen provides isolated sidebar, fit, replay and pauses on hide o
   await host.assertHealthy();
 });
 
-test('Gantt defaults to compact density without zoom controls, makes no map request and filters locally',async({page})=>{
+test('Gantt uses readable service blocks without zoom controls, makes no map request and filters locally',async({page})=>{
   const host=await openHost(page),frame=await host.add({result:asGantt()});
   await expect(frame.locator('#map-canvas,#fit-map,#open-gantt')).toHaveCount(0);await expect(frame.locator('#refresh')).toBeHidden();await expect(frame.locator('.gantt-bar')).toHaveCount(5);
   expect(host.requests.some(url=>url.startsWith('https://'))).toBe(false);
@@ -38,8 +38,8 @@ test('Gantt defaults to compact density without zoom controls, makes no map requ
   await host.respond('card',0,asGantt());await expect(frame.locator('.gantt-bar')).toHaveCount(5);
   expect(host.requests.some(url=>url.startsWith('https://'))).toBe(false);
   await expect(frame.locator('#gantt-out,#gantt-in')).toHaveCount(0);
-  const size=await frame.locator('.gantt-grid').evaluate(el=>({width:el.getBoundingClientRect().width,available:document.getElementById('gantt-scroll').clientWidth}));
-  expect(size.width).toBeCloseTo(Math.max(640,size.available/1.5),1);
+  const size=await frame.locator('.gantt-grid').evaluate(el=>({width:el.getBoundingClientRect().width,available:document.getElementById('gantt-scroll').clientWidth,label:document.querySelector('.gantt-label').getBoundingClientRect().width}));
+  expect(size.width).toBeCloseTo(Math.max(size.label+896,size.available),1);
   await fullscreen(frame);await expect(frame.locator('#sidebar')).toBeVisible();expect(await frame.locator('#sidebar').evaluate(el=>getComputedStyle(el).borderLeftWidth)).not.toBe('0px');
   await frame.locator('.gantt-bar').last().click();await expect(frame.locator('#side-detail')).toContainText('ticket-a');await host.assertHealthy();
 });

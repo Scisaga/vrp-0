@@ -190,11 +190,12 @@ test('canonical Ajv2020 standalone validator preserves strict shape, null holes 
   assert.equal(validate(calendar), true, 'calendar semantics belong to the additional semantic validator, not JSON Schema regex');
 });
 
-test('console and MCP share only the extracted result presentation, not the console runtime', async () => {
+test('MCP shares base presentation CSS but uses independent Gantt stages without console runtime', async () => {
   const sharedJs = 'src/main/resources/META-INF/resources/static/assets/js/utils/result-presentation.mjs';
   verifyInputs([sharedJs]);
   const { html, inputs } = await buildMcpApp();
-  assert.ok(inputs.includes(sharedJs));
+  assert.ok(inputs.includes('src/main/mcp-ui/gantt-presentation.mjs'));
+  assert.ok(!inputs.includes(sharedJs), 'MCP stage shapes no longer use console stage tokens');
   const consoleJs = fs.readFileSync(path.join(staticRoot, 'assets/js/pages/solver-job-detail-page.js'), 'utf8');
   assert.match(consoleJs, /import .*GANTT_STAGE_STYLES.*result-presentation\.mjs/);
   assert.doesNotMatch(consoleJs, /const GANTT_STAGE_STYLES\s*=/);

@@ -1,10 +1,10 @@
-import { GANTT_STAGE_STYLES } from '../resources/META-INF/resources/static/assets/js/utils/result-presentation.mjs';
 import validateSchema from 'mcp-view-validator';
 import { createViewerBridge, readEnvelope } from './bridge.mjs';
 import { parsePlanTime, formatPlanTime, poiPosition } from './model.mjs';
 import { translate, supportedLocale } from './i18n.mjs';
 import { colorFor } from './palette.mjs';
 import { formatOperatingRange } from './gantt-label.mjs';
+import { shortLocation, ganttDuration, ganttTicks } from './gantt-presentation.mjs';
 
 const $ = (id) => document.getElementById(id);
 const record = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -92,31 +92,102 @@ export function startViewer({ kind, buildModel, validateSemantics, buildReplay, 
   function selectTicket(id,ownerId=null){const ticket=state.model?.indexes.tickets.get(id);if(!ticket)return;state.ticketId=id;const agent=state.model.indexes.agents.get(ownerId||ticket.agent);if(agent&&agent.virtual!==true)state.engineerId=agent.id;pause();state.cursor=null;render();if(mapMode){void syncMap({refresh:true});state.map?.focus(poiPosition(state.model.indexes.pois.get(ticket.loc)));}}
   function swatch(id){const el=node('span',undefined,'swatch');el.style.setProperty('--agent-color',colorFor(id));el.setAttribute('aria-hidden','true');return el;}
   function ticketRow(id,index,ownerId){const ticket=state.model?.indexes.tickets.get(id),poi=ticket&&state.model.indexes.pois.get(ticket.loc);const row=button('',()=>selectTicket(id,ownerId),'ticket-row');row.dataset.focusKey=`ticket:${ownerId||''}:${id}`;row.setAttribute('aria-pressed',String(state.ticketId===id));row.append(node('span',index===null?'—':index+1,'number'));const copy=node('span',undefined,'row-copy');copy.append(node('span',id),node('small',ticket?`${poi?.name||t('none')} · ${label(ticket.start_service_time)} → ${label(ticket.departure_time)}`:t('missingReference')));row.append(copy);return row;}
-  function renderDetails(box){if(!box)return;box.replaceChildren();const ticket=selectedTicket(),agent=selectedAgent();if(box.id==='inline-detail'){box.hidden=!ticket&&!agent;if(box.hidden)return;}if(!ticket&&!agent){if(mapMode)box.append(node('p',t('choose'),'muted'));return;}box.append(node('h2',ticket?.id||nameOf(agent),'detail-heading'));const dl=node('dl',undefined,'detail-grid');if(ticket){const poi=state.model.indexes.pois.get(ticket.loc),owner=state.model.indexes.agents.get(ticket.agent);pair(dl,'owner',ticket.agent===null?t('unassigned'):owner?nameOf(owner):t('missingReference'));pair(dl,'sequence',ticketOrder(ticket));pair(dl,'arrival',ticket.arrival_time);pair(dl,'start',ticket.start_service_time);pair(dl,'departure',ticket.departure_time);pair(dl,'location',poi?.name||(ticket.loc?t('missingReference'):null));pair(dl,'address',poi?.address);}else{pair(dl,'id',agent.id);pair(dl,'date',agent.date);pair(dl,'shift',agent.shift_start_time);if(!mapMode)pair(dl,'shiftEnd',agent.shift_off_time);pair(dl,'assigned',agent.tickets?.length??null);}box.append(dl);}
+  function renderDetails(box){if(!box)return;box.replaceChildren();const ticket=selectedTicket(),agent=selectedAgent();box.classList.toggle('gantt-ticket-detail',!mapMode&&Boolean(ticket));if(box.id==='inline-detail'){box.hidden=!ticket&&!agent;if(box.hidden)return;}if(!ticket&&!agent){if(mapMode)box.append(node('p',t('choose'),'muted'));return;}box.append(node('h2',ticket?.id||nameOf(agent),'detail-heading'));const dl=node('dl',undefined,'detail-grid');if(ticket){const poi=state.model.indexes.pois.get(ticket.loc),owner=state.model.indexes.agents.get(ticket.agent);if(!mapMode)pair(dl,'address',poi?.address||poi?.name);pair(dl,'owner',ticket.agent===null?t('unassigned'):owner?nameOf(owner):t('missingReference'));pair(dl,'sequence',ticketOrder(ticket));pair(dl,'arrival',ticket.arrival_time);pair(dl,'start',ticket.start_service_time);pair(dl,'departure',ticket.departure_time);if(!mapMode){const start=parsePlanTime(ticket.start_service_time),end=parsePlanTime(ticket.departure_time);pair(dl,'duration',start!==null&&end!==null&&end>=start?ganttDuration(end-start,state.locale):null);}pair(dl,'location',poi?.name||(ticket.loc?t('missingReference'):null));if(mapMode)pair(dl,'address',poi?.address);}else{pair(dl,'id',agent.id);pair(dl,'date',agent.date);pair(dl,'shift',agent.shift_start_time);if(!mapMode)pair(dl,'shiftEnd',agent.shift_off_time);pair(dl,'assigned',agent.tickets?.length??null);}box.append(dl);}
   function renderSidebar(){const box=$('sidebar');if(!box)return;const narrow=innerWidth<=700;box.hidden=state.mode!=='fullscreen'||(narrow&&!state.sidebarOpen);optional('sidebar-toggle',el=>{el.hidden=state.mode!=='fullscreen'||!narrow;el.setAttribute('aria-expanded',String(state.sidebarOpen));});for(const key of ['agents','tickets'])optional(`side-${key}`,el=>{el.setAttribute('aria-selected',String(state.sidebar===key));el.tabIndex=state.sidebar===key?0:-1;});const list=$('side-list');list.replaceChildren();const query=state.search.toLocaleLowerCase();if(!state.model){list.append(node('p',t('noResult'),'empty'));renderDetails($('side-detail'));return;}const values=state.sidebar==='agents'?displayAgents():state.model.tickets;if(values===null){list.append(node('p',t('unknownCollections'),'empty'));return;}if(state.sidebar==='agents'){for(const agent of values||[]){if(query&&!`${agent.id} ${agent.name||''}`.toLocaleLowerCase().includes(query))continue;const row=button('',()=>selectEngineer(agent.id),'ticket-row');row.setAttribute('aria-pressed',String(agent.id===state.engineerId));row.append(swatch(agent.id));const copy=node('span',undefined,'row-copy');copy.append(node('span',nameOf(agent)),node('small',`${label(agent.date)} · ${t('tickets')} ${agent.tickets?.length??t('unknown')}`));row.append(copy);list.append(row);}}else for(const ticket of values||[]){if(state.engineerId&&ticket.agent!==state.engineerId)continue;const poi=state.model.indexes.pois.get(ticket.loc);if(query&&!`${ticket.id} ${poi?.name||''}`.toLocaleLowerCase().includes(query))continue;const order=ticketOrder(ticket);list.append(ticketRow(ticket.id,order===null?null:order-1,ticket.agent));}if(!list.childNodes.length)list.append(node('p',t(query?'noMatch':'empty'),'empty'));renderDetails($('side-detail'));}
 
   function ganttAgents(){return(displayAgents()||[]).filter((agent)=>!state.engineerId||agent.id===state.engineerId);}
+  function carIcon(){
+    const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+    svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('aria-hidden','true');
+    const path=document.createElementNS(svg.namespaceURI,'path');
+    path.setAttribute('d','M5 7l1.4-3h11.2L19 7m-14 0h14l2 4v7H3v-7l2-4Zm-2 5h18M6 15h2m8 0h2M5 18v3m14-3v3');
+    svg.append(path);return svg;
+  }
   function renderGantt(){
-    const chart=$('gantt-chart'),scroll=$('gantt-scroll');if(!chart||!scroll)return;const legend=$('gantt-legend');legend.replaceChildren();
-    for(const [type,key]of[['travel','travel'],['wait','waitingPhase'],['service','service']]){const item=node('span',undefined,'result-phase-key'),dot=node('span',undefined,'result-phase-dot');dot.style.cssText=GANTT_STAGE_STYLES[type].dot;dot.setAttribute('aria-hidden','true');item.append(dot,node('span',t(key)));legend.append(item);}
-    chart.replaceChildren();if(!state.model){chart.append(node('p',state.envelope?t('noResult'):t('waiting'),'empty'));return;}const agents=ganttAgents(),times=[];
-    for(const agent of agents){const shift=parsePlanTime(agent.shift_start_time);if(shift!==null&&agent.tickets?.length)times.push(shift);for(const id of agent.tickets||[]){const ticket=state.model.indexes.tickets.get(id);if(ticket)for(const key of['arrival_time','start_service_time','departure_time']){const value=parsePlanTime(ticket[key]);if(value!==null)times.push(value);}}}
-    if(!times.length){chart.append(node('p',t('noSchedule'),'empty'));return;}const min=Math.min(...times),max=Math.max(...times),span=max-min,grid=node('div',undefined,'gantt-grid');grid.style.width=`${Math.max(640,scroll.clientWidth/1.5)}px`;const head=node('div',undefined,'gantt-head');head.append(node('div',t('engineer'),'gantt-label'));const scale=node('div',undefined,'gantt-scale');for(let i=0;i<5;i++){const fullTime=formatPlanTime(min+span*i/4),tick=node('span',fullTime.slice(11),'gantt-tick');tick.title=fullTime;tick.setAttribute('aria-label',fullTime);tick.style.left=`${i*25}%`;scale.append(tick);}head.append(scale);grid.append(head);const percent=(time)=>span===0?50:Math.max(0,Math.min(100,100*(time-min)/span));
-    for(const agent of agents){const row=node('div',undefined,'gantt-row'),caption=node('div',undefined,'gantt-label'),choose=button('',()=>selectEngineer(agent.id));choose.append(swatch(agent.id),node('span',nameOf(agent)));
+    const chart=$('gantt-chart'),scroll=$('gantt-scroll');if(!chart||!scroll)return;
+    const focusKey=chart.contains(document.activeElement)?document.activeElement.dataset.focusKey:null;
+    const legend=$('gantt-legend');legend.replaceChildren();
+    for(const [phase,key]of[['travel','travel'],['wait','waitingPhase'],['service','service']]){
+      const item=node('span',undefined,'gantt-phase-key'),mark=node('i',undefined,`gantt-key-${phase}`);
+      mark.setAttribute('aria-hidden','true');item.append(mark,node('span',t(key)));legend.append(item);
+    }
+    chart.replaceChildren();
+    if(!state.model){chart.append(node('p',state.envelope?t('noResult'):t('waiting'),'empty'));return;}
+    const agents=ganttAgents(),times=[];
+    for(const agent of agents){
+      const shift=parsePlanTime(agent.shift_start_time);if(shift!==null&&agent.tickets?.length)times.push(shift);
+      for(const id of agent.tickets||[]){const ticket=state.model.indexes.tickets.get(id);if(ticket)for(const key of['arrival_time','start_service_time','departure_time']){const value=parsePlanTime(ticket[key]);if(value!==null)times.push(value);}}
+    }
+    if(!times.length){chart.append(node('p',t('noSchedule'),'empty'));return;}
+    const min=Math.min(...times),max=Math.max(...times),span=max-min,grid=node('div',undefined,'gantt-grid');
+    const percent=time=>span===0?50:Math.max(0,Math.min(100,100*(time-min)/span));
+    const ticks=ganttTicks(min,max),head=node('div',undefined,'gantt-head');
+    head.append(node('div',t('engineer'),'gantt-label'));
+    const scale=node('div',undefined,'gantt-scale');
+    for(const {time,full,text}of ticks){const tick=node('span',text,'gantt-tick');tick.title=full;tick.setAttribute('aria-label',full);tick.style.left=`${percent(time)}%`;scale.append(tick);}
+    head.append(scale);grid.append(head);
+    for(const agent of agents){
+      const row=node('div',undefined,'gantt-row'),caption=node('div',undefined,'gantt-label'),choose=button('',()=>selectEngineer(agent.id));
+      choose.dataset.focusKey=`engineer:${agent.id}`;choose.append(swatch(agent.id),node('span',nameOf(agent)));
+      row.dataset.selected=String(state.engineerId===agent.id);
       const metadata=node('div',undefined,'gantt-meta'),date=node('time',label(agent.date),'gantt-date');if(agent.date)date.dateTime=agent.date;
-      const range=formatOperatingRange(agent,state.model.indexes.tickets,state.locale),rangeLabel=node('span',range.text,'gantt-range');rangeLabel.setAttribute('role','group');rangeLabel.setAttribute('aria-label',range.accessibleLabel);
-      metadata.append(date,document.createTextNode(' · '),rangeLabel);caption.append(choose,metadata);row.append(caption);const track=node('div',undefined,'gantt-track');let previous=parsePlanTime(agent.shift_start_time);
-      for(const [index,id]of(agent.tickets||[]).entries()){const ticket=state.model.indexes.tickets.get(id);if(!ticket)continue;const arrival=parsePlanTime(ticket.arrival_time),start=parsePlanTime(ticket.start_service_time),end=parsePlanTime(ticket.departure_time);if(arrival===null||start===null||end===null||start<arrival||end<start)continue;const stages=[];if(previous!==null&&arrival>previous)stages.push(['travel',previous,arrival]);if(start>arrival)stages.push(['wait',arrival,start]);stages.push(['service',start,end]);const first=Math.min(...stages.map(x=>x[1])),last=Math.max(...stages.map(x=>x[2])),duration=last-first,group=node('div',undefined,'gantt-visit result-timeline-bar');group.style.left=`${percent(first)}%`;group.style.width=`${Math.max(0,percent(last)-percent(first))}%`;group.dataset.selected=String(state.ticketId===ticket.id);for(const [phase,a,b]of stages){const style=GANTT_STAGE_STYLES[phase],bar=button('',()=>selectTicket(ticket.id,agent.id),'gantt-bar');bar.style.setProperty('--stage-fill',style.background);bar.style.setProperty('--stage-ink',style.text);bar.style.left=`${duration===0?0:100*(a-first)/duration}%`;bar.style.width=`${duration===0?0:100*(b-a)/duration}%`;bar.dataset.phase=phase==='wait'?'waiting':phase;bar.dataset.zero=String(a===b);bar.setAttribute('aria-label',`${index+1} · ${ticket.id} · ${t(phase==='wait'?'waitingPhase':phase)} · ${formatPlanTime(a)} → ${formatPlanTime(b)}`);group.append(bar);}const badge=node('span',undefined,'gantt-visit-label');badge.append(node('span',index+1,'result-sequence-badge'));group.append(badge);track.append(group);previous=end;}
-      if(Array.isArray(agent.tickets)&&!agent.tickets.length)track.append(node('span',t('noTickets'),'gantt-missing'));row.append(track);grid.append(row);}
+      const range=formatOperatingRange(agent,state.model.indexes.tickets,state.locale),rangeLabel=node('span',range.text,'gantt-range');
+      rangeLabel.setAttribute('role','group');rangeLabel.setAttribute('aria-label',range.accessibleLabel);
+      metadata.append(date,document.createTextNode(' · '),rangeLabel);caption.append(choose,metadata);row.append(caption);
+      const track=node('div',undefined,'gantt-track');
+      for(const {time}of ticks){const line=node('span',undefined,'gantt-gridline');line.style.left=`${percent(time)}%`;line.setAttribute('aria-hidden','true');track.append(line);}
+      let previous=parsePlanTime(agent.shift_start_time);
+      for(const [index,id]of(agent.tickets||[]).entries()){
+        const ticket=state.model.indexes.tickets.get(id);if(!ticket)continue;
+        const arrival=parsePlanTime(ticket.arrival_time),start=parsePlanTime(ticket.start_service_time),end=parsePlanTime(ticket.departure_time);
+        if(arrival===null||start===null||end===null||start<arrival||end<start)continue;
+        const stages=[];
+        if(previous!==null&&arrival>previous)stages.push(['travel',previous,arrival]);
+        if(start>arrival)stages.push(['wait',arrival,start]);
+        stages.push(['service',start,end]);
+        const first=Math.min(...stages.map(x=>x[1])),last=Math.max(...stages.map(x=>x[2])),duration=last-first;
+        const poi=state.model.indexes.pois.get(ticket.loc),location=shortLocation(poi)||t('locationUnknown');
+        const fullLocation=poi?.address||poi?.name||t('locationUnknown');
+        const group=node('div',undefined,'gantt-visit');
+        group.style.left=`${percent(first)}%`;group.style.width=`${Math.max(0,percent(last)-percent(first))}%`;
+        group.dataset.selected=String(state.ticketId===ticket.id);
+        for(const [phase,a,b]of stages){
+          const bar=button('',()=>selectTicket(ticket.id,agent.id),'gantt-bar');
+          bar.style.left=`${duration===0?0:100*(a-first)/duration}%`;bar.style.width=`${duration===0?0:100*(b-a)/duration}%`;
+          bar.dataset.phase=phase==='wait'?'waiting':phase;bar.dataset.zero=String(a===b);
+          bar.dataset.focusKey=`stage:${agent.id}:${ticket.id}:${phase}`;
+          bar.setAttribute('aria-pressed',String(state.ticketId===ticket.id));
+          const description=`${index+1} · ${ticket.id} · ${fullLocation} · ${t(phase==='wait'?'waitingPhase':phase)} · ${ganttDuration(b-a,state.locale)} · ${formatPlanTime(a)} → ${formatPlanTime(b)}`;
+          bar.setAttribute('aria-label',description);bar.title=description;
+          if(phase==='service'&&a!==b){bar.append(node('span',location,'gantt-location'),node('span',ganttDuration(b-a,state.locale),'gantt-duration'));}
+          else if(phase==='travel'){
+            const line=node('span',undefined,'gantt-travel-line'),annotation=node('span',undefined,'gantt-travel-label');
+            line.setAttribute('aria-hidden','true');annotation.setAttribute('aria-hidden','true');
+            annotation.append(carIcon(),node('span',ganttDuration(b-a,state.locale,true)));bar.append(line,annotation);
+          }else if(phase==='wait')bar.append(node('span',`${t('waitingPhase')} ${ganttDuration(b-a,state.locale,true)}`,'gantt-wait-label'));
+          group.append(bar);
+        }
+        track.append(group);previous=end;
+      }
+      if(Array.isArray(agent.tickets)&&!agent.tickets.length)track.append(node('span',t('noTickets'),'gantt-missing'));
+      row.append(track);grid.append(row);
+    }
     chart.append(grid);
-    // Use one measured caption width for every row and the sticky header.
-    // Measure only after mounting; max-content metadata never wraps or clips.
-    let labelWidth=190;
+    // The timeline owns both scroll axes; all sticky captions share the measured width.
+    let labelWidth=244;
     for(const metadata of grid.querySelectorAll('.gantt-meta')){
       const style=getComputedStyle(metadata.parentElement);
       labelWidth=Math.max(labelWidth,metadata.getBoundingClientRect().width+parseFloat(style.paddingLeft)+parseFloat(style.paddingRight));
     }
     grid.style.setProperty('--gantt-label-width',`${Math.ceil(labelWidth)}px`);
+    for(const bar of grid.querySelectorAll('.gantt-bar')){
+      const width=bar.getBoundingClientRect().width;
+      if(bar.dataset.phase==='service')bar.dataset.narrow=String(width<75);
+      const wait=bar.querySelector('.gantt-wait-label');if(wait)wait.hidden=width<wait.scrollWidth+16;
+      const travel=bar.querySelector('.gantt-travel-label');
+      if(travel){const track=bar.closest('.gantt-track');if(travel.getBoundingClientRect().right>track.getBoundingClientRect().right){travel.style.left='auto';travel.style.right='0';}}
+    }
+    if(focusKey)for(const el of grid.querySelectorAll('[data-focus-key]'))if(el.dataset.focusKey===focusKey){el.focus({preventScroll:true});break;}
     scroll.scrollLeft=state.scroll.left;scroll.scrollTop=state.scroll.top;
   }
   function renderLegend(scene){const box=$('map-legend');if(!box)return;box.replaceChildren();for(const agent of(state.model?.agents||[]).filter(a=>a.virtual!==true&&(!state.engineerId||state.engineerId===a.id))){const el=button('',()=>selectEngineer(agent.id));el.append(swatch(agent.id),node('span',nameOf(agent)));el.setAttribute('aria-pressed',String(state.engineerId===agent.id));box.append(el);}if(scene?.warnings.length)box.append(node('span',scene.warnings.map(t).join(' · '),'map-warning'));}

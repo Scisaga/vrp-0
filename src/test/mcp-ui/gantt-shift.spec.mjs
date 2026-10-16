@@ -21,7 +21,7 @@ async function expectCompactLabels(frame) {
   }));
   expect(sizes.body).toBe(sizes.available);
   for (const row of sizes.rows) {
-    expect(row.height).toBe(52);
+    expect(row.height).toBe(76);
     expect(row.metaHeight).toBe(14);
     expect(row.width).toBe(sizes.header);
     expect(row.fits).toBe(true);
