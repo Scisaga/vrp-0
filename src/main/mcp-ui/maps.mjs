@@ -1,6 +1,24 @@
 import { connectDomains, resourceDomains } from 'mcp-network-policy';
 import { mapDiagnosticError, normalizeMapDiagnosticError, safeMapDiagnosticStage } from './map-diagnostics.mjs';
-const MAP_FIT_PADDING = 60;
+const MAP_FIT_PADDING = 24;
+const MAP_LABEL_GUTTER = 8;
+
+/** Geometry fits tightly; centered labels get only the extra room they need. */
+export function mapFitPadding(container) {
+  let horizontal = MAP_FIT_PADDING, vertical = MAP_FIT_PADDING;
+  // Measure mounted DOM icons, including HERE's attached clones. Do not infer
+  // text width from character counts or use one large margin for both axes.
+  for (const marker of container.querySelectorAll?.('.mcp-marker') || []) {
+    const { width, height } = marker.getBoundingClientRect();
+    if (Number.isFinite(width)) horizontal = Math.max(horizontal, width / 2 + MAP_LABEL_GUTTER);
+    if (Number.isFinite(height)) vertical = Math.max(vertical, height / 2 + MAP_LABEL_GUTTER);
+  }
+  // A hidden/unmeasurable viewport uses the normal fallback. A tiny visible
+  // viewport must retain at least one pixel for geometry, never negative space.
+  const bounded = (padding, size) => Math.min(Math.ceil(padding), size > 0 ? Math.max(0, Math.floor((size - 1) / 2)) : Infinity);
+  const x = bounded(horizontal, container.clientWidth), y = bounded(vertical, container.clientHeight);
+  return {top:y, right:x, bottom:y, left:x};
+}
 export { buildMapScene, colorFor } from './map-scene.mjs';
 export function mapError(code, lastSuccessfulStage = null, failureStage = null) {
   return mapDiagnosticError(code, lastSuccessfulStage, failureStage);
@@ -310,7 +328,9 @@ export class MapView {
       if (!this.map || !this.objects.length) return;
       // Fit geometry with room for the centered name/sequence markers, not
       // just their coordinate anchors. The legend lives outside the canvas.
-      if (this.kind === 'AMAP') this.map.setFitView(this.objects, true, Array(4).fill(MAP_FIT_PADDING));
+      const {top, right, bottom, left} = mapFitPadding(this.container);
+      // AMap uses top/bottom/left/right; HERE uses CSS clockwise order.
+      if (this.kind === 'AMAP') this.map.setFitView(this.objects, true, [top, bottom, left, right]);
       else {
         const group = new this.api.map.Group();
         // Bounds from supplied coordinates only; group ownership must not move overlays.
@@ -318,7 +338,7 @@ export class MapView {
         for (const line of this.scene.lines) for (const point of line.positions) group.addObject(new this.api.map.Marker({lng:point[0],lat:point[1]}));
         const bounds = group.getBoundingBox();
         if (bounds) {
-          this.map.getViewPort().setPadding(MAP_FIT_PADDING, MAP_FIT_PADDING, MAP_FIT_PADDING, MAP_FIT_PADDING);
+          this.map.getViewPort().setPadding(top, right, bottom, left);
           this.map.getViewModel().setLookAtData({bounds});
         }
         group.dispose?.();

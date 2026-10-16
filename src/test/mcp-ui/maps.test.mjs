@@ -21,7 +21,7 @@ const bundled = await build({
     }));
   } }]
 });
-const { buildMapScene, validateMapContext, colorFor, MapView } = await import(`data:text/javascript;base64,${Buffer.from(bundled.outputFiles[0].text).toString('base64')}`);
+const { buildMapScene, validateMapContext, colorFor, mapFitPadding, MapView } = await import(`data:text/javascript;base64,${Buffer.from(bundled.outputFiles[0].text).toString('base64')}`);
 const base = JSON.parse(fs.readFileSync(new URL('../../../docs/integrations/gateway/fixtures/mcp-result-view/base-expected.json', import.meta.url), 'utf8'));
 const fresh = () => structuredClone(base);
 const agentOf = view => view.solver_job.plan.agents[0];
@@ -267,14 +267,37 @@ function amapEvents() {
     off(name, listener) {if (listeners.get(name) === listener) listeners.delete(name);}};
 }
 
-test('AMAP and HERE fit leave label padding and use only the supplied overlays and coordinates', () => {
+function fitContainer(sizes = [], width = 444, height = 288) {
+  return {clientWidth:width, clientHeight:height, querySelectorAll(selector) {
+    assert.equal(selector, '.mcp-marker');
+    return sizes.map(([width,height]) => ({getBoundingClientRect:() => ({width,height})}));
+  }};
+}
+
+test('map fit uses compact base padding and measured label extents independently on each axis', () => {
+  const base = {top:24,right:24,bottom:24,left:24};
+  assert.deepEqual(mapFitPadding(fitContainer()), base);
+  assert.deepEqual(mapFitPadding(fitContainer([[26,26],[32,26]])), base);
+  assert.deepEqual(mapFitPadding(fitContainer([[100.5,26],[26,26]])), {top:24,right:59,bottom:24,left:59});
+  assert.deepEqual(mapFitPadding(fitContainer([[26,70]])), {top:43,right:24,bottom:43,left:24});
+  assert.deepEqual(mapFitPadding(fitContainer([[NaN,Infinity]])), base);
+});
+
+test('map fit keeps usable area in tiny viewports and a finite fallback for unmeasurable ones', () => {
+  assert.deepEqual(mapFitPadding(fitContainer([[100,26]], 40, 30)), {top:14,right:19,bottom:14,left:19});
+  assert.deepEqual(mapFitPadding(fitContainer([[100,26]], 1, 1)), {top:0,right:0,bottom:0,left:0});
+  assert.deepEqual(mapFitPadding(fitContainer([[100,26]], 0, 0)), {top:24,right:58,bottom:24,left:58});
+  assert.deepEqual(mapFitPadding({}), {top:24,right:24,bottom:24,left:24});
+});
+
+test('AMAP and HERE fit use provider-specific label padding order and all supplied overlays and coordinates', () => {
   for (const kind of ['AMAP', 'HERE']) {
     const {view, restore} = isolatedAdapter();
     const objects = [{id:'existing-overlay'}], bounds = {id:'supplied-bounds'};
     const coordinates = [], padding = [], fits = [];
     let groupDisposed = false;
     try {
-      view.kind = kind; view.objects = objects;
+      view.kind = kind; view.objects = objects; view.container = fitContainer([[100,26]]);
       view.scene = {markers:[{position:[120,30]}],lines:[{positions:[[120.01,30.02],[120.03,30.04]]}]};
       view.map = {
         setFitView: (...args) => fits.push(args),
@@ -293,9 +316,9 @@ test('AMAP and HERE fit leave label padding and use only the supplied overlays a
       if (kind === 'AMAP') {
         assert.equal(fits[0][0], objects);
         assert.equal(fits[0][1], true);
-        assert.deepEqual(fits[0][2], [60,60,60,60]);
+        assert.deepEqual(fits[0][2], [24,24,58,58]);
       } else {
-        assert.deepEqual(padding, [[60,60,60,60]]);
+        assert.deepEqual(padding, [[24,58,24,58]]);
         assert.deepEqual(fits, [{bounds}]);
         assert.deepEqual(coordinates, [{lng:120,lat:30},{lng:120.01,lat:30.02},{lng:120.03,lat:30.04}]);
         assert.equal(groupDisposed, true);

@@ -1,4 +1,4 @@
-import { test, expect, openHost, mapReady, fullscreen, AGENT, JOB, VERSION } from './host-fixture.mjs';
+import { test, expect, openHost, mapReady, fullscreen, message, AGENT, JOB, VERSION } from './host-fixture.mjs';
 
 async function layout(frame) {
   return frame.evaluate(() => {
@@ -25,7 +25,7 @@ async function expectNoFooter(frame) {
 
 for (const {width, ratio} of [
   {width:920, ratio:1.5}, {width:760, ratio:1.5},
-  {width:700, ratio:1}, {width:375, ratio:1}, {width:320, ratio:1}
+  {width:700, ratio:1}, {width:444, ratio:1}, {width:375, ratio:1}, {width:320, ratio:1}
 ]) {
   test(`inline map at ${width}px keeps its ${ratio === 1 ? 'square' : '3:2'} canvas after host auto-sizing`, async ({page}) => {
     const host = await openHost(page);
@@ -44,8 +44,39 @@ for (const {width, ratio} of [
     expect(boxes.overflow).toBe(false);
     await expect.poll(() => page.locator('#card').evaluate(el => el.clientHeight)).toBe(Math.ceil(boxes.app.height));
     await expect(renderer.locator('#map')).toHaveAttribute('data-mock-map','ready');
-    expect(await renderer.evaluate(() => window.__mapStats.fitPadding)).toEqual([60,60,60,60]);
+    const {padding, horizontal} = await renderer.evaluate(() => ({
+      padding:window.__mapStats.fitPadding,
+      horizontal:Math.ceil(Math.max(24, ...[...document.querySelectorAll('.mcp-marker')].map(el => el.getBoundingClientRect().width / 2 + 8)))
+    }));
+    expect(padding).toEqual([24,24,horizontal,horizontal]);
+    expect(horizontal).toBeLessThan(60);
     await expectNoFooter(frame);
+    await host.assertHealthy();
+  });
+}
+
+for (const provider of ['AMAP', 'HERE']) {
+  test(`${provider} initial, filtered and explicit fits measure wide labels without wasting vertical space`, async ({page}) => {
+    const result = message(), envelope = result._meta.gateway_ui;
+    envelope.task.map_provider = provider;
+    envelope.map_context.provider = provider;
+    envelope.map_context.js_url = provider === 'AMAP' ? 'https://webapi.amap.com/maps?v=1.4.15' : 'https://js.api.here.com/v3/3.2/mapsjs-core.js';
+    envelope.engine_view.solver_job.plan.agents[0].name = 'Alexandra Thompson';
+    const host = await openHost(page), frame = await host.add({result,width:444,autoSize:true});
+    const renderer = await mapReady(frame);
+    const horizontal = await renderer.locator('.mcp-marker[data-kind="agent"]').evaluate(el => Math.ceil(el.getBoundingClientRect().width / 2 + 8));
+    expect(horizontal).toBeGreaterThan(24);
+    const expected = provider === 'AMAP' ? [24,24,horizontal,horizontal] : [24,horizontal,24,horizontal];
+    const fits = () => renderer.evaluate(() => window.__mapStats.fits);
+    const padding = () => renderer.evaluate(() => window.__mapStats.fitPadding);
+    expect(await padding()).toEqual(expected);
+    const initial = await fits();
+    await frame.locator('#engineer').selectOption(AGENT);
+    await expect.poll(fits).toBe(initial + 1);
+    expect(await padding()).toEqual(expected);
+    await frame.locator('#fit-map').click();
+    await expect.poll(fits).toBe(initial + 2);
+    expect(await padding()).toEqual(expected);
     await host.assertHealthy();
   });
 }
