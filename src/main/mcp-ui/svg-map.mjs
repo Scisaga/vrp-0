@@ -156,7 +156,7 @@ export class SvgMapView {
       const probe=new Image();
       this.bind(probe,'load',()=>{
         const x=probe.naturalWidth/this.snapshot.width,y=probe.naturalHeight/this.snapshot.height;
-        if(![1,2].includes(x)||x!==y){finish(fail('MAP_LOAD_FAILED'));return;}
+        if(![1,1.5,2].includes(x)||x!==y){finish(fail('MAP_LOAD_FAILED'));return;}
         this.rasterDensity=x;this.frame.dataset.rasterScale=String(x);finish();
       });
       this.bind(probe,'error',()=>finish(fail('MAP_CSP_BLOCKED')));probe.src=element.getAttribute('href');

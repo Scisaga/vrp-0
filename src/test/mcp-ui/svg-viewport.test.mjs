@@ -14,7 +14,7 @@ for(const size of [{width:900,height:600},{width:320,height:320},{width:1600,hei
     assert.ok(Math.abs(view.width/view.height-frame.width/frame.height)<1e-8);
   });
 }
-for(const density of [1,2])for(const dpr of [1,2]) {
+for(const density of [1,1.5,2])for(const dpr of [1,2]) {
   test(`raster density ${density} and DPR ${dpr} limit actual magnification`,()=>{
     const frame={width:800,height:600};
     const limits=snapshotZoomLimits(snapshot,frame,density,dpr);

@@ -218,6 +218,8 @@ MCP_REAL_JOB_ID='<job-id>' node src/test/mcp-ui/real-sdk-check.mjs
 
 ## 9. 完成标准
 
+1536 JPEG 增量覆盖 PNG/JPEG 的真实解码、1×/1.5×/2× 与 DPR 1/2 的缩放及边界，未知倍率/不同比例的拒绝，以及既有筛选、点位/路线、取景、resize/全屏、回放和多卡片隔离；完整回归 Gantt，验证零地图子 iframe/图商请求。跨仓验证 Gateway 按 1536 JPEG 出图且逻辑投影和矢量内容不变，不新增图片档声明或版本分流。Java 实际编码后的完整结果体积与真实 GPT 展示分开记录，不用 Python 体积实验或模拟宿主替代真机验收。
+
 * 纯后端行为变更：相关定向测试通过，`./gradlew allStableTest` 通过。
 * REST/MCP 变更：契约、拒绝路径、鉴权或状态一致性测试通过。
 * 求解变更：约束或生命周期测试覆盖触发与边界路径。
@@ -258,3 +260,11 @@ MCP_REAL_JOB_ID='<job-id>' node src/test/mcp-ui/real-sdk-check.mjs
 升版后 Map/Gantt 构建/确定性校验、189 项 Node、88 项串行 Playwright（含完整 Gantt）、17 项 Python 展示契约及 4 项元数据目录契约通过。`allStableTest quarkusBuild` 串行完整复跑通过，138 项单元及 77 项应用测试均无失败/错误/跳过。初轮与 Gateway JVM 测试并发时，McpServerTest 因测试端口 8081 被占用无法启动；未改测试、断言或超时，串行复跑排除端口冲突后通过。1.1.4 JAR 中两份 HTML 与工作区逐字节一致，不含 renderer 或 static/node_modules。
 
 Gradle、OpenAPI info.version、版本契约断言和镜像元数据同步。按用户确认提交源码并创建新本地 annotated tag，不推送、不发布镜像、不导入 Gateway 或部署；既有 tag/URI 不变。未重复进行真实图商或实际智能体宿主验收。
+
+#### 1536 JPEG 与 1.5× 验收（2026-10-28）
+
+两 HTML 构建/确定性校验、191 项 Node、99 项串行 Playwright（含完整 Gantt）、17 项 Python 展示契约及 `quarkusBuild` 通过。PNG/JPEG 在 1×/1.5×/2×、DPR 1/2 下解码、缩放边界通过；未知密度及横纵不一致明确失败。1.5× 继续覆盖路线/点位、取景、边缘、resize/全屏、回放、混合密度双卡片和销毁；无新增地图网络或子 iframe。
+
+实际 Gateway 工作区校验、安全投影、HTTP 图片客户端及 Java 编码器的合成夹具完成 Java→最终 HTML 联调，3 工程师/9 工单/12 路线通过；上游 2048×1536 PNG 完整转为 1536×1152 JPEG。跨仓脚本在筛选后正好达到清晰上限时先缩小，再断言放大生效，不移除既定上限。Map hash 更新、Gantt 字节不变，本次 JVM JAR 内两 HTML 与工作区一致，不含 renderer/static node_modules。
+
+Gateway 实际同任务完整 MCP 响应为 851,510 字节，低于当前宿主 1 MiB，余量 18.79%；这只证明该样本体积，不能替代真实 GPT 展示验收。真实任务图片/正文未保存到测试产物；版本、manifest、REST/OpenAPI 和求解代码不变，无图片档字段或版本分流，未运行本仓 JVM 稳定测试或 native 构建。上述本地验收阶段未提交、推送、正式导入/部署或改生产配置；随后用户授权的开发 SNAPSHOT 重打及发布边界见[部署说明](deployment.md#2026-10-28-开发-snapshot-重发授权)。已发布页面仍待配套更新，实际 GPT、HERE 真实服务与视觉观感未验收。

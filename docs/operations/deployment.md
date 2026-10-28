@@ -1,5 +1,13 @@
 # 运行与部署
 
+1536 JPEG 底图增量需配套交付 Gateway 与支持 1.5× 的 Map HTML，并重建/校验 Map、Gantt 两份 HTML；不新增图片档声明或版本分流。只支持 1×/2× 的现有页面不能与新出图代码混用。本地先用 Gateway 工作区预览验证；正式交付使用新资源 hash，不覆盖历史资源 URI，不自动导入或部署。
+
+### 2026-10-28 开发 SNAPSHOT 重发授权
+
+用户明确要求提交、发布并重打 tag，本次保持 `1.1.4-alpha-SNAPSHOT`，配套 Gateway `1.1.1-SNAPSHOT`，将各自同名 annotated tag 移至本次增量提交。这是对下文初次源码交付“不移动 tag”边界的显式开发 SNAPSHOT 例外，不放宽其他正式版本及历史资源 URI 的不可变规则。VRP0 原 tag 指向 `a084cfc`；操作前记录并在本地保留原 tag 对象，远端 tag 以精确旧对象 lease 更新，并与各仓 main 提交原子推送，远端变化则停止。
+
+本次提交只包含 1.5× 图片读取、最终 Map HTML、相关契约与测试；Gantt 字节不变。用户确认本次发布仅为代码和 tag 推送，不构建或推送容器镜像，不执行 Gateway 原子重导入、实际部署或生产配置修改，不宣称真实 GPT 展示已通过。开发 SNAPSHOT 后续重导入仍须显式启用 Gateway 既有开关并生成新 hash。
+
 ## 1. 文档目的与边界
 
 本文负责开发运行、JVM/native/container 构建、Docker Compose、文件目录、运行配置、密钥、地图服务、MCP、Metrics 和启动验证。

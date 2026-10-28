@@ -12,7 +12,12 @@ try{
  await mapReady(a);await mapReady(b);await expect(a.locator('.snapshot-attribution')).toHaveText(snapshot.attribution);
  const engineer=snapshot.elements.agents[0].engineer_id;
  await a.locator('#engineer').selectOption(engineer);await expect(b.locator('#engineer')).toHaveValue('');
- const view=await a.locator('.snapshot-svg').getAttribute('viewBox');await a.getByRole('button',{name:'放大地图',exact:true}).click();assert.notEqual(await a.locator('.snapshot-svg').getAttribute('viewBox'),view);
+ // A filtered route can already be at its real-pixel limit (especially at 1.5x).
+ // Establish a zoomable viewport instead of treating the correct disabled state as a failure.
+ const plus=a.getByRole('button',{name:'放大地图',exact:true}),minus=a.getByRole('button',{name:'缩小地图',exact:true});
+ if(await plus.isDisabled()){await expect(minus).toBeEnabled();await minus.click();}
+ await expect(plus).toBeEnabled();const view=await a.locator('.snapshot-svg').getAttribute('viewBox');
+ await plus.click();assert.notEqual(await a.locator('.snapshot-svg').getAttribute('viewBox'),view);
  await a.locator('#fit-map').click();await a.locator('.snapshot-point[data-kind="ticket"][display="inline"]').first().click();await fullscreen(a);
  await expect(a.locator('#side-detail')).not.toBeEmpty();await expect(a.locator('#play')).toBeEnabled();await a.locator('#cursor').fill('500');
  await expect(a.locator('.snapshot-playback[display="inline"]')).toHaveCount(1);

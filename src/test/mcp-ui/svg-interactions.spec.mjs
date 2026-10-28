@@ -26,10 +26,29 @@ async function routeClick(page,frame,index,offset=0){
   const box=await(await frame.frameElement()).boundingBox();await page.mouse.click(box.x+local.x,box.y+local.y);
 }
 
+async function syntheticJpeg(page,width,height){
+  return page.evaluate(({width,height})=>{
+    const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;
+    const context=canvas.getContext('2d');context.fillStyle='#f1f5f9';context.fillRect(0,0,width,height);
+    context.strokeStyle='#cbd5e1';context.lineWidth=2;context.beginPath();
+    for(let x=0;x<width;x+=96){context.moveTo(x,0);context.lineTo(x,height);}
+    for(let y=0;y<height;y+=96){context.moveTo(0,y);context.lineTo(width,y);}
+    context.stroke();return canvas.toDataURL('image/jpeg',.85);
+  },{width,height});
+}
+
+function replaceRaster(result,uri){
+  const snapshot=result._meta.gateway_ui.map_context.snapshot;
+  snapshot.svg=snapshot.svg.replace(/data:image\/png;base64,[A-Za-z0-9+/=]+/,uri);
+  return result;
+}
+
 for(const dpr of [1,2])test.describe(`SVG DPR ${dpr}`,()=>{
   test.use({deviceScaleFactor:dpr});
-  for(const density of [1,2])test(`native ${density}× raster is decoded and magnification is bounded`,async({page})=>{
-    const host=await openHost(page),frame=await host.add({result:withSnapshot(message(),{density}),width:760,autoSize:true});
+  for(const density of [1,1.5,2])for(const format of ['png','jpeg'])test(`${density}× ${format} raster is decoded and magnification is bounded`,async({page})=>{
+    const host=await openHost(page),result=withSnapshot(message(),{density});
+    if(format==='jpeg')replaceRaster(result,await syntheticJpeg(page,1024*density,768*density));
+    const frame=await host.add({result,width:760,autoSize:true});
     await mapReady(frame);await expect(frame.locator('.snapshot-frame')).toHaveAttribute('data-raster-scale',String(density));
     const plus=frame.getByRole('button',{name:'放大地图',exact:true}),minus=frame.getByRole('button',{name:'缩小地图',exact:true});
     for(let i=0;i<30&&await plus.isEnabled();i++)await plus.click();
@@ -43,6 +62,15 @@ for(const dpr of [1,2])test.describe(`SVG DPR ${dpr}`,()=>{
   });
 });
 
+for(const [width,height] of [[1280,960],[1536,768],[3072,2304]])test(`rejects decoded unsupported or unequal density ${width}×${height}`,async({page})=>{
+  const host=await openHost(page),result=replaceRaster(withSnapshot(message(),{density:1.5}),await syntheticJpeg(page,width,height));
+  const frame=await host.add({result});
+  await expect(frame.locator('#map-message')).toContainText('MAP_LOAD_FAILED');
+  await expect(frame.locator('.snapshot-svg')).toHaveCount(0);
+  await expect(frame.locator('#open-gantt')).toBeVisible();await expect(frame.locator('#map-retry')).toBeVisible();
+  expect(await host.pending('card')).toHaveLength(0);expect(frame.childFrames()).toHaveLength(0);await host.assertHealthy();
+});
+
 test('mouse hit area selects only a route, leaves filter/view unchanged, and has no popup',async({page})=>{
   const result=message(),plan=result._meta.gateway_ui.engine_view.solver_job.plan;
   // The golden routes intentionally retrace the same road. Give this hit-test
@@ -50,7 +78,7 @@ test('mouse hit area selects only a route, leaves filter/view unchanged, and has
   plan.agents[0].routes[0].polyline[1]={lat:120.001,lon:30.009};
   plan.agents[0].routes[1].polyline[1]={lat:120.019,lon:30.012};
   plan.agents.push({...structuredClone(plan.agents[0]),id:'second-synthetic-engineer',name:'Second synthetic engineer',tickets:[],routes:[]});
-  const host=await openHost(page),frame=await host.add({result:withSnapshot(result,{density:2}),width:920,autoSize:true});await mapReady(frame);
+  const host=await openHost(page),frame=await host.add({result:withSnapshot(result,{density:1.5}),width:920,autoSize:true});await mapReady(frame);
   const before=await view(frame);await routeClick(page,frame,0,4.5);
   await expect(selected(frame)).toHaveCount(1);await expect(selected(frame)).toHaveAttribute('data-route-index','0');
   await expect(frame.locator('#engineer')).toHaveValue('');await expect(frame.locator('#map-legend button')).toHaveCount(2);
@@ -61,8 +89,8 @@ test('mouse hit area selects only a route, leaves filter/view unchanged, and has
 });
 
 test('keyboard selection, return dashes, clear actions and card isolation preserve existing semantics',async({page})=>{
-  const host=await openHost(page),result=withSnapshot(message(),{density:2});
-  const a=await host.add({id:'a',result,width:760}),b=await host.add({id:'b',result,width:760});await mapReady(a);await mapReady(b);
+  const host=await openHost(page),result=replaceRaster(withSnapshot(message(),{density:1.5}),await syntheticJpeg(page,1536,1152));
+  const a=await host.add({id:'a',result,width:760}),b=await host.add({id:'b',result:withSnapshot(message(),{density:2}),width:760});await mapReady(a);await mapReady(b);
   const count=await routes(a).count(),last=routes(a).nth(count-1),dash=await last.locator('.snapshot-route-shape').getAttribute('stroke-dasharray');
   await last.focus();await last.press('Enter');await expect(selected(a)).toHaveCount(1);await expect(selected(b)).toHaveCount(0);
   expect(await last.locator('.snapshot-route-shape').getAttribute('stroke-dasharray')).toBe(dash);expect(dash).toBeTruthy();
@@ -76,7 +104,7 @@ test('keyboard selection, return dashes, clear actions and card isolation preser
 });
 
 test('route highlighting and clearing do not pause an active replay',async({page})=>{
-  const host=await openHost(page),frame=await host.add({result:withSnapshot(message(),{density:2}),width:920,height:900});await mapReady(frame);await fullscreen(frame);
+  const host=await openHost(page),frame=await host.add({result:withSnapshot(message(),{density:1.5}),width:920,height:900});await mapReady(frame);await fullscreen(frame);
   const play=frame.locator('#play');await play.click();await expect(play).toHaveAttribute('aria-pressed','true');
   const route=routes(frame).first();await route.focus();await route.press('Enter');await expect(selected(frame)).toHaveCount(1);
   await expect(play).toHaveAttribute('aria-pressed','true');await route.press('Escape');await expect(selected(frame)).toHaveCount(0);
@@ -84,7 +112,7 @@ test('route highlighting and clearing do not pause an active replay',async({page
 });
 
 for(const theme of ['light','dark'])test(`route selection and keyboard focus emphasize the polyline, never its bounding rectangle (${theme})`,async({page})=>{
-  const host=await openHost(page),frame=await host.add({result:withSnapshot(message(),{density:2}),width:920,height:900,context:{theme}});await mapReady(frame);
+  const host=await openHost(page),frame=await host.add({result:withSnapshot(message(),{density:1.5}),width:920,height:900,context:{theme}});await mapReady(frame);
   const route=routes(frame).last(),shape=route.locator('.snapshot-route-shape'),halo=route.locator('.snapshot-route-halo');
   await routeClick(page,frame,await routes(frame).count()-1);
   await expect(selected(frame)).toHaveCount(1);
@@ -104,7 +132,7 @@ for(const theme of ['light','dark'])test(`route selection and keyboard focus emp
 });
 
 for(const locale of ['zh-CN','en-US'])test(`zoom and edge notices guide fullscreen only in inline mode (${locale})`,async({page})=>{
-  const host=await openHost(page),frame=await host.add({result:withSnapshot(message(),{density:2}),width:760,height:900,context:{locale},autoSize:true});await mapReady(frame);
+  const host=await openHost(page),frame=await host.add({result:withSnapshot(message(),{density:1.5}),width:760,height:900,context:{locale},autoSize:true});await mapReady(frame);
   const svg=frame.locator('.snapshot-svg'),status=frame.locator('.snapshot-status'),fullscreenText=locale==='zh-CN'?'全屏查看':'Expand';
   const notices=locale==='zh-CN'?{
     zoom:'已到当前视图的清晰缩放上限。需要放大查看，请点击“全屏查看”。',
@@ -130,7 +158,7 @@ for(const locale of ['zh-CN','en-US'])test(`zoom and edge notices guide fullscre
 });
 
 test('route selection survives resize/fullscreen, never adds route details, and clears on new task',async({page})=>{
-  const host=await openHost(page),frame=await host.add({result:withSnapshot(message(),{density:2}),width:920,height:900,autoSize:true});await mapReady(frame);
+  const host=await openHost(page),frame=await host.add({result:withSnapshot(message(),{density:1.5}),width:920,height:900,autoSize:true});await mapReady(frame);
   await routes(frame).first().focus();await routes(frame).first().press('Enter');await fullscreen(frame);
   await expect(selected(frame)).toHaveCount(1);await expect(frame.locator('.route-detail,.route-popup')).toHaveCount(0);
   await frame.locator('.snapshot-svg').evaluate(el=>el.dataset.instanceProbe='retained');
@@ -142,7 +170,7 @@ test('route selection survives resize/fullscreen, never adds route details, and 
 });
 
 for(const size of [{width:2000,height:500},{width:375,height:1400}])test(`extreme ${size.width}×${size.height} keeps whole routes inside a real map rectangle`,async({page})=>{
-  const host=await openHost(page),frame=await host.add({...size,result:withSnapshot(message(),{density:2})});await mapReady(frame);await fullscreen(frame);await frame.locator('#fit-map').click();
+  const host=await openHost(page),frame=await host.add({...size,result:withSnapshot(message(),{density:1.5})});await mapReady(frame);await fullscreen(frame);await frame.locator('#fit-map').click();
   await expect.poll(()=>frame.locator('.snapshot-svg').evaluate(svg=>{
     const rect=svg.getBoundingClientRect(),inside=point=>point.x>=rect.left-.5&&point.x<=rect.right+.5&&point.y>=rect.top-.5&&point.y<=rect.bottom+.5;
     return [...svg.querySelectorAll('.snapshot-route[display="inline"] .snapshot-route-shape')].every(path=>{
@@ -154,7 +182,7 @@ for(const size of [{width:2000,height:500},{width:375,height:1400}])test(`extrem
 });
 
 test('pan/keyboard/follow stay inside the image; one edge notice per drag and no accidental route click',async({page})=>{
-  const host=await openHost(page),frame=await host.add({result:withSnapshot(message(),{density:2}),width:920,height:900});await mapReady(frame);
+  const host=await openHost(page),frame=await host.add({result:withSnapshot(message(),{density:1.5}),width:920,height:900});await mapReady(frame);
   const svg=frame.locator('.snapshot-svg');await svg.focus();
   for(const key of ['ArrowLeft','ArrowRight','ArrowUp','ArrowDown']){for(let i=0;i<20;i++)await svg.press(key);await assertBounded(frame);}
   for(let i=0;i<30;i++)await svg.press('ArrowLeft');
