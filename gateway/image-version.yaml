@@ -1,6 +1,6 @@
 image:
   name: x-force/vrp-0
-  version: 1.1.3-alpha-SNAPSHOT
+  version: 1.1.4-alpha-SNAPSHOT
 display_name: VRP0 Solver（AMAP / HERE）
 description: 支持 AMAP 和 HERE 图商的 VRP0 车辆路径求解；地图图商由请求中的 map_provider 选择。
 supported_map_providers:
@@ -15,8 +15,7 @@ request_schema_source:
   operation_id: putScenario
   request_content_type: application/json
 
-# MCP App 本体保持严格 CSP；只有地图 renderer 声明图商网络和必要的动态执行能力。
-# Gateway 导入后使用自身受控 HTTPS origin 发布 renderer，再为 map 资源生成 frameDomains。
+# 新版Map由Gateway出图，页面只内联展示安全SVG；两个资源均无外部网络。
 mcp_ui:
   contract_version: gateway_mcp_result_v1
   result_view_kind: vrp0
@@ -24,26 +23,11 @@ mcp_ui:
   resources:
     map:
       file: mcp-map-app.html
+      render_mode: svg_snapshot_v1
       display_modes: [inline, fullscreen]
       csp:
         connect_domains: []
         resource_domains: []
-      renderer:
-        file: mcp-map-renderer.html
-        csp:
-          allow_unsafe_eval: true
-          allow_blob_workers: true
-          connect_domains:
-            - https://js.api.here.com
-            - https://vector.hereapi.com
-            - https://maps.hereapi.com
-            - https://vdata.amap.com
-          resource_domains:
-            - https://webapi.amap.com
-            - https://js.api.here.com
-            - https://maps.hereapi.com
-            - https://vdata.amap.com
-            - https://restapi.amap.com
     gantt:
       file: mcp-gantt-app.html
       display_modes: [inline, fullscreen]

@@ -27,7 +27,7 @@ Gateway 的权威公共契约是其 `docs/design/mcp-apps-contract.md`；工具�
 | --- | --- |
 | `result_summary` | 样例使用 `null`。现有声明要求的路线数/工单数不等于 Gateway 当前归档摘要的实际 shape；不能直接引用旧摘要或补零，也不能把参考分析结果写入外层摘要 |
 | `task` | 仅采用 Issue 的安全白名单；不引用整个 `SolverJobDetail`，不增加创建人、内部实例、归档、约束或写操作字段 |
-| `map_context` | Map 的公开 browser key 和批准来源由 Gateway 决定；Gantt 只保留 provider/locale，固定禁用，并令 `browser_key=""`、`js_url=""`、`css_url=null` |
+| `map_context` | 新版 Map 为 `render_mode=svg_snapshot_v1` 的安全快照、投影与元素映射；旧 SDK 字段均为空，底图失败不清空 engine_view。Gantt context 保持原禁用结构，不增加 SVG。详见[组件契约](mcp-app.md#3-信封与安全快照)。 |
 | 错误 `details` | Issue 的 `display_tool_name/supported_views` 对象访问方式与现有 Gateway 数组型错误详情需要对齐；本次不改错误封装 |
 | 状态映射 | 不新增任务状态；非成功状态固定 `engine_view=null`，不能携带等待模型 |
 | 工程师输入上限 | 输出工程师 ID 不截断；超过 128 字符的初始工具定位仍受 Gateway 现有输入限制。本地选择不受影响；只读刷新可省略可选 `engineer_id` 并保留本地选择，本次不修改工具输入限制 |
@@ -114,7 +114,7 @@ Duration 字符串使用 ASCII 数字，可保留最多九位小数秒，按 Jav
 
 不具备回放资格的工程师仍可展示已有静态路线、工单和 Gantt，不展示推演位置；缺失引用明确说明“引用对象缺失”，不删除缺失列表项后重新编号。
 
-测试参考分析只报告“能否依据现有事实回放”，不实现播放动画；独立 View 的回放实现见[组件说明](mcp-app.md#4-map-app)，必须标示“规划回放”，不得称实时位置。
+测试参考分析只报告“能否依据现有事实回放”，不实现播放动画；独立 View 的回放实现见[组件说明](mcp-app.md#4-map-交互与生命周期)，必须标示“规划回放”，不得称实时位置。
 
 ## 5. 可确定的只读计数
 
@@ -169,4 +169,4 @@ Fixture 文件使用以下组织方式，不是生产消息：
 
 Gateway 需以本契约和同组 fixtures 实现服务端生产白名单投影并完成映射测试，不能依靠 View 收到完整对象后再过滤；通过后才能按其发布规则标记 UI ready，不能直接用本仓参考脚本代替生产授权和投影链路。若外层或安全字段变化，先更新权威契约再同步双方样例，不让 Issue 快照与本文件独立演进。
 
-独立 HTML、同 tag 构建声明、只读刷新、实例隔离、地图/Gantt、全屏及规划回放的引擎实现与本仓验证进度见[组件说明](mcp-app.md#7-验证与发布交接)。真实 Gateway 的 manifest/CSP 审核、资源身份与缓存、任务权限和生产投影，以及 ChatGPT、Claude、Quick Desktop、WorkBuddy 各自的真实客户端版本与能力仍需联合验收。离线契约及模拟宿主测试不覆盖这些生产链路，未运行项统一记为“未验证”，不以文档或脚本存在替代上线证据。
+独立 HTML、同 tag 构建声明、只读刷新、实例隔离、地图/Gantt、全屏及规划回放的引擎实现与本仓验证进度见[组件说明](mcp-app.md#6-验证与交付)。真实 Gateway 的 manifest/CSP 审核、资源身份与缓存、任务权限和生产投影，以及 ChatGPT、Claude、Quick Desktop、WorkBuddy 各自的真实客户端版本与能力仍需联合验收。离线契约及模拟宿主测试不覆盖这些生产链路，未运行项统一记为“未验证”，不以文档或脚本存在替代上线证据。

@@ -26,7 +26,7 @@ manifest 的 `request_schema_source.file: docs/openapi.yaml` 相对**引擎仓�
 - 生成器仍支持显式 `--output-dir` 指定元数据输出目录，不要为修改目录而重新生成并覆盖已有配置或 Schema。
 - 修改 Schema 或 `mcp_ui` 时按[测试说明](../../operations/testing.md#81-独立-mcp-apps-view)重建、校验和回归；仅路径迁移也须确认构建/测试仍能定位资料。
 - 请求 Schema 的位置契约保留集中式 `plan.pois` + ID 引用和全内联 POI 两种形式；`plan.pois` 不是全局必填，但三个业务位置字段必填。集中式标准示例由 OpenAPI `RoutePlan` 提供，全内联示例见 [REST API 说明](../../interfaces/api.md#21-地点编码模式)。
-- MCP HTML 交付到 `src/main/resources/META-INF/resources/static/mcp-map-app.html`、`mcp-gantt-app.html` 与内部 `mcp-map-renderer.html`，三者原子交接；不保留旧单资源文件，也不迁入文档目录。Renderer 不是第三个 MCP Tool/Resource。
+- 新版 MCP HTML 只交付 `src/main/resources/META-INF/resources/static/mcp-map-app.html`、`mcp-gantt-app.html` 两份，Map 声明 `render_mode: svg_snapshot_v1`，两份原子交接；不再交付 renderer，也不迁入文档目录。既有 renderer tag 及已发布资源保持原身份，不覆盖历史产物。
 
 ## 3. Gateway 导入交接
 
@@ -47,3 +47,5 @@ Gateway 的 OpenAPI 路径和 HTML 资源读取目录是独立约定，不随元
 短展示工具名改造使用新版本 `1.1.2-alpha-SNAPSHOT` 和新 tag `v1.1.2-alpha-SNAPSHOT`，仅支持 `gw_map_<ID>` / `gw_gantt_<ID>`，须与适配短名的 Gateway 成套切换。Gradle、OpenAPI 版本和 `gateway/image-version.yaml` 同步更新；既有 tag 不移动或覆盖。源码 tag 推送不表示容器镜像已发布、Gateway 已导入或启用版本，也不表示 Quick 真机卡片渲染已通过。
 
 地图与 Gantt 紧凑布局、路线取景图标及底部说明行清理归入 `1.1.3-alpha-SNAPSHOT`，源码交付使用本地 annotated tag `v1.1.3-alpha-SNAPSHOT`。Gradle、OpenAPI 的 `info.version` 和 `gateway/image-version.yaml` 同步；API 字段、请求/结果 Schema、MCP 公共契约版本及资源声明保持不变。本次不推送提交或 tag，也不发布镜像、部署或导入 Gateway；既有 tag 不移动或覆盖。
+
+服务端 SVG 地图 View、高清与边界/路段交互归入新版本 `1.1.4-alpha-SNAPSHOT`，本地 annotated tag 为 `v1.1.4-alpha-SNAPSHOT`。Gradle、OpenAPI `info.version` 和镜像元数据版本同步，Map/Gantt 两份自包含 HTML 使用新 hash；配套 Gateway `1.1.1-SNAPSHOT` 的 v5/SVG 发布契约，旧 tag/URI 不覆写。本次仅源码提交和本地打 tag，不推送、不构建发布容器、不导入或部署；真实宿主验收仍独立执行。

@@ -1,4 +1,7 @@
 const zh = {
+ mapZoomIn:'放大地图',mapZoomOut:'缩小地图',mapGestures:'规划路线，拖动平移，使用加减按钮缩放',
+ mapSnapshotEdge:'已到快照边界，请点击“全屏查看”，在更大空间内查看。',mapZoomLimit:'已到当前视图的清晰缩放上限。需要放大查看，请点击“全屏查看”。',
+ mapSnapshotEdgeFullscreen:'已到快照边界，可点击“显示完整路线”重新取景。',mapZoomLimitFullscreen:'已到当前底图的清晰缩放上限。',
  locationUnknown:'地点未知', shiftEnd:'班次结束', nextDay:'次日', operatingStart:'计划执行开始', operatingEnd:'计划执行结束', noOperatingRange:'暂无有效计划执行时段',
  ganttTitle:'Gantt 图', viewGantt:'查看 Gantt 排程', sendingGantt:'正在请求打开 Gantt…', ganttSent:'已发送 Gantt 请求', ganttUnknown:'宿主未确认请求；不会自动重发，可复制下方文本', copyIntent:'复制请求文本', copied:'已复制',
  businessError:'工具暂时无法返回结果，请重试', networkError:'刷新或宿主连接失败，请检查连接后重试', mapDiagnosticStage:'诊断：最后成功阶段', mapDiagnosticCode:'错误码',
@@ -6,6 +9,9 @@ const zh = {
  virtual_or_unknown_engineer:'虚拟工程师或类型未知', unknown_assignment:'工单顺序未知', no_tickets:'没有已安排工单', missing_ticket:'工单引用对象缺失', inconsistent_assignment:'工单归属不一致', invalid_schedule_time:'必要排程时间缺失或非法', non_monotonic_schedule:'排程时间先后不一致', missing_location:'公开位置缺失或非法', missing_routes:'路线序列未知', route_count_mismatch:'路线数量与工单顺序不符', invalid_route_geometry:'回放路段几何不可用', route_endpoint_mismatch:'路线端点与工单位置不符', unsupported_route_source:'路线来源不可用于道路回放'
 };
 const en = {
+ mapZoomIn:'Zoom in map',mapZoomOut:'Zoom out map',mapGestures:'Planned routes. Drag to pan; use + and − to zoom.',
+ mapSnapshotEdge:'Snapshot edge reached. Choose “Expand” for more viewing space.',mapZoomLimit:'This view has reached its image-resolution zoom limit. Choose “Expand” for more viewing space.',
+ mapSnapshotEdgeFullscreen:'Snapshot edge reached. Choose “Show full routes” to refit.',mapZoomLimitFullscreen:'The image resolution limit has been reached.',
  locationUnknown:'Unknown location', shiftEnd:'Shift end', nextDay:'+1d ', operatingStart:'Planned execution start', operatingEnd:'Planned execution end', noOperatingRange:'No valid planned execution range',
  ganttTitle:'Gantt chart',viewGantt:'View Gantt schedule',sendingGantt:'Requesting Gantt…',ganttSent:'Gantt request sent',ganttUnknown:'The host did not confirm the request. It will not be retried; copy the text below if needed',copyIntent:'Copy request text',copied:'Copied',
  businessError:'The tool could not return a result; please retry', networkError:'Refresh or host connection failed; check the connection and retry', mapDiagnosticStage:'Diagnostic: last successful stage', mapDiagnosticCode:'error code',

@@ -181,13 +181,13 @@ Node 测试需要可执行的 `python3`：模型 fixture helper 以 `python3 -B`
 | --- | --- |
 | 模型 Node | 人工 fixtures 与 Python 分析 parity；不变异、`null`/空集合、完整 ID、双向归属、标量语义、业务时区轴、回放资格、阶段边界、吸附原折线、跨经度与合成大向量 |
 | View 桥 Node | 官方 SDK 边界替身；先注册处理器再连接、结果身份、白名单错误映射、只读工具名、Map/Gantt 固定工具与输入边界、显式刷新、`ui/message`、输入/通知竞态、取消、显示模式与 teardown |
-| 地图 Node | AMAP/HERE 上下文及 URL 策略、原段位/坐标轴/几何、不可播放来源、缺失数据、纯文本 marker、父页 renderer URL 校验、最小 scene、iframe 加载与 MessageChannel 失败、AMap 脚本/SDK/构造/ready/覆盖物/fit 分阶段错误码及最后成功阶段、HERE 样式错误、容器尺寸合并/隐藏/销毁及失败、覆盖物与实例释放；原始异常、URL、Key 和业务数据不得进入通道或卡片诊断 |
-| 构建 Node 与产物校验 | manifest/renderer 字段、精确 origin、Ajv standalone、父页与 renderer 依赖闭包、共享 Zod/拒绝 SDK with-deps、三份 HTML 自包含、敏感信息、第一方动态代码静态拒绝、确定性与过期产物 |
-| 模拟浏览器 | 使用真实构建 HTML 与官方 View SDK，在 opaque-origin MCP App、跨源 renderer 和图商 SDK 替身中检查双资源初始化、nonce/MessageChannel 握手、布局、选择、刷新按钮隐藏与固定工具边界、消息发送、地图/Gantt、全屏拒绝、回放、Gantt 零地图请求、安全降级、实例隔离和生命周期。分阶段故障还须断言中英文卡片仅显示白名单最后成功阶段和错误码，成功地图不显示诊断行；具体执行结果见当次记录 |
+| 地图 Node | SVG context/投影/元素映射、历史坐标、原段位/真实几何、颜色与原回放、缺失和超限语义；旧 renderer 源码仅作历史实现，不进入新版产物 |
+| 构建 Node 与产物校验 | render_mode、Map/Gantt 两份 HTML、4 MiB 上限、自包含/确定性、Ajv standalone、SDK 2.0.0/共享 Zod/jitless、无旧 renderer 与网络 adapter 依赖 |
+| 模拟浏览器 | 真实构建 HTML 与官方 SDK，在 opaque-origin sandbox、禁止 connect/frame/Worker/eval 的 CSP 下验证 SVG 白名单、PNG/JPEG data 图片、恶意载荷、署名、映射点击、筛选/取景/缩放/平移/回放/全屏、零外部请求、双卡片隔离及完整 Gantt 回归 |
 
-浏览器测试以不同合成 origin 的宿主、App iframe 和 renderer iframe 运行。宿主给 App `sandbox="allow-scripts"`，使父页及其后代继承 opaque origin；Map 父资源 CSP 仅允许 renderer origin，renderer HTTP CSP 才允许测试图商和动态执行。路由拦截提供 AMAP/HERE SDK 替身，未知请求中止；不请求真实瓦片、读取 `.env` 或使用真实 key。此配置验证严格父页、跨源握手与隔离绘图，不证明 HERE 真实 worker/WASM 或图商鉴权可用。
+合成宿主仅通过拦截提供 HTML 和已鉴权工具结果；未知浏览器请求一律失败。新版 Map 无嵌套 renderer，不使用图商 SDK 替身，不读取开发数据/真实密钥。真实图商与四宿主单列验收；内嵌图片是否获目标 CSP 允许须实际验证。
 
-Map 布局回归须检查桌面 3:2 与窄屏 1:1 的实际画布尺寸、工具栏内的全屏入口、画布下方图例及无横向溢出；开启模拟宿主跟随 App 尺寸通知后仍保持比例，不发生高度反馈。全屏进入及退出须验证剩余高度与会话比例恢复，同时保留工程师选择、地图实例与视角；AMAP/HERE 适配路线须断言基础留白由 60px 收紧到 24px、根据姓名和序号实际尺寸补足安全边距、极小视窗仍有可用绘图区，并检查初次取景、切换工程师和主动取景使用同一规则；完整原路线及点位参与取景，后续 resize 不重置用户缩放，不能只检查 SDK 方法被调用。
+Map 布局保持桌面 3:2、窄屏 1:1、工具栏全屏入口、画布下方有界图例和无横向溢出。宿主尺寸通知不能形成高度反馈；resize/全屏保留选择和视窗。适配路线按当前过滤内容与标签留白，本地缩放/平移仅操作全任务快照范围，不请求新底图。署名独立固定可见，不被筛选、缩放或回放隐藏。
 
 Map 会话、全屏、筛选及语言/主题切换后均不得出现底部只读说明行、分隔线或占位；检查页面底部直接结束于 Gantt 入口区域，入口仍可正常发送既有只读查看意图，规划回放提示保持。
 
@@ -201,29 +201,20 @@ Gantt 图例/筛选合并回归须检查桌面及窄屏的实际左右位置、�
 
 父页 SDK 安全回归在最终 Map/Gantt HTML 的应用脚本之前，用 parser 执行的测试脚本监测 `Function` / `eval` 调用和 CSP 动态求值违规，覆盖初始化、通知及 teardown，要求调用次数为零；进入 renderer 的 DevTools 操作不计入父页监测，因为调试器本身可能使用页面 `eval`。独立负向控制验证监测能发现被 `catch` 吞掉的探测。Renderer 的 `unsafe-eval` / WASM / blob Worker 只按其独立 CSP 验证；第一方 renderer 源码仍须通过静态无动态编译检查。
 
-模拟测试使用 `playwright.config.mjs`，失败 trace/截图写入 `/tmp/vrp0-mcp-ui-playwright`，不进入业务目录或仓库。测试不向产品新增调试 wire 字段，也不把图商替身放入生产构建。CSP 错误、地图失败与数据/授权失败需分别断言；认证或权限失败应检查已渲染文本和视图缓存已清除，而非只检查错误横幅。地图替身覆盖 AMAP complete 超时及 HERE 样式错误/监听解除，但不能证明真实 SDK 的所有瓦片或 HTTP 401 失败都能被观测，具体检测边界见[地图与安全降级](../components/mcp-app.md#5-地图网络与安全降级)。
+模拟测试使用 `playwright.config.mjs`，失败 trace/截图在 `/tmp/vrp0-mcp-ui-playwright`；只写隔离测试产物，不向产品添加调试 wire。修改源码、模板、样式、Schema、依赖或 manifest 后都须重建两份 HTML 并验证确定性；CI 检查两份产物未过期，旧 renderer 必须不存在。原网页未变时不重建 Scenario；共享展示层改变时仍按原规则回归。
 
-修改源码、模板、样式、词典、Schema、依赖锁文件或 `mcp_ui` 后都需重建并运行产物校验。`verify:mcp-app` 不写文件；CI 在重建后还对 `mcp-map-app.html`、`mcp-gantt-app.html` 与 `mcp-map-renderer.html` 执行 `git diff --exit-code`，防止任一产物落后于源码。MCP 构建独立于 `build:scenario`；共享 `result-presentation.css` / `result-presentation.mjs` 变化需运行 `build:css`、`build:scenario`、`build:mcp-app`，并回归 `presentation.spec.mjs` 中的 MCP 独立阶段样式与键盘选择。共享展示层或前端工具链变化还需回归原 Node、Scenario 构建校验和 i18n 浏览器测试；不能因新增 View 通过而省略旧页面回归。地图诊断回归还必须覆盖异步失败后首个错误不被 `MAP_ABORTED` 覆盖，以及非必要资源 CSP 违规发生后地图仍能完成 ready 的场景。
+实际执行数量记录在[组件验证记录](../components/mcp-app.md#6-验证与交付)或报告。模拟宿主/合成底图通过不等于真实图商或四宿主验收。
 
-当次通过数量与执行状态只记录在[组件验证记录](../components/mcp-app.md#7-验证记录与未验证项)或测试报告，不在本文固定。真实 Gateway 与四宿主联合验收必须单列客户端版本、批准策略和受限 key 条件；模拟宿主通过不能将外部未验证项标为通过。
+#### 显式启用真实 Gateway SVG 联调
 
-#### 显式启用真实 AMAP 联调
-
-`src/test/mcp-ui/real-sdk-check.mjs` 不匹配默认 Node/Playwright 测试入口。它使用调用方提供的本地模拟宿主工具目录、其私有 PAT 配置以及指定的真实任务，只读调用 Gateway，直接使用结果中的 `map_context`，不更换 browser key。联调时必须读取 Gateway 实际发布的父资源和 renderer URL；不得再通过给 MCP 父页追加 `unsafe-eval` 或 blob Worker 模拟兼容模式。脚本与临时宿主如尚未适配三产物协议，应明确失败，不能用旧直载 SDK 结果作为 iframe 架构证据。
-
-使用 Node 22，在仓库根目录执行（路径和任务 ID 由联调者提供；凭据不写在命令行）：
+`src/test/mcp-ui/real-sdk-check.mjs` 文件名保留历史兼容，但内部只验证 SVG。它不进入默认测试；使用调用方的本地模拟宿主、私有 PAT 和指定任务，只读调用真实 Gateway，核对已发布 Map HTML、空 frame 权限、SVG/context/署名、全屏和销毁，并断言浏览器无第三方地图请求。不注入 key、不放宽 CSP，不证明四个真实客户端兼容。
 
 ```bash
-agent-browser --session vrp0-map-check open about:blank
-MCP_REAL_SDK=1 \
-MCP_PREVIEW_DIR=/absolute/path/to/mcp-live-preview \
-MCP_REAL_JOB_ID='<job-id>' \
-node src/test/mcp-ui/real-sdk-check.mjs
+MCP_REAL_SVG=1 MCP_PREVIEW_DIR=/absolute/path/to/mcp-live-preview \
+MCP_REAL_JOB_ID='<job-id>' node src/test/mcp-ui/real-sdk-check.mjs
 ```
 
-脚本检查 Gateway 返回的精确 renderer URL、父资源 `frameDomains`、renderer HTTP CSP、真实 SDK/Worker/瓦片请求、主画布尺寸、播放标记移动、筛选、视野和游标保留、全屏/退出/容器变化及关闭。动态执行权限只允许出现在 renderer 响应，不写入 MCP 父资源，也不代表目标桌面宿主已经验收。
-
-默认脱敏报告及截图写入 `/tmp/vrp0-mcp-real-sdk`，可通过 `MCP_REAL_REPORT_DIR` 指定隔离目录；`MCP_BROWSER_SESSION` 可指定已启动的独立 agent-browser 会话。报告不记录 PAT 或 browser key，真实业务截图不提交到仓库。脚本只进行受控的小规模读取和地图操作，不进入稳定门禁；HERE 和实际桌面宿主仍需单独验收。
+脱敏报告与截图默认位于 `/tmp/vrp0-mcp-real-sdk`，不得提交真实任务截图、PAT 或服务端图商配置。Java 合成信封可另用 `MCP_SVG_INTEROP_FILE` 指向隔离文件运行 `node src/test/mcp-ui/interop-check.mjs`；该脚本只验证跨仓生产/消费链，合成底图不是真实图商验收。
 
 ## 9. 完成标准
 
@@ -240,3 +231,30 @@ node src/test/mcp-ui/real-sdk-check.mjs
 ## 10. 非目标
 
 本文不设定新的覆盖率阈值、不要求默认运行外部服务、不把 manual 脚本计入稳定门禁，也不创建新的测试平台。
+
+### SVG 高清及地图交互回归（2026-10-27）
+
+补充旧 1×/新 2× 图片、DPR 1/2 清晰缩放上下限、极端宽高比完整路线优先、四边拖动/聚焦/回放不越界、触边去重/双语、resize 取景态与手动态保持、路段独立高亮/透明命中/原段位及返程/键盘/空白清除/拖动误触/筛选保持、多卡片和销毁。保持默认合成夹具，不调用真实图商；既有 Gantt 浏览器套件完整运行。真实 Gateway/图商联调单独显式执行，实际宿主无法验证时注明未验收。
+
+#### 本轮执行结果
+
+* Node 22.23.4 下两份 HTML 构建/确定性校验、189 项 Node、84 项串行 Playwright、17 项 Python 离线契约及 `./gradlew --offline quarkusBuild` 通过。包含旧/高清图片与 DPR 组合、极端画幅完整取景、边缘约束、独立路段高亮及保持回放运行状态，既有 Gantt 全量浏览器回归通过。本轮未运行 JVM 稳定测试，Java 与求解代码未改。
+* 实际 Gateway Java 工作区服务、校验、安全投影、HTTP 图片下载及合成 SVG 生成单任务夹具，实际构建页面与官方 MCP 桥的跨仓验证通过；3 工程师、9 工单、12 路线，地图外部网络和地图子 iframe 均为 0。独立同页预览夹具人工检查了桌面路段选择、360px 宽度、全屏及 Map→Gantt，无脚本错误；图片与版本/管理员目录明确为合成数据，不冒充登录后的真实 Gateway 联调。
+* Gateway 另用真实图商服务验证 2048×1536 和公开坐标位移对齐：AMAP 理论/实测逻辑位移 116.508/116，HERE 58.254/58，均成功合成单任务 SVG。HERE 当前 Java 直连失败，隔离测试经环境代理通过，未修改产品网络配置。授权图片只在内存处理，未以真实底图截图代替目标宿主验收。
+* 最终 Map/Gantt HTML 使用新 hash，JAR 中两份 HTML 与工作区逐字节一致，不含 renderer 或静态 node_modules；版本保持 `1.1.3-alpha-SNAPSHOT`。未推送、导入、发布镜像或部署。真实运营任务、目标宿主内嵌图片 CSP、署名/缓存授权和部署环境 HERE 直连仍未验收；临时日志、合成截图与夹具仅在 Gateway 忽略预览目录。
+
+#### 路线焦点黑框与全屏引导修正（2026-10-27）
+
+原产物新增回归复现鼠标点击 SVG 路段时浏览器默认 `outline:auto`，以及缩放上限缺少全屏引导。修正后，明暗主题下鼠标/键盘路线均无矩形轮廓，沿线衬线与原配色、返程虚线保持；画布键盘焦点仍可见。中英文验证会话缩放/触边提示引导全屏，全屏及退出后的可见提示自动切换，相同模式/尺寸更新不重复播报，原手势去重保持。
+
+两 HTML 构建/确定性校验、189 项 Node、88 项串行 Playwright（含完整 Gantt）、17 项 Python 契约及 `quarkusBuild` 通过；最终 JAR 与工作区 HTML 逐字节一致。消费实际 Gateway 工作区服务生成的合成高清单任务夹具，跨仓浏览器验证通过，地图外部网络及地图子 iframe 为 0。agent-browser 人工检查沿线高亮、两处中文提示及窄屏深色，临时浏览器已关闭；合成验证不是实际智能体宿主验收。本轮只修改 View、样式、文案和对应文档/测试，未运行 JVM 或真实图商测试，未升级版本、发布或部署。
+
+#### 缩放与触边提示文案精简（2026-10-28）
+
+中英文会话/全屏四种提示仅保留限制和操作引导，精确校验完整文案，不再附加范围或细节不会增加的解释。两 HTML 重建及确定性校验、189 项 Node、88 项串行 Playwright（含 Gantt 回归）通过；最终 HTML 中旧附加文案检查通过。未改变缩放、范围或交互逻辑，未运行 JVM、Python 契约、应用打包或真实图商测试；不代表实际宿主新增验收。未升级版本、发布或修改生产配置。
+
+#### 1.1.4-alpha-SNAPSHOT 源码交付验证（2026-10-28）
+
+升版后 Map/Gantt 构建/确定性校验、189 项 Node、88 项串行 Playwright（含完整 Gantt）、17 项 Python 展示契约及 4 项元数据目录契约通过。`allStableTest quarkusBuild` 串行完整复跑通过，138 项单元及 77 项应用测试均无失败/错误/跳过。初轮与 Gateway JVM 测试并发时，McpServerTest 因测试端口 8081 被占用无法启动；未改测试、断言或超时，串行复跑排除端口冲突后通过。1.1.4 JAR 中两份 HTML 与工作区逐字节一致，不含 renderer 或 static/node_modules。
+
+Gradle、OpenAPI info.version、版本契约断言和镜像元数据同步。按用户确认提交源码并创建新本地 annotated tag，不推送、不发布镜像、不导入 Gateway 或部署；既有 tag/URI 不变。未重复进行真实图商或实际智能体宿主验收。

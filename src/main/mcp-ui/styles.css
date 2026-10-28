@@ -62,8 +62,28 @@ svg{flex:none}
 .stage{display:flex;flex-direction:column;flex:1;min-width:0;min-height:0}
 .map-panel{position:relative;flex:1;min-height:300px;height:400px;background:#162535;overflow:hidden}
 .map-app[data-mode="inline"] .map-panel{width:100%;height:auto;min-height:0;flex:none;aspect-ratio:3/2}
-.map-canvas{position:absolute;inset:0}
-.map-renderer-frame{display:block;width:100%;height:100%;border:0;background:#162535}
+.map-canvas{position:absolute;inset:0;background:var(--surface)}
+.snapshot-frame{position:absolute;inset:0;overflow:hidden;background:var(--surface)}
+.snapshot-svg{display:block;width:100%;height:100%;touch-action:none;user-select:none;cursor:grab}
+.snapshot-svg:active{cursor:grabbing}
+.snapshot-svg:focus{outline:none}
+.snapshot-svg:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.snapshot-route{cursor:pointer}
+.snapshot-route-shape{stroke-width:4;vector-effect:non-scaling-stroke}
+.snapshot-route-hit{stroke:transparent;stroke-width:12;vector-effect:non-scaling-stroke;pointer-events:stroke}
+.snapshot-route-halo{display:none;stroke:#fff;stroke-width:10;vector-effect:non-scaling-stroke;pointer-events:none}
+.snapshot-route[data-selected="true"] .snapshot-route-halo,.snapshot-route:focus-visible .snapshot-route-halo{display:inline}
+.snapshot-route[data-selected="true"] .snapshot-route-shape,.snapshot-route:focus-visible .snapshot-route-shape{stroke-width:6}
+/* SVG groups get a native rectangular ring even on pointer focus. The path
+   itself carries selection/keyboard focus, never its bounding rectangle. */
+.snapshot-svg .snapshot-route:focus{outline:none}
+.snapshot-svg .snapshot-point{cursor:pointer;pointer-events:bounding-box}
+.snapshot-svg .snapshot-point:focus{outline:none;filter:drop-shadow(0 0 4px #047857)}
+.snapshot-svg .snapshot-point[data-selected="true"]{filter:drop-shadow(0 0 3px #047857)}
+.snapshot-controls{position:absolute;right:12px;bottom:42px;display:flex;flex-direction:column;gap:2px}
+.snapshot-controls button{width:34px;height:34px;background:var(--surface);color:var(--ink);font-size:20px;line-height:1;padding:0}
+.snapshot-attribution{position:absolute;left:0;right:0;bottom:0;padding:3px 8px;background:rgba(255,255,255,.94);color:#334155;font-size:10px;line-height:1.35;pointer-events:none;overflow-wrap:anywhere}
+.snapshot-status{position:absolute;left:8px;right:8px;top:8px;padding:6px 9px;border:1px solid var(--line);border-radius:4px;background:var(--surface);color:var(--muted);font-size:12px;line-height:1.4;pointer-events:none}
 .map-state{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:25px;background:#162535;color:#dbe7f4;gap:12px}
 .map-state p{max-width:42ch}
 .map-state .map-diagnostic{font:12px ui-monospace,SFMono-Regular,Consolas,monospace;color:#b8c9da;overflow-wrap:anywhere}

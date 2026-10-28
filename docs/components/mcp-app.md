@@ -2,63 +2,60 @@
 
 ## 1. 状态与边界
 
-Issue #183 的引擎侧双资源能力已实现。实施基线是 Gateway 契约 `docs/design/mcp-apps-contract.md` 的 SHA-256 `ddec63924b90f8bcce09c4066ee1d50782b9ed3f2c9ffd5dbf068c3532f6cd83`；Issue 评论只作历史交接。引擎继续使用 `gateway_mcp_result_v1`、`vrp0`、`schema_version=2` 和唯一 [`mcp-result-view-schema.json`](../integrations/gateway/mcp-result-view-schema.json)。当前源码版本为 `1.1.3-alpha-SNAPSHOT`，Gradle、OpenAPI 的版本声明和 Gateway 元数据同步；REST/引擎 MCP 行为及 Schema 不变。本次源码交付使用本地 tag `v1.1.3-alpha-SNAPSHOT`，不包含远端推送、镜像发布或部署。
+2026-10-27 按用户确认将新版 Map 改为 Gateway 服务端 SVG 快照。公共外层仍为 `gateway_mcp_result_v1`，唯一安全展示 Schema 仍为 `vrp0/schema_version=2`。Gateway 公共子契约为 `docs/design/mcp-map-svg-snapshot.md`；VRP0 维护页面源码与产物，Gateway 负责鉴权、已归档安全投影、真实静态底图、SVG 合成和受控工具交付。原控制台、Scenario、求解接口、Gantt 排程语义不变。
 
-当前只完成源码、确定性产物、离线契约和模拟宿主验证。**真实 VRP-0 tag 导入、批准 CSP/browser key、HERE Worker/WASM、真实地图网络及 ChatGPT、Claude、Quick Desktop、WorkBuddy 联合验收未验证。** 同版快照重导入只允许 Gateway 显式开启 `allow-snapshot-ui-refresh` 的开发态；正式发布仍需新 ImageVersion/tag。
+本仓离线和模拟宿主验证不代表真实图商或 ChatGPT、Claude、Quick Desktop、WorkBuddy 验收，不自动发布 tag、镜像、导入或部署。
+
+2026-10-28 按用户确认将本次 SVG 地图改造归入源码版本 `1.1.4-alpha-SNAPSHOT`，创建新 annotated tag `v1.1.4-alpha-SNAPSHOT`；配套 Gateway 源码版本为 `1.1.1-SNAPSHOT`。提交和本地 tag 不表示远端推送、镜像发布、Gateway 导入或真实宿主验收，既有 tag 保持不变。
 
 ## 2. 资源、工具与构建
 
-`gateway/image-version.yaml` 对外仍只声明两个 MCP 资源，同时在 Map 声明下附带一个内部 renderer 产物：
+`gateway/image-version.yaml` 只交付两份完整、自包含 UTF-8 HTML：
 
-| 资源 | 文件 | 工具 | 输入 | CSP |
-| --- | --- | --- | --- | --- |
-| Map | `mcp-map-app.html` | `gw_map_<32位image_version_id>` | `job_id`、可选 `engineer_id` | 父页不直接获得图商网络，只允许 Gateway renderer origin |
-| Gantt | `mcp-gantt-app.html` | `gw_gantt_<32位image_version_id>` | 仅 `job_id` | 两个域名数组均为空 |
+| 资源 | 文件 | 工具输入 | 网络与渲染 |
+| --- | --- | --- | --- |
+| Map | `mcp-map-app.html` | `job_id`、可选 `engineer_id` | `render_mode: svg_snapshot_v1`；无图商 SDK、子 iframe 或浏览器网络 |
+| Gantt | `mcp-gantt-app.html` | 仅 `job_id` | 保持独立排程，无地图依赖 |
 
-Gateway 展示工具采用 `gw_map_` / `gw_gantt_` 短前缀，完整 32 位小写 ImageVersion ID 不变，原始名称长度为 39 / 41；当前 Quick `planly_mcp__` 包装后为 51 / 53。这不是 MCP 的统一长度上限。引擎 View 只接受新名称，继续严格核对视图、任务和版本；页面刷新只使用已校验信封返回的工具名，不猜测名称，也不接受旧前缀。Gateway 与本仓 HTML 必须成套切换，旧会话需要同步目录并重开卡片。
+两个资源仍使用 `gw_map_<32位image_version_id>` / `gw_gantt_<32位image_version_id>`，支持 `inline/fullscreen`，CSP 的 `connect_domains/resource_domains` 为空。新版不声明或交付 `mcp-map-renderer.html`，不放宽 eval、Worker 或 frame 权限；既有 Gateway v4 renderer 记录由 Gateway 保持，不覆盖旧资源 URI。
 
-`mcp-map-renderer.html` 不是第三个 Tool 或 MCP Resource。Gateway 与前两份页面原子导入它，并以带 ImageVersion ID 和 renderer bundle hash 的 HTTPS 地址发布。Map 父页从已校验 `map_context` 取得该精确地址，在运行时创建跨源 sandbox iframe；图商 SDK、瓦片、`unsafe-eval`、WASM 动态求值和 blob Worker 只存在于 renderer 的 HTTP CSP。父页、Gantt 和 MCP Host 的严格 CSP 不因此放宽。
-
-Map/Gantt 都支持 `inline/fullscreen`，没有旧 `mcp-app.html` 或单资源兼容逻辑；三份产物任一失败时由 Gateway 将整套 MCP UI 判为不可发布。工具参数拒绝 `view`、版本 ID 和未知字段，ID 非空且最长 128 个 Unicode code points。
-
-源码位于 `src/main/mcp-ui/`：`viewer.mjs`、`bridge.mjs`、`model.mjs`、`i18n.mjs` 和 `palette.mjs` 为共享层；`map-main.mjs` / `map-template.html` 与 `gantt-main.mjs` / `gantt-template.html` 是两个严格 MCP App 入口。Map 父页使用 `iframe-map.mjs` 和纯数据的 `map-scene.mjs`；只有 `renderer-main.mjs` / `renderer-template.html` 的构建入口导入 `maps.mjs` 与构建期 `mcp-network-policy`。构建器分别内联所需第一方 CSS/JS，并检查三份文件为严格 UTF-8、完整 HTML5、自包含且不超过默认 4 MiB；Map/Gantt 父页依赖闭包不得出现图商 adapter 或网络策略，Gantt 也不得出现 renderer 逻辑。
+源码位于 `src/main/mcp-ui/`。共享 Viewer/桥/模型保持；Map 入口注入 `SvgMapView`，Gantt 不导入 SVG 地图模块。构建内联 CSS/JS，使用固定官方 MCP SDK 2.0.0、共享 Zod jitless 和 Ajv standalone，拒绝动态编译、外部脚本、表单、跳转、秘密及调试路径。每份 HTML 上限 4 MiB，运行时动态 SVG 不写进公共 HTML。
 
 ```bash
 cd src/main/resources/META-INF/resources/static
-npm ci --include=dev
 npm run build:mcp-app
 npm run verify:mcp-app
+npm run test:mcp-unit
+npm run test:mcp-ui
 ```
 
-SDK 固定为 `@modelcontextprotocol/ext-apps@2.0.0` 普通入口，共享 Zod；`sdk-config.mjs` 在 SDK 初始化前设置 `jitless`。Map/Gantt 父页继续拒绝动态代码执行、静态嵌套页面、表单、跳转、未批准外部资源、秘密、调试路径和 `node_modules` 打包。Map 父页仅允许代码创建契约规定的一个 renderer iframe；renderer 的第一方代码仍禁止动态编译，声明中的放宽仅供所选图商 SDK 使用。
+## 3. 信封与安全快照
 
-## 3. 信封与实例边界
+页面只消费 `_meta.gateway_ui`，继续严格校验固定 view、当前工具名、任务、版本、工程师、`result_summary=null` 和安全模型。无最终结果时 `engine_view=null`；出图失败不改变已就绪模型、任务状态或 Gantt。
 
-页面只读取 `_meta.gateway_ui`，强制校验当前资源的固定 `view`、当前工具名、ImageVersion、任务身份、`result_summary=null` 和工程师定位：Map 的 `engineer_id` 为已验证焦点或 `null`，Gantt 固定为 `null`。只有 `result_state=ready`（Gateway 成功任务的展示态）且安全投影成功时 `engine_view` 才能非空；其他状态必须为 `null`。
+SVG Map context 保留 `enabled/provider/locale`，并有 `render_mode=svg_snapshot_v1`、`snapshot`、`error_code`；旧 `browser_key/js_url/renderer_url/renderer_origin` 必须为空，`css_url=null`。`enabled=true` 当且仅当快照存在；Gantt context 沿用原禁用结构，不增加 SVG 字段。
 
-每个卡片实例独立保存选择、视窗、滚动、全屏和播放状态。不使用 Cookie、Web Storage、全局任务缓存、REST 或对象存储。页面隐藏结果刷新按钮且不轮询；保留的只读刷新边界只允许调用信封中已验证的当前资源工具，Map 可携带当前合法工程师，Gantt 只携带任务 ID。取消、新输入、较新通知、权限失效和 teardown 都会使旧请求失效；销毁时释放地图、计时器、监听器和 SDK。
+快照包含 `svg`、固定逻辑 `width=1024/height=768`、`attribution`；新版内嵌底图为真实 2048×1536 像素，解码仍兼容历史 1× 图片。其余字段包括投影 `{kind:web_mercator,world_size,origin_x,origin_y,center_longitude}` 及元素映射 `{agents,tickets,routes}`。工程师映射含起点与独立回放元素 ID、业务 ID 和像素坐标；工单映射含业务 ID、展示工程师归属、元素 ID 和坐标；显示归属沿用非虚拟 agent.tickets 顺序首次有效引用，剩余工单以 null 中性标记展示（含虚拟/未知归属），不改 engine_view 的业务归属或回放资格；路线映射保留工程师、原数组下标、元素 ID 和返程标记。业务 ID 不直接拼成 SVG ID/选择器。元素引用与安全模型核对，多卡片用实例前缀隔离 ID。
 
-## 4. Map App
+SVG 挂载前解析并逐元素、属性白名单校验；拒绝脚本、事件、foreignObject、DOCTYPE、外部引用及非 PNG/JPEG data 图片。禁止直接信任工具结果后设置 innerHTML。底图必须为内嵌图片，不从浏览器访问 Planly 或图商；纯文本署名固定显示，不随取景或筛选隐藏。
 
-Map 父页保留 MCP SDK、信封校验、选择、布局和回放状态；renderer 只接收绘图所需的 marker、路线点、颜色/标签和公开 browser key，不接收 Gateway Token、完整信封或工具名。父页严格校验 HTTPS renderer origin、固定路径、ImageVersion ID 和 hash；随机 nonce 放在 URL fragment 中，首次握手只转移 `MessageChannel`，之后父子消息同时核对协议和 nonce。MCP Host 的父级 sandbox 会把后代 origin 继承为 opaque，因此首次 `postMessage` 不能使用精确 `targetOrigin`；安全边界由精确 iframe URL、父资源 `frameDomains`、HTTPS、无重定向的 Gateway 路由、随机 nonce 和私有 MessagePort 共同组成。销毁时关闭 port 并移除 iframe。
+后台和前端使用相同 Web Mercator 公式，将经度绕到最接近 `center_longitude` 的整圈后投影。POI `location` 为经度、纬度；历史 Route.LOC 的 `lat` 为经度、`lon` 为纬度，不二次修正坐标系。真实路线来源、原段位、缺失几何、返程与回放资格沿用安全展示契约。
 
-父页与 renderer 在私有通道上只交换白名单化的诊断状态，不传递原始异常、堆栈、URL、Key 或业务数据。成功阶段按 `renderer_iframe_created`、`renderer_document_loaded`、`renderer_channel_connected`、`amap_script_loaded`、`amap_sdk_ready`、`amap_map_created`、`amap_ready`、`amap_overlays_added`、`amap_fit_complete` 单调推进。Renderer iframe、通道、AMap 脚本、SDK、地图构造、ready、覆盖物和视图适配分别转换为稳定安全错误码；卡片失败时显示最后成功阶段与错误码，成功时不显示诊断行。强制 CSP 违规先作为诊断证据记录，不能因图商可选遥测、光标、标签或能力探测被宿主拦截就主动终止已经可用的地图；只有必要脚本或 ready 阶段实际失败时才归因 `MAP_CSP_BLOCKED`。异步失败后的销毁取消也不得用 `MAP_ABORTED` 覆盖首个可操作错误。HERE 与既有配置、无坐标及尺寸错误语义保持不变。
+## 4. Map 交互与生命周期
 
-Inline Map 只展示全部/单工程师本地切换、点位、工单序号、路线方向、图例、平移、缩放与适配路线；不重复任务名称、任务状态、平台时间、结果指标或独立对象详情。切换工程师不请求后端，页面不显示结果刷新按钮。页面下方的“查看 Gantt 排程”只有用户点击才调用 `ui/message`，内容严格为一个 `user` 文本 ContentBlock：
+保留工程师本地筛选、点位与路线选择、高亮、图例、适配路线、平移缩放、全屏侧栏、搜索和规划回放。快照固定覆盖全任务并留出周边真实地图，不添加视口工具参数；缩放仅放大已有底图，不新增街道细节、不支持无限地图浏览。筛选不请求后端，工单点击联动既有详情。
 
-```json
-{"intent":"show_job_gantt","job_id":"<已验证任务>","image_version_id":"<已验证版本>"}
-```
+- 从图片真实像素计算清晰缩放上限，默认一个源像素最多对应 2×2 设备像素；旧 1× 快照使用自身密度。达到边界禁用相应按钮，滚轮/键盘同样受限。
+- 所有视口路径限制在底图内，不露出越界灰图。触边提示按手势去重，使用中英文及读屏状态；会话模式的缩放上限和触边提示均明确引导点击“全屏查看”。已经全屏时不再提示进入全屏，触边可引导“显示完整路线”；中英文提示仅保留当前限制和操作引导，不附加范围或细节不增加的解释。提示随模式切换更新，模式/尺寸变化时不重复播报未变化的内容。
+- 首次展示与完整取景优先全部路线和点位；极端比例调整有效画布并居中，空余区域使用页面背景，不以裁切路线铺满。取景态 resize 重新适配，手动态保留中心和比例并按边界修正，不重建实例。
+- 路线选择按工程师 ID＋原路线下标独立维护，约 12 CSS px 透明命中区；仅沿原折线加粗并增加浅色衬线，不绘制包围整段的矩形黑框，保留工程师配色、箭头和返程虚线。鼠标焦点不显示浏览器默认矩形轮廓；键盘焦点以沿线加粗和衬线呈现，保持可辨识。不改变工程师筛选或回放运行状态、不自动取景，不增加浮层、路段详情或全屏提示。空白/Escape、任务/筛选/点位切换清除；resize/全屏保持，拖动不误触选择，键盘同样可用。
+- 动态 SVG 及命中区继续受白名单、数据映射和实例隔离约束。没有新增字段、API、秘密或浏览器网络；深色低 POI 和服务端浏览器不纳入本轮。
 
-发送中禁止重复。失败、拒绝或超时未知时不自动重发、不离开地图，并显示可选择复制的文本。
+回放由原 `buildReplay` 根据已有真实折线及业务时间计算；SVG 视图仅投影、移动回放标记，不推算返程时间或实时位置。默认暂停，退出全屏、隐藏、地图失败、权限失效或销毁时暂停。所有选择、视窗、计时器均按卡片实例隔离；不使用 Cookie/Web Storage/全局任务缓存，不轮询或调用 REST。
 
-Map 会话与全屏均移除底部“只读结果 · 业务计划时间”说明行及其分隔线、占位高度；保留下方 Gantt 入口，既有只读边界、业务时间与规划回放语义不变。
+地图生成失败时保留独立安全模型与 Gantt 入口，显示固定安全错误码，不以无底图路线图冒充成功。地图重试仅通过已验证的当前地图工具经宿主重新获取，不新增视口参数。获准网页入口由 Gateway/宿主既有能力提供，页面不猜测 URL。认证/权限失效清空内容，取消及新输入使晚到响应失效。
 
-会话画布按实际可用宽度在桌面保持 3:2、窄屏保持 1:1；不以 iframe 当前高度计算会话高度，避免尺寸上报与宿主调整形成反馈循环。全屏入口并入工程师筛选和适配路线工具栏，不单独占用页头；图例移到画布下方，在有界区域内换行、滚动，不覆盖路线。首次取景、工程师切换及“显示完整路线”使用相同的紧凑留白：基础边距为 24px，按当前姓名标签与工单序号的实际尺寸补足半宽/半高及 8px 安全余量，不再统一预留四边 60px。缩放仍由完整路线和点位边界决定，不固定城市或缩放级别，也不在适配后强行放大裁切路线；极小画布的边距不得占满可用宽高。尺寸变化只触发地图大小调整，保留实例、选择与视角。全屏仍使用剩余高度，不沿用会话比例。
-
-路线取景改为取景框内带路线/点位的仅图标按钮。悬浮和键盘聚焦显示“显示完整路线”（英文“Show full routes”），与按钮可访问名称同步；提示可保持悬浮并由 Escape 关闭，重新悬浮或聚焦后恢复。取景继续调用既有地图适配逻辑，只调整当前筛选的视野，不清空工程师选择、不改写任务或重新求解；地图未就绪时保持禁用。提示及其事件监听随当前卡片销毁，不增加共享状态或资源。
-
-Fullscreen Map 沿用只读侧栏、焦点、视角、规划回放、速度、进度和跟随能力。回放默认暂停；退出全屏、页面隐藏、地图失败、权限失效或销毁时暂停。回放只使用 Map profile 已验证的原路线几何和计划时间，不能伪造直线、返程时间或实时位置。
+会话画布桌面 3:2、窄屏 1:1；全屏填满剩余高度。工具栏、画布下方有界图例、路线取景图标/提示和底部 Gantt 意图入口保持，无只读说明占位。全屏只是宿主模式，不新增页面或任务。
 
 ## 5. Gantt App
 
@@ -70,21 +67,16 @@ Gantt 阶段图例和工程师筛选共用同一行，图例左对齐、筛选�
 
 Map/Gantt 顶栏均不显示 VRP-0 Logo 或系统名称；Gantt 仍显示当前视图标题，Map 页面操作并入工具栏。两个 App 都跟随宿主中英文、浅深主题、显示模式和尺寸，保持键盘焦点、读屏名称、非纯色状态表达与 `prefers-reduced-motion` 支持。视觉事实源仍是 [`docs/ui/theme.md`](../ui/theme.md)。
 
-## 6. 双 Profile 与安全投影
 
-唯一 Schema 不变。同一 59-case 合成集合同时覆盖 Map/Gantt 人工 golden、诊断和语义断言：
+Map 出图失败不阻断独立 Gantt，Gantt context、业务页面和安全投影不增加 SVG 字段；本轮仅完整回归共享桥、样式及发布清单。
 
-* Map 只输出工程师起点或工单位置引用的 POI，保留坐标、路线端点、折线、来源与度量；校验坐标、路线段位、几何及回放资格。不可播放只给出安全原因，不伪造路线或时间。
-* Gantt 只输出其侧栏/时间轴引用的 POI，并固定 `location=null`；`agent.routes` 未知为 `null`，已知则保留长度、顺序和空洞，仅保留合法 `route_source`，其他四个路线字段固定为 `null`。它校验身份、引用、顺序、班次、计划时间、路线段位和来源，不运行地图几何或回放资格分析。
-* Gantt `map_context` 只保留 provider/locale，固定 `enabled=false`、`browser_key=""`、`js_url=""`、`css_url=null`、`renderer_url=""`、`renderer_origin=""`。
+## 6. 验证与交付
 
-外层 fixtures 分别覆盖两资源的 ready、空结果与失败/未就绪状态，已删除“非成功仍携带模型”样例。大向量保留 200 工程师、1,000 工单和 4,097 点折线；Gateway 默认 8 MiB 结果上限由 Gateway 明确失败处理，页面和投影不得截断。
+默认测试使用合成底图和安全投影，不请求真实图商或读取 `.env`。覆盖快照身份/几何映射、SVG 白名单/XSS、内嵌底图、原路线与回放、固定范围缩放/平移、零浏览器网络/iframe/动态编译、双卡片生命周期、超大集合及完整 Gantt 回归。完整 MCP 工具响应仍受 Gateway 默认 8 MiB 上限约束，不截断路线。
 
-## 7. 验证与发布交接
+发布前运行 Node、Playwright、17 项 Python 契约与 `./gradlew allStableTest quarkusBuild`，检查 JAR 中两份 HTML 与工作区字节一致、不包含 renderer 或 `static/node_modules`。新 manifest、两份 HTML 与 Gateway SVG 契约须成套导入；内容变化产生新 URI。真实图商配额/署名/缓存授权、目标宿主 data 图片支持及四客户端未验收时明确标注。
 
-测试命令和分层见 [`docs/operations/testing.md`](../operations/testing.md)，覆盖构建确定性、双资源初始化、renderer 握手、刷新按钮隐藏及固定工具边界、`ui/message`、全屏拒绝、权限清理、多卡隔离、销毁、双语、主题、窄屏、键盘、恶意文本、大结果及 Gantt 零地图请求。发布前还需执行 `./gradlew allStableTest` 和 JVM 打包，核对 JAR 内三份 HTML 与工作区逐字节一致，且任何 JAR 都不含 `static/node_modules`。
-
-Gateway 双资源与隔离 renderer 能力已实现，但真实导入与宿主验收仍按 §1 标为未验证。Renderer CSP 只是精确来源申请，不是地图可用证明；不得用通配符、服务端密钥或放宽 MCP 父页 CSP 绕过。正式发布不得移动或覆盖已发布 tag。
+## 7. 历史验证记录（以下 renderer 描述仅对应旧版）
 
 ### 2026-10-08 短展示工具名验证记录
 
@@ -177,3 +169,13 @@ Node 24.21.0 下通过构建及确定性校验、171 项 Node 单元测试、17 
 默认取景基础边距从 60px 收紧至 24px，按实际姓名/序号标签尺寸补足安全空间；AMAP 与 HERE 分别使用其规定的边距顺序，保留完整路线与点位，不增加固定缩放级别。全屏布局及 resize 保留用户视角的行为不变，仅 renderer 生成产物变化。
 
 Node 24.21.0 下构建、确定性校验、173 项 Node 单元测试、62 项串行 Playwright 测试及 `./gradlew --offline allStableTest` 均通过（138 项单元、77 项应用测试，失败/错误/跳过均为 0）。新增验证覆盖 444px 画布、长标签的分轴边距、极小/不可测尺寸，以及双图商首次取景、筛选和主动取景一致性。浏览器使用图商替身，未验证真实瓦片下的最终缩放效果；未打包发布、部署或执行真实宿主验收。
+
+## 8. 2026-10-27 服务端 SVG 地图改造验证
+
+使用 Node 22.23.4 通过确定性构建/校验、179 项 Node 单元测试、73 项串行 Playwright 测试和 17 项 Python 契约测试。覆盖 PNG/JPEG data 底图、SVG 元素/属性白名单与恶意内容拒绝、图商失败的安全错误及 MCP 重试、固定范围缩放/平移/取景、署名、点击与回放、多卡片 ID 隔离和销毁；补充 201 工程师/1,001 工单不按 fixture 规模限流、特殊字符业务 ID、虚拟/未知视觉归属与两个 partial Map golden。Gantt 原页面与业务模型未改变，原完整布局、时间、筛选、详情、窄屏/主题和零地图网络回归通过。
+
+`./gradlew --offline allStableTest quarkusBuild` 通过（138 项 Unit、77 项 App，失败/错误/跳过均为 0）；最后重建 HTML 并再次执行 `quarkusBuild`，检查 JAR 内 Map/Gantt 两份 HTML 与最终工作区逐字节一致，不含 renderer 或 `static/node_modules`。原网页、REST/OpenAPI、版本号和既有求解逻辑未改。
+
+另消费 Gateway 的真实 Java 安全投影/出图/信封代码生成的合成信封，3 工程师、9 工单、12 路线通过实际构建页面与官方 MCP 桥的跨仓浏览器验证；选人、点位、缩放、回放、双卡片和销毁均通过，地图外部请求及额外 iframe 均为 0。agent-browser CLI 检查了桌面、窄屏及选择/播放/暂停，同起点工程师标签的服务端局部偏移在回放中保留；截图只存 Gateway 忽略预览目录。
+
+底图为明确标注的合成 fixture，不是真实图商验收。未使用真实图商凭据，未验证真实 AMAP/HERE 静态地图授权、署名/缓存授权或 ChatGPT、Claude、Quick Desktop、WorkBuddy 的最终策略；未提交、推送、打 tag、发布镜像、导入或部署。

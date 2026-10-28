@@ -15,7 +15,7 @@ test('strict CSP and parser monitoring observe zero dynamic compilation attempts
  // calls window.eval in the inspected parent realm and is a false positive.
  // The intercepted SDK request proves the parent completed its nonce/port
  // handshake and issued the renderer mount command.
- await expect.poll(()=>host.requests.some(url=>url.startsWith('https://webapi.amap.com/'))).toBe(true);
+ await expect.poll(()=>host.requests.filter(url=>url.startsWith('http://mcp-app.test/')).length).toBe(1);
  await expect.poll(async()=>Boolean(await host.dynamicCodeState('card'))).toBe(true);
  const state=await host.dynamicCodeState('card');
  expect(state,JSON.stringify(state.stacks,null,2)).toMatchObject({attempts:{Function:0,eval:0},violations:[],executed:false});await host.assertHealthy();

@@ -40,7 +40,7 @@ java -jar build/quarkus-app/quarkus-run.jar
 
 稳定测试的图商配置独立于开发或部署配置：Gradle `test`、`appTest` 的子进程默认禁用真实地图及地址服务调用，避免场景导入因 `.env` 中 HERE/AMAP 配置而超时。该隔离仅作用于稳定测试，应用打包、实际运行和显式启用的外部测试仍使用各自的既有配置，详见[测试说明](testing.md#4-fixture-与文件隔离)。不通过跳过应用测试或扩大 HTTP 超时掩盖构建失败。
 
-当前工作区版本为 `1.1.3-alpha-SNAPSHOT`，同步维护 Gradle 应用版本、发布 OpenAPI 的 `info.version` 和 Gateway 镜像元数据版本。该版本包含地图/Gantt 界面整理，不改变 API 或 MCP Schema；版本号修改和本地打包不代表 tag、容器镜像已发布或 Gateway 已导入，既有 tag 不移动或覆盖。
+当前工作区版本为 `1.1.4-alpha-SNAPSHOT`，同步维护 Gradle 应用版本、发布 OpenAPI 的 `info.version` 和 Gateway 镜像元数据版本。该版本交付服务端 SVG 地图 View、高清与边界/路段交互，Gantt 语义及 API/MCP Schema 不变；源码交付使用新 annotated tag `v1.1.4-alpha-SNAPSHOT`，配套 Gateway `1.1.1-SNAPSHOT`。本地提交/tag 不代表远端推送、容器镜像发布或 Gateway 导入，既有 tag 不移动或覆盖。
 
 ```bash
 ./gradlew quarkusBuild -x test
@@ -124,31 +124,24 @@ MCP 使用 Streamable HTTP，默认路径和完整接入参数见 [MCP 参考](.
 
 ### 10.1 独立 MCP Apps 产物
 
-Issue #183 的引擎交付增加 `mcp-map-app.html`、`mcp-gantt-app.html` 与内部 `mcp-map-renderer.html`，三者与 `scenario.html` 位于同一静态资源目录、随同一版本交付，但不替换原组件。前两份是 MCP Resource，renderer 由 Gateway 通过独立 HTTPS 路径提供且不是第三个 Tool。源码、运行边界及当前待验收项见[独立 MCP Apps 查看器](../components/mcp-app.md)。它不是引擎新增的 REST/MCP 写接口，浏览器也不直接调用引擎任务 API。
-
-在构建 JVM/native/container 产物之前，先完成前端构建和校验：
+新版引擎交付只包含 `mcp-map-app.html`、`mcp-gantt-app.html` 两份 MCP Resource，随同一版本打包；原 `scenario.html` 与网页构建链路不变。Map manifest 声明 `render_mode: svg_snapshot_v1`，不声明 renderer；两资源的 CSP 网络域名数组为空。Gateway 原子导入两份 HTML，鉴权后从归档生成真实底图 SVG，经工具结果交付，不在公共模板或静态路由保存任务地图。
 
 ```bash
 cd src/main/resources/META-INF/resources/static
 npm ci --include=dev
 npm run build:mcp-app
 npm run verify:mcp-app
+npm run test:mcp-unit
+npm run test:mcp-ui
 ```
 
-短名切换时，Map/Gantt HTML 与 Gateway 工具目录必须同时适配 `gw_map_` / `gw_gantt_`。开发严格 `-SNAPSHOT` 版本可按 Gateway 既有受控流程重新导入；正式版本发布新 ImageVersion，不覆盖旧 tag。切换时只启用已导入短名页面的版本，被替代旧正式版本停用；历史任务仍可查询并通过网页查看。页面变化产生新资源 hash/URI，客户端需同步目录、重开卡片；不保留旧工具名调用兼容。本次代码交付不自动部署、发布 tag 或修改线上版本状态，模拟测试也不代表真实宿主展示通过。
+Node 只是构建/测试依赖，Gradle 不自动重建 HTML；禁止手改压缩产物。回到仓库根目录执行原引擎构建，核对 JAR 内两份 HTML 字节一致、不含 renderer 和 `static/node_modules`。
 
-返回仓库根目录后再执行本文件原有引擎构建步骤。Node 仅为构建/测试依赖；不要假定 Gradle 打包会自动重建 MCP HTML。校验发现产物过期时应从对应源码重建，不手改压缩 HTML。第一方资源自包含，部署不需要另设第一方 CDN。
+Map/Gantt HTML、manifest 与 Gateway SVG 契约必须成套交接。Gateway SVG 模式使用 v5 发布策略并将 render_mode 纳入 hash；未声明模式的旧 renderer 版本保持 v4 原身份。不得覆盖正式 tag/旧 URI，开发 SNAPSHOT 重导入仍须显式启用 Gateway 既有开关；新 hash 后重开卡片。本次按用户确认升版、提交并创建上述本地 tag，不推送、发布镜像、导入或部署。
 
-[`gateway/image-version.yaml`](../../gateway/image-version.yaml) 中的 `mcp_ui.resources` 与三份 HTML 需作为原子集合一起交接。Map/Gantt 父资源网络数组固定为空；`resources.map.renderer.csp` 才声明精确图商 origin 及所需 eval/blob Worker 能力。Gateway 还必须配置独立 renderer 的公开 HTTPS origin。当前 AMAP 后续来源完整性、HERE worker/WASM 能力及真实宿主配置仍需实际验证；不能使用通配域名、服务端密钥或放宽父页 CSP 绕过校验，也不能把构建成功当作地图可用证明。
+上线前确认 Gateway 的服务端图商配置、静态地图授权与配额、署名和缓存授权；客户端不再需要图商域名或 iframe 来源，但目标宿主仍须支持内嵌 data 图片。分别记录真实 Gateway/AMAP/HERE 和 ChatGPT、Claude、Quick Desktop、WorkBuddy 的卡片、全屏、权限及失败重试验收；离线模拟不等于生产 UI ready。
 
-元数据资料统一位于仓库根目录 `gateway/`，与 Gateway 默认导入路径一致。导入前须按[目录交接说明](../integrations/gateway/README.md#3-gateway-导入交接)确认目标 tag 包含该目录；若曾覆盖 Gateway 元数据根配置，需恢复默认目录并评估对其他引擎及历史 tag 重导入的影响。仅移动本仓文件不会改变已有 tag 或外部部署。
-
-Gateway 负责服务端安全投影、三产物原子导入、父资源 `frameDomains`、renderer HTTP CSP、不可变资源身份、版本启用及用户授权。未完成真实导入和宿主审核时不得宣称 UI ready；只读界面遇到地图配置、SDK 或网络失败应保留独立 Gantt 与对象详情。具体发布前检查包括：
-
-1. 固定引擎版本、HTML 与 manifest 一致，不覆盖已发布 tag。
-2. Gateway 完成 canonical 展示字段的生产白名单投影和同组 fixtures 校验。
-3. 批准 renderer 的实际 SDK/瓦片/鉴权 origin 及宿主 frame 能力；使用受限公开 browser key，不嵌入服务器私钥。
-4. 记录真实 Gateway 与 ChatGPT、Claude、Quick Desktop、WorkBuddy 的客户端版本、权限、全屏、刷新、地图及降级结果；未执行项标为“未验证”。
+元数据仍位于根 `gateway/`，参考 Schema/fixtures 仍在 `docs/integrations/gateway/`，不改变 REST/OpenAPI、版本号或线上状态。详见[组件说明](../components/mcp-app.md)。
 
 ## 11. Metrics 与启动验证
 

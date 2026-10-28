@@ -1,7 +1,7 @@
 /** Opt-in live acceptance. Never imported by the offline test suite.
  * Uses a caller-provided local MCP host, real Gateway read-only data and the
- * Gateway-published parent/renderer artifacts. It never patches CSP or swaps
- * in a local key; strict-parent + isolated-renderer is the only supported mode.
+ * Gateway-published SVG Map artifact. It never patches CSP, injects keys or
+ * requests third-party resources from the browser. File name is historical.
  */
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
@@ -11,7 +11,7 @@ import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { readEnvelope } from '../../main/mcp-ui/bridge.mjs';
 
-assert.equal(process.env.MCP_REAL_SDK, '1', 'Explicit MCP_REAL_SDK=1 is required for live network tests');
+assert.equal(process.env.MCP_REAL_SVG, '1', 'Explicit MCP_REAL_SVG=1 is required for live network tests');
 for (const name of ['MCP_PREVIEW_DIR', 'MCP_REAL_JOB_ID']) assert.ok(process.env[name], `${name} is required`);
 
 const require = createRequire(new URL('../../main/resources/META-INF/resources/static/package.json', import.meta.url));
@@ -26,16 +26,14 @@ assert.ok(cfg.pat, 'Configured preview PAT is required');
 
 const built = await buildMcpApps();
 const localMap = await readFile(outputFiles.map, 'utf8');
-const localRenderer = await readFile(outputFiles.renderer, 'utf8');
 assert.equal(localMap, built.map.html, 'Build the current Map artifact before live acceptance');
-assert.equal(localRenderer, built.renderer.html, 'Build the current renderer before live acceptance');
 const hash = value => createHash('sha256').update(value).digest('hex');
 const out = process.env.MCP_REAL_REPORT_DIR || '/tmp/vrp0-mcp-real-sdk';
 await mkdir(out, { recursive:true, mode:0o700 });
 const report = {
   at:new Date().toISOString(),
-  scope:'Local simulated MCP host + real Gateway task + real isolated map renderer; NOT desktop/client certification',
-  local_map_sha256:hash(localMap), local_renderer_sha256:hash(localRenderer), checks:{},
+  scope:'Local simulated MCP host + real Gateway task + server SVG map (no browser map SDK); NOT desktop/client certification',
+  local_map_sha256:hash(localMap), checks:{},
 };
 
 let key = '', server, browser, context, client;
@@ -61,12 +59,10 @@ try {
   assert.notEqual(mapResult.isError, true);
   const envelope = mapResult._meta.gateway_ui;
   assert.equal(envelope.map_context.enabled, true);
-  assert.equal(envelope.map_context.provider, 'AMAP');
-  key = envelope.map_context.browser_key;
-  assert.ok(key, 'Use the Gateway browser key; never substitute a local key');
-  const rendererUrl = new URL(envelope.map_context.renderer_url);
-  assert.equal(rendererUrl.origin, envelope.map_context.renderer_origin);
-  assert.match(rendererUrl.pathname, /^\/mcp-apps\/renderers\/[0-9a-f]{32}\/[0-9a-f]{64}\.html$/);
+  readEnvelope(mapResult,{viewKind:'map',expectedJobId:job,expectedToolName:mapToolName});
+  assert.equal(envelope.map_context.render_mode, 'svg_snapshot_v1');
+  assert.equal(envelope.map_context.browser_key, '');
+  assert.ok(envelope.map_context.snapshot?.svg, 'Gateway must supply a real authorized map snapshot');
 
   const ganttResult = await client.callTool(ganttToolName, { job_id:job });
   assert.notEqual(ganttResult.isError, true);
@@ -85,19 +81,8 @@ try {
   const mapContent = mapResource.contents.find(item => item.uri === mapUri);
   const publishedMap = mapContent?.text;
   assert.equal(publishedMap, localMap, 'Gateway Map resource must match this checkout');
-  assert.deepEqual(mapContent?._meta?.ui?.csp?.frameDomains, [envelope.map_context.renderer_origin]);
-
-  const rendererResponse = await fetch(rendererUrl);
-  assert.equal(rendererResponse.status, 200);
-  const rendererCsp = rendererResponse.headers.get('content-security-policy') || '';
-  assert.match(rendererCsp, /script-src[^;]*'unsafe-eval'[^;]*'wasm-unsafe-eval'/);
-  assert.match(rendererCsp, /worker-src blob:/);
-  assert.match(rendererCsp, /sandbox allow-scripts allow-same-origin/);
-  assert.doesNotMatch(rendererCsp, /frame-ancestors/);
-  const publishedRenderer = await rendererResponse.text();
-  assert.equal(publishedRenderer, localRenderer, 'Gateway renderer must match this checkout');
-  assert(!publishedRenderer.includes(job) && !publishedRenderer.includes(key), 'Renderer HTML must stay task/key independent');
-  report.published = { map_sha256:hash(publishedMap), renderer_sha256:hash(publishedRenderer), renderer_csp:rendererCsp };
+  assert.ok(!mapContent?._meta?.ui?.csp?.frameDomains?.length, 'SVG Map must not request frame capability');
+  report.published = {map_sha256:hash(publishedMap)};
 
   server = await createPreviewServer({ endpoint:cfg.endpoint, getConfiguredPat:async () => cfg.pat,
     clientFactory:options => createGatewayClient(options) });
@@ -124,25 +109,25 @@ try {
   const appFrame = page.frames().find(frame => frame.url().startsWith(origin + '/frame/'));
   assert.ok(appFrame, 'Preview must create the strict MCP App frame');
   await expect(appFrame.locator('#map-state')).toBeHidden({ timeout:45000 });
-  await expect(appFrame.locator('#map-canvas')).toHaveAttribute('data-renderer-map', 'ready');
-  await expect.poll(() => appFrame.childFrames().some(frame => frame.url().startsWith(rendererUrl.origin + '/'))).toBe(true);
-  const rendererFrame = appFrame.childFrames().find(frame => frame.url().startsWith(rendererUrl.origin + '/'));
-  assert.ok(rendererFrame, 'Map App must use the isolated renderer frame');
-  await expect(rendererFrame.locator('#map')).toBeVisible();
-  await expect(rendererFrame.locator('.mcp-marker').first()).toBeVisible({ timeout:30000 });
+  await expect(appFrame.locator('#map-canvas')).toHaveAttribute('data-svg-map', 'ready');
+  assert.equal(appFrame.childFrames().length,0,'SVG Map must not create an additional iframe');
+  await expect(appFrame.locator('.snapshot-svg')).toBeVisible();
+  await expect(appFrame.locator('.snapshot-point').first()).toBeVisible();
+  await expect(appFrame.locator('.snapshot-attribution')).toHaveText(envelope.map_context.snapshot.attribution);
 
   await appFrame.locator('#fullscreen').click();
   await expect(page.locator('#display-mode')).toHaveValue('fullscreen');
   await expect(appFrame.locator('#playback')).toBeVisible();
   await appFrame.locator('#fullscreen').click();
   await expect(page.locator('#display-mode')).toHaveValue('inline');
-  report.checks.iframe_map_ready = true;
+  report.checks.svg_map_ready = true;
   report.checks.fullscreen_round_trip = true;
+  assert.deepEqual(mapRequests, [], 'SVG Map must not request third-party resources');
   report.requests = [...new Set(mapRequests)];
   report.failed_requests = failedRequests;
   report.page_errors = pageErrors;
   assert.deepEqual(pageErrors, []);
-  await appFrame.locator('#app').screenshot({ path:path.join(out, 'isolated-renderer.png') });
+  await appFrame.locator('#app').screenshot({ path:path.join(out, 'server-svg.png') });
   await page.locator('#close-app').click();
   await expect(page.locator('#frame-container iframe')).toHaveCount(0);
   report.checks.teardown = true;

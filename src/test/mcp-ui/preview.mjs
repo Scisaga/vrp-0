@@ -1,7 +1,9 @@
 /** Optional offline visual QA. Not a real host/Gateway acceptance environment. */
+import fs from 'node:fs';
 import { chromium } from '../../main/resources/META-INF/resources/static/node_modules/@playwright/test/index.mjs';
 import { openHost,mapReady } from './host-fixture.mjs';
 
+const result=process.env.MCP_SVG_INTEROP_FILE?JSON.parse(fs.readFileSync(process.env.MCP_SVG_INTEROP_FILE,'utf8')):undefined;
 const port=Number(process.env.MCP_PREVIEW_PORT || 9224);
 const browser=await chromium.launch({headless:true,args:[`--remote-debugging-port=${port}`]});
 for(const preset of [
@@ -9,7 +11,7 @@ for(const preset of [
   {id:'narrow',width:375,height:820,context:{displayMode:'fullscreen',locale:'en-US',theme:'dark'}},
 ]){
   const page=await browser.newPage({viewport:{width:preset.width+20,height:850}});
-  const host=await openHost(page);const frame=await host.add(preset);await mapReady(frame);
+  const host=await openHost(page);const frame=await host.add({...preset,...(result?{result}:{})});await mapReady(frame);
   await page.evaluate(id=>document.title=`MCP offline preview · ${id}`,preset.id);
 }
 console.log(`Offline MCP preview ready: agent-browser --cdp ${port} tab`);

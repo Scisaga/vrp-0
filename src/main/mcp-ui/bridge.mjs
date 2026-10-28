@@ -1,3 +1,4 @@
+import { validSnapshotContext } from './svg-snapshot.mjs';
 /** MCP Apps boundary. No REST, chat messages, credentials, or shared View state. */
 const CONTRACT = 'gateway_mcp_result_v1';
 const APP_PROTOCOL = '2026-01-26'; // Negotiated MCP Apps protocol of the pinned official SDK 2.0.
@@ -6,7 +7,7 @@ const RESULT_STATES = new Set(['ready', 'running', 'not_ready', 'failed', 'cance
 const AUTH_CODES = new Set(['UNAUTHORIZED', 'FORBIDDEN', 'INVALID_TOKEN', 'INVALID_PAT', 'INSUFFICIENT_SCOPE', 'USER_DISABLED']);
 const GATEWAY_CODES = new Set([
   ...AUTH_CODES, 'MCP_UI_TOOL_MISMATCH', 'MCP_UI_UNAVAILABLE', 'MCP_UI_VIEW_UNSUPPORTED',
-  'MCP_UI_RESOURCE_STALE', 'REQUEST_SCHEMA_INVALID', 'SOLVER_JOB_NOT_FOUND', 'MCP_RATE_LIMITED',
+  'MCP_UI_RESOURCE_STALE', 'REQUEST_SCHEMA_INVALID', 'SOLVER_JOB_NOT_FOUND', 'MCP_RATE_LIMITED', 'MCP_UI_RESULT_TOO_LARGE',
 ]);
 const CLEAR_CODES = new Set([
   ...AUTH_CODES, 'MCP_UI_TOOL_MISMATCH', 'MCP_UI_UNAVAILABLE', 'MCP_UI_RESOURCE_STALE',
@@ -87,12 +88,16 @@ export function readEnvelope(result, {
       || typeof mapContext.enabled !== 'boolean') {
     throw new ViewerBridgeError('MCP_UI_ENVELOPE_INVALID');
   }
-  if (viewKind === 'gantt' && (mapContext.enabled !== false
+  if (viewKind === 'gantt' && (own(mapContext, 'render_mode') || own(mapContext, 'snapshot') || own(mapContext, 'error_code')
+      || mapContext.enabled !== false
       || mapContext.browser_key !== '' || mapContext.js_url !== '' || mapContext.css_url !== null
       || mapContext.renderer_url !== '' || mapContext.renderer_origin !== '')) {
     throw new ViewerBridgeError('MCP_UI_ENVELOPE_INVALID');
   }
-  if (viewKind === 'map' && (mapContext.enabled
+  if (viewKind === 'map' && mapContext.render_mode !== undefined && !validSnapshotContext(mapContext)) {
+    throw new ViewerBridgeError('MCP_UI_ENVELOPE_INVALID');
+  }
+  if (viewKind === 'map' && mapContext.render_mode === undefined && (mapContext.enabled
       ? (!mapContext.browser_key.trim() || !mapContext.js_url.trim() || !mapContext.renderer_url.trim()
           || !mapContext.renderer_origin.trim() || (mapContext.css_url !== null && !mapContext.css_url.trim()))
       : (mapContext.browser_key !== '' || mapContext.js_url !== '' || mapContext.css_url !== null

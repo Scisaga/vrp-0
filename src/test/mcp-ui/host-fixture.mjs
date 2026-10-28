@@ -1,21 +1,15 @@
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
 import { test, expect } from '../../main/resources/META-INF/resources/static/node_modules/@playwright/test/index.mjs';
-import { mapSdkFixture } from './map-sdk-fixture.mjs';
 export { test, expect };
 
 const artifacts = {
   map:new URL('../../main/resources/META-INF/resources/static/mcp-map-app.html', import.meta.url),
-  gantt:new URL('../../main/resources/META-INF/resources/static/mcp-gantt-app.html', import.meta.url),
-  renderer:new URL('../../main/resources/META-INF/resources/static/mcp-map-renderer.html', import.meta.url)
+  gantt:new URL('../../main/resources/META-INF/resources/static/mcp-gantt-app.html', import.meta.url)
 };
 const payloads = JSON.parse(fs.readFileSync(new URL('../../../docs/integrations/gateway/fixtures/mcp-result-view/payloads.json', import.meta.url), 'utf8'));
 export const message = (name='ready') => {
   const value=structuredClone(payloads.find(item=>item.name===name).message);
-  if(value?._meta?.gateway_ui?.view==='map')Object.assign(value._meta.gateway_ui.map_context,{
-    renderer_url:'https://renderer.planly.test/mcp-apps/renderers/'+value._meta.gateway_ui.image_version_id+'/'+'a'.repeat(64)+'.html',
-    renderer_origin:'https://renderer.planly.test'
-  });
   return value;
 };
 export const JOB = message()._meta.gateway_ui.job_id;
@@ -23,14 +17,8 @@ export const VERSION = message()._meta.gateway_ui.image_version_id;
 export const TOOL = message()._meta.gateway_ui.display_tool_name;
 export const AGENT = message()._meta.gateway_ui.engine_view.solver_job.plan.agents[0].id;
 const require = createRequire(new URL('../../main/resources/META-INF/resources/static/package.json', import.meta.url));
-const policies = {map:require('./scripts/build-mcp-app.cjs').readNetworkPolicy('map'),gantt:require('./scripts/build-mcp-app.cjs').readNetworkPolicy('gantt'),renderer:require('./scripts/build-mcp-app.cjs').readNetworkPolicy('renderer')};
-export const strictCsp = kind => { const {connectDomains,resourceDomains}=policies[kind]; return `default-src 'none'; script-src 'unsafe-inline' ${resourceDomains.join(' ')}; style-src 'unsafe-inline' ${resourceDomains.join(' ')}; img-src data: ${resourceDomains.join(' ')}; font-src ${resourceDomains.join(' ')}; connect-src ${connectDomains.join(' ')}; frame-src ${kind==='map'?'https://renderer.planly.test ':''}; worker-src 'none'; frame-ancestors http://mcp-host.test; base-uri 'none'; form-action 'none'`; };
-// MCP hosts normally sandbox the parent App without allow-same-origin, so its
-// effective origin is opaque. The public renderer therefore cannot use a
-// conventional frame-ancestors origin allow-list; the parent resource's
-// frameDomains permission, exact renderer URL and nonce-bound MessageChannel
-// provide the embedding boundary instead.
-const rendererCsp = () => { const {connectDomains,resourceDomains}=policies.renderer; return `default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' ${resourceDomains.join(' ')}; style-src 'unsafe-inline' ${resourceDomains.join(' ')}; img-src data: blob: ${resourceDomains.join(' ')}; font-src ${resourceDomains.join(' ')}; connect-src ${connectDomains.join(' ')}; worker-src blob:; child-src blob:; sandbox allow-scripts allow-same-origin; base-uri 'none'; form-action 'none'; object-src 'none'`; };
+const policies = {map:require('./scripts/build-mcp-app.cjs').readNetworkPolicy('map'),gantt:require('./scripts/build-mcp-app.cjs').readNetworkPolicy('gantt')};
+export const strictCsp = kind => { const {connectDomains,resourceDomains}=policies[kind]; return `default-src 'none'; script-src 'unsafe-inline' ${resourceDomains.join(' ')}; style-src 'unsafe-inline' ${resourceDomains.join(' ')}; img-src data:; connect-src 'none'; frame-src 'none'; worker-src 'none'; frame-ancestors http://mcp-host.test; base-uri 'none'; form-action 'none'`; };
 export const STRICT_CSP = strictCsp('map');
 
 const hostDocument = `<!doctype html><html><head><meta charset="utf-8"><title>Synthetic MCP Apps Host</title></head><body><script>
@@ -95,7 +83,7 @@ try{eval('window.__unexpectedDynamicExecution=true')}catch{window.__caughtDynami
 window.__publishDynamicCodeState();
 </script>`;
 
-export async function openHost(page, { mapFailure=false, rendererFailure=false, shortMapTimeouts=false, mapCsp=false, probeCsp=false, monitorDynamicCode=false, probeDynamicCode=false }={}) {
+export async function openHost(page, { blockImages=false, probeCsp=false, monitorDynamicCode=false, probeDynamicCode=false }={}) {
   if (probeDynamicCode && !monitorDynamicCode) throw new Error('Dynamic-code negative control requires the parser-installed monitor');
   if (probeCsp && monitorDynamicCode) throw new Error('Native CSP self-test must run separately from SDK zero-attempt monitoring');
   const logs=[];const errors=[];const requests=[];const unexpected=[];
@@ -110,24 +98,11 @@ export async function openHost(page, { mapFailure=false, rendererFailure=false, 
     if(url.origin==='http://mcp-host.test')return route.fulfill({contentType:'text/html',body:hostDocument});
     if(url.origin==='http://mcp-app.test'){
       const kind=url.searchParams.get('kind')==='gantt'?'gantt':'map';let body=fs.readFileSync(artifacts[kind],'utf8');
-      if(shortMapTimeouts&&kind==='map')body=body.replace('<head>','<head><script>{const nativeSetTimeout=setTimeout;window.setTimeout=(callback,delay,...args)=>nativeSetTimeout(callback,delay>=20000?500:delay,...args)}</script>');
       // A parser-executed test-only probe proves unsafe-eval is blocked. A script
       // appended by Playwright's debugger evaluate inherits its CSP bypass.
       if(probeCsp)body=body.replace('<head>','<head><script>try{new Function("window.__unsafeExecuted=true")()}catch{window.__unsafeEvalBlocked=true}</script>');
       if(monitorDynamicCode)body=body.replace('<head>','<head>'+dynamicCodeMonitor+(probeDynamicCode?caughtDynamicCodeProbe:''));
-      return route.fulfill({contentType:'text/html',body,headers:{'content-security-policy':mapCsp?strictCsp(kind).replace(' https://webapi.amap.com',''):strictCsp(kind)}});
-    }
-    if(url.origin==='https://renderer.planly.test'){
-      if(rendererFailure==='load')return route.abort();
-      if(rendererFailure==='channel')return route.fulfill({contentType:'text/html',body:'<!doctype html><html><body>no channel</body></html>'});
-      let csp=rendererCsp();if(mapCsp)csp=csp.replace(' https://webapi.amap.com','');
-      let body=fs.readFileSync(artifacts.renderer,'utf8');
-      if(shortMapTimeouts)body=body.replace('<head>','<head><script>{const nativeSetTimeout=setTimeout;window.setTimeout=(callback,delay,...args)=>nativeSetTimeout(callback,delay>=20000?500:delay,...args)}</script>');
-      return route.fulfill({contentType:'text/html',body,headers:{'content-security-policy':csp}});
-    }
-    if(['https://webapi.amap.com','https://js.api.here.com'].includes(url.origin)){
-      if(mapFailure===true||mapFailure==='script')return route.abort();
-      return route.fulfill({contentType:'text/javascript',body:`window.__mapFailureMode=${JSON.stringify(mapFailure||'')};`+mapSdkFixture});
+      return route.fulfill({contentType:'text/html',body,headers:{'content-security-policy':blockImages?strictCsp(kind).replace('img-src data:',"img-src 'none'"):strictCsp(kind)}});
     }
     unexpected.push(url.href);return route.abort();
   });
@@ -160,21 +135,15 @@ export async function openHost(page, { mapFailure=false, rendererFailure=false, 
     dynamicCodeState:(id)=>page.evaluate(id=>window.host.cards.get(id).dynamicCode,id),
     async assertHealthy(){
       expect(errors).toEqual([]);expect(unexpected).toEqual([]);
-      // Browser-generated CSP diagnostics necessarily quote the blocked public
-      // map URL. This is not an application console call and cannot be muted by
-      // the App. No application/SDK log may contain keys or business payloads.
-      const nativeCsp=entry=>mapCsp&&entry.type==='error'&&/^Loading the script 'https:\/\/webapi\.amap\.com\/maps\?[^']+' violates the following Content Security Policy directive:/.test(entry.text);
-      expect(logs.filter(item=>!nativeCsp(item)&&/TEST_ONLY_NOT_A_USABLE_KEY|gateway_ui|browser_key|合成测试地址/.test(item.text))).toEqual([]);
+      expect(logs.filter(item=>/TEST_ONLY_NOT_A_USABLE_KEY|gateway_ui|browser_key|合成测试地址/.test(item.text))).toEqual([]);
     },
   };
 }
 
-export async function mapReady(frame){
-  await expect(frame.locator('#map-state')).toBeHidden();
-  await expect(frame.locator('#map-canvas')).toHaveAttribute('data-renderer-map','ready');
-  await expect.poll(()=>frame.childFrames().some(child=>child.url().startsWith('https://renderer.planly.test/'))).toBe(true);
-  const renderer=frame.childFrames().find(child=>child.url().startsWith('https://renderer.planly.test/'));
-  await expect(renderer.locator('#map')).toHaveAttribute('data-mock-map','ready');
-  return renderer;
+export async function mapReady(frame) {
+  await expect(frame.locator('#map-canvas')).toHaveAttribute('data-svg-map','ready');
+  await expect(frame.locator('.snapshot-svg')).toBeVisible();
+  expect(frame.childFrames()).toHaveLength(0);
+  return frame;
 }
 export async function fullscreen(frame){await frame.locator('#fullscreen').click();await expect(frame.locator('#app')).toHaveAttribute('data-mode','fullscreen')}

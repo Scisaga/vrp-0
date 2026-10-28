@@ -21,15 +21,15 @@ test('route-fit icon has an accessible name and a hoverable, dismissible tooltip
 test('keyboard focus and activation retain the icon and engineer selection and call only the existing fit', async ({page}) => {
   const host=await openHost(page),frame=await host.add();const renderer=await mapReady(frame);
   await frame.locator('#engineer').selectOption(AGENT);
-  await expect(renderer.locator('.mcp-marker[data-kind="agent"][data-selected="true"]')).toHaveCount(1);
+  await expect(renderer.locator('.snapshot-point[data-kind="agent"][data-selected="true"]')).toHaveCount(1);
   const fit=frame.locator('#fit-map'),tip=frame.locator('#fit-map-tip');
   await expect(fit.locator('svg')).toHaveCount(1);
-  const fits=()=>renderer.evaluate(()=>window.__mapStats.fits);
-  const before=await fits();await fit.focus();await expect(tip).toBeVisible();
-  await fit.press('Escape');await expect(tip).toBeHidden();
+  const viewport=()=>renderer.locator('.snapshot-svg').getAttribute('viewBox');
+  const before=await viewport();await frame.getByRole('button',{name:'放大地图',exact:true}).click();expect(await viewport()).not.toBe(before);
+  await fit.focus();await expect(tip).toBeVisible();await fit.press('Escape');await expect(tip).toBeHidden();
   await frame.locator('#engineer').focus();await fit.focus();await expect(tip).toBeVisible();
-  await fit.press('Enter');await expect.poll(fits).toBe(before+1);
-  await fit.click();await expect.poll(fits).toBe(before+2);
+  await fit.press('Enter');await expect.poll(viewport).toBe(before);
+  await fit.click();await expect.poll(viewport).toBe(before);
   await expect(frame.locator('#engineer')).toHaveValue(AGENT);
   await expect(fit.locator('svg')).toHaveCount(1);
   expect((await host.pending('card')).length).toBe(0);expect((await host.messages('card')).length).toBe(0);

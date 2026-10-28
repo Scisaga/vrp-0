@@ -9,7 +9,7 @@ plugins {
     jacoco
 }
 group = "one.rewind.xforce"
-version = "1.1.3-alpha-SNAPSHOT"
+version = "1.1.4-alpha-SNAPSHOT"
 
 //
 repositories {

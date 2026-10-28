@@ -7,14 +7,14 @@ test('Map and Gantt refuse old names, another view and another version before re
   for(const name of [`gateway.ui.${view}_result_${version}`,`gw_${otherView}_${version}`,`gw_${view}_${'a'.repeat(32)}`]){
    const result=message(sample);result._meta.gateway_ui.display_tool_name=name;const id=`identity-${index++}`,frame=await host.add({id,result});
    await expect(frame.locator('#notice')).toBeVisible();await expect(frame.locator('#notice')).toHaveAttribute('data-error','true');
-   await expect(frame.locator('.map-renderer-frame,.gantt-bar')).toHaveCount(0);expect((await host.pending(id)).length).toBe(0);
+   await expect(frame.locator('.snapshot-svg,.gantt-bar')).toHaveCount(0);expect((await host.pending(id)).length).toBe(0);
   }
  }
  expect(host.requests.some(url=>url.startsWith('https://renderer.planly.test/'))).toBe(false);await host.assertHealthy();
 });
 
 test('non-ready and failed envelopes never retain a model or trigger map requests',async({page})=>{
- const host=await openHost(page);for(const [index,name]of['running-no-model','not-ready','failed','canceled','timed_out','archive_failed'].entries()){const frame=await host.add({id:`c${index}`,result:message(name)});await expect(frame.locator('#map-state')).toBeVisible();await expect(frame.locator('.map-renderer-frame')).toHaveCount(0);}expect(host.requests.some(url=>url.startsWith('https://'))).toBe(false);await host.assertHealthy();
+ const host=await openHost(page);for(const [index,name]of['running-no-model','not-ready','failed','canceled','timed_out','archive_failed'].entries()){const frame=await host.add({id:`c${index}`,result:message(name)});await expect(frame.locator('#map-state')).toBeVisible();await expect(frame.locator('.snapshot-svg')).toHaveCount(0);}expect(host.requests.some(url=>url.startsWith('https://'))).toBe(false);await host.assertHealthy();
 });
 
 test('English dark narrow views remain keyboard focusable and malicious labels stay text',async({page})=>{
@@ -24,11 +24,9 @@ test('English dark narrow views remain keyboard focusable and malicious labels s
  await expect(frame.locator('.brand')).toHaveCount(0);await expect(frame.locator('img')).toHaveCount(0);await expect(frame.locator('a')).toHaveCount(0);expect(await frame.evaluate(()=>window.__xss===true)).toBe(false);expect(await frame.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);await host.assertHealthy();
 });
 
-test('map rejects a renderer URL bound to another image version before navigation',async({page})=>{
- const result=message();result._meta.gateway_ui.map_context.renderer_url=result._meta.gateway_ui.map_context.renderer_url.replace(result._meta.gateway_ui.image_version_id,'0'.repeat(32));
+test('map rejects snapshot references to an engineer outside the current task',async({page})=>{
+ const result=message();result._meta.gateway_ui.map_context.snapshot.elements.agents[0].engineer_id='other-task-agent';
  const host=await openHost(page),frame=await host.add({result});
- await expect(frame.locator('#map-state')).toBeVisible();
- await expect(frame.locator('.map-renderer-frame')).toHaveCount(0);
- expect(host.requests.some(url=>url.startsWith('https://renderer.planly.test/'))).toBe(false);
- await host.assertHealthy();
+ await expect(frame.locator('#map-state')).toBeVisible();await expect(frame.locator('.snapshot-svg')).toHaveCount(0);
+ expect(host.requests.some(url=>url.startsWith('https://'))).toBe(false);await host.assertHealthy();
 });

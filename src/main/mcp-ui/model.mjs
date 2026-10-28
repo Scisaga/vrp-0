@@ -25,6 +25,7 @@ const record = (value) => value !== null && typeof value === "object" && !Array.
 const CONTRACT_SPACE = /^[\u0009-\u000d\u001c-\u0020\u0085\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]+|[\u0009-\u000d\u001c-\u0020\u0085\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]+$/g;
 const trimContractSpace = (value) => value.replace(CONTRACT_SPACE, "");
 const identity = (value) => typeof value === "string" && trimContractSpace(value).length > 0;
+export { identity as isModelIdentity };
 
 /** Milliseconds on a timezone-neutral business clock; NOT an actual UTC instant. */
 export function parsePlanTime(value) {

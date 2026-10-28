@@ -5,7 +5,7 @@ export { colorFor } from './palette.mjs';
 const ROAD = new Set(['AMAP_TRUCK','AMAP_DRIVING','AMAP_BICYCLE','HERE_TRUCK','HERE_DRIVING','HERE_BICYCLE','CAR_FALLBACK']);
 
 /** Build the minimal map-only projection sent to the isolated renderer. */
-export function buildMapScene(model, { agentId = null, ticketId = null } = {}) {
+export function buildMapScene(model, { agentId = null, ticketId = null, route: selectedRoute = null } = {}) {
   const markers = [], lines = [], warnings = new Set(), ticketSeen = new Set();
   const agents = (model.agents || []).filter(agent => (!agentId || agent.id === agentId) && agent.virtual !== true);
   for (const agent of agents) {
@@ -19,7 +19,7 @@ export function buildMapScene(model, { agentId = null, ticketId = null } = {}) {
       if (!ticket || !position) { warnings.add('partialMap'); continue; }
       if (ticketSeen.has(id)) { warnings.add('partialMap'); continue; }
       ticketSeen.add(id);
-      markers.push({ key:`ticket:${id}`, id, kind:'ticket', position, color, label:String(index + 1), title:`${agent.name || agent.id} · ${index + 1} · ${id}`, selected:ticketId === id });
+      markers.push({ key:`ticket:${id}`, id, kind:'ticket', agentId:agent.id, position, color, label:String(index + 1), title:`${agent.name || agent.id} · ${index + 1} · ${id}`, selected:ticketId === id });
     }
     if (!Array.isArray(agent.routes)) warnings.add('partialMap');
     for (const [index, route] of (agent.routes || []).entries()) {
@@ -30,13 +30,15 @@ export function buildMapScene(model, { agentId = null, ticketId = null } = {}) {
       const positions = Array.isArray(route.polyline) ? route.polyline.map(routePosition) : null;
       if (!positions || positions.length < 2 || positions.some(point => !point)) { warnings.add('unavailableRoute'); continue; }
       if (route.route_source === 'CAR_FALLBACK') warnings.add('fallback');
-      lines.push({ key:`${agent.id}:${index}`, agentId:agent.id, positions, color, returnLeg:Array.isArray(agent.tickets) && agent.routes.length === agent.tickets.length + 1 && index === agent.tickets.length });
+      lines.push({ key:`${agent.id}:${index}`, agentId:agent.id, positions, color,
+        selected:selectedRoute?.engineerId===agent.id&&selectedRoute?.routeIndex===index,
+        returnLeg:Array.isArray(agent.tickets) && agent.routes.length === agent.tickets.length + 1 && index === agent.tickets.length });
     }
   }
   if (!agentId) for (const ticket of model.tickets || []) {
     if (ticketSeen.has(ticket.id)) continue;
     const position = poiPosition(model.indexes.pois.get(ticket.loc));
-    if (position) markers.push({ key:`ticket:${ticket.id}`, id:ticket.id, kind:'ticket', position, color:'#475569', label:'?', title:ticket.id, selected:ticketId === ticket.id });
+    if (position) markers.push({ key:`ticket:${ticket.id}`, id:ticket.id, kind:'ticket', agentId:null, position, color:'#475569', label:'?', title:ticket.id, selected:ticketId === ticket.id });
     else warnings.add('partialMap');
   }
   return { markers, lines, warnings:[...warnings] };

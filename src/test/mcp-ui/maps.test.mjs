@@ -9,7 +9,7 @@ const staticRoot = new URL('../../main/resources/META-INF/resources/static/', im
 const require = createRequire(new URL('package.json', staticRoot));
 const { build } = require('esbuild');
 const { readNetworkPolicy } = require('./scripts/build-mcp-app.cjs');
-const policy = readNetworkPolicy();
+const policy = {connectDomains:['https://js.api.here.com','https://vector.hereapi.com','https://maps.hereapi.com','https://vdata.amap.com'],resourceDomains:['https://webapi.amap.com','https://js.api.here.com','https://maps.hereapi.com','https://vdata.amap.com','https://restapi.amap.com']}; // Historical adapter regression only; never included in SVG App.
 const bundled = await build({
   entryPoints: [fileURLToPath(new URL('../../main/mcp-ui/maps.mjs', import.meta.url))],
   bundle: true, write: false, platform: 'node', format: 'esm', target: ['es2020'],
