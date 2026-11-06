@@ -158,6 +158,16 @@ npm run verify:scenario
 
 场景导入测试还应覆盖：车辆燃料/油耗/每日成本缺失时界面留空且请求省略字段。
 
+### Gateway 任务图商切换回归（Gateway #80）
+
+运行 `npx playwright test tests/map-provider-switch.spec.mjs --workers=1`。浏览器用明确的 SDK 替身隔离外部网络，覆盖 HERE → AMAP 与 AMAP → HERE 的反复切换、组件模块重新加载、原生 AMAP 脚本仅加载一次，以及打开 AMAP 后已有 HERE 地图的信息窗仍使用自身 SDK。替身只验证 SDK 选择和构造器归属，不代表真实底图验收。
+
+2026-11-06：新增 3 项无头 Chromium 回归通过，修复前 3 项均失败；静态 Node 全部 110 项和 Scenario 构建/交付校验通过。既有双语/页面浏览器测试 20 项中 19 项通过，布局密度测试失败，修复前源码的独立副本也存在该测试失败，未修改无关页面或弱化断言。无头验证复用主机已安装的 Chromium，通过临时配置指定路径；未更改项目依赖或浏览器默认配置。
+
+另以真实 Gateway 页面壳、Alpine、Host Runtime 与候选 `scenario.html` 在隔离回环服务中挂载，合成任务和会话连续执行 HERE → AMAP → HERE → AMAP，任务图商、Host 配置与实际地图 SDK 始终一致，无页面脚本异常。另直接加载两家真实 SDK 并创建地图及 Marker；HERE 的矢量瓦片请求存在网络失败，完整底图未验收。此验证不访问业务库、不创建求解任务，也未创建临时账号；不代表已发布 ImageVersion、线上登录任务或生产底图验收。初次前端验证阶段未运行 JVM 测试；版本交付追加的稳定测试结果见下。候选产物尚未导入 Gateway。
+
+升版交付阶段（`1.1.5-alpha-SNAPSHOT`）另在只包含本次修复的独立目录执行 `allStableTest quarkusBuild`：138 项单元和 77 项应用测试全部通过，失败、错误和跳过均为 0；版本契约覆盖运行时 OpenAPI、已发布 OpenAPI 与 Gateway 元数据一致。110 项静态 Node、3 项图商切换浏览器、4 项元数据目录测试及 Scenario / MCP 产物校验再次通过。最终 JAR 的 Scenario、Map、Gantt 三份 HTML 与候选逐字节一致，MCP Map/Gantt 保持基线字节且无静态 node_modules。此阶段只交付源码提交与新 annotated tag，不包含容器发布、ImageVersion 导入、native 构建或部署。
+
 ### 8.1 独立 MCP Apps View
 
 短展示工具名验收覆盖 `gw_map_<32位ID>` / `gw_gantt_<32位ID>` 的初始化、刷新、视图与版本匹配，以及对旧名和非法后缀的拒绝。断言原始长度 39 / 41、当前 Quick 前缀下长度 51 / 53；名称缩短不改变投影 golden。Python 交接样例与 Gateway 快照联动更新工具名及相应来源指纹。Quick 真实客户端的工具调用成功与卡片渲染成功必须分别记录；没有真机测试时仍标记未验证。

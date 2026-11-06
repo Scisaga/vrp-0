@@ -189,6 +189,7 @@ export async function ensureMap(container, options = {}) {
       mapStyle,
       lang: amapLanguage(mapContext?.locale)
     });
+    container._vrpMap._vrpMapSdk = AMap;
     // lang is already applied at construction time.  Calling setLang again
     // immediately makes AMap reload the base tiles and drops mapStyle.
     container._vrpMap._vrpMapLocale = normalizedMapLocale(mapContext);
@@ -225,7 +226,7 @@ function ensureTicketInfoWindow(map) {
   if (!map) {
     return null;
   }
-  const AMap = window.AMap;
+  const AMap = map._vrpMapSdk || window.AMap;
   if (!map._vrpTicketInfoWindow) {
     map._vrpTicketInfoWindow = new AMap.InfoWindow({
       offset: new AMap.Pixel(0, -22.5),
@@ -540,7 +541,7 @@ export function renderAgentPreview(map, agent, hoveredTicketId = "") {
     return;
   }
 
-  const AMap = window.AMap;
+  const AMap = map._vrpMapSdk || window.AMap;
   const routeSegments = buildDisplayRouteSegments(agent);
   const routeOverlays = [];
   routeSegments.forEach((segment) => {
@@ -712,7 +713,7 @@ export async function renderSimulation(mapContainer, job, visibilityMap, routeVi
   const map = await ensureMap(mapContainer, { zoom: 10, mapTheme: options.mapTheme });
   const infoWindow = ensureTicketInfoWindow(map);
   infoWindow?.close();
-  const AMap = window.AMap;
+  const AMap = map._vrpMapSdk || window.AMap;
   const agents = nonVirtualAgents(job);
   const palette = ["#34d399", "#60a5fa", "#f59e0b", "#f472b6", "#a78bfa", "#f87171"];
   const focusedAgentId = options.focusedAgentId || "";

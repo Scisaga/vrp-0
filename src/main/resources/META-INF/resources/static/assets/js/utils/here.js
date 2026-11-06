@@ -1,5 +1,6 @@
 let herePromise = null;
 let hereMarkerIcon = null;
+let hereCompatibility = null;
 
 const HERE_FIT_VIEW_MAX_ZOOM = 18;
 // smallHereMarkerIcon() anchors the pin tip at the geographic coordinate;
@@ -465,10 +466,10 @@ class HereMap {
   }
 }
 
-/** Installs the subset of AMap's API used by the existing pages on top of HERE Maps JS. */
+/** Provides the AMap-compatible subset without replacing the native AMap global. */
 export async function loadHereAsAmapCompatibility() {
   const H = await loadHere();
-  if (window.AMap?._vrpHereCompatibility) return window.AMap;
+  if (hereCompatibility) return hereCompatibility;
   class MapCompat extends HereMap { constructor(container, options) { super(H, container, options); } }
   class MarkerCompat extends HereMarker { constructor(options) { super(H, options); } }
   class PolylineCompat extends HerePolyline { constructor(options) { super(H, options); } }
@@ -479,6 +480,6 @@ export async function loadHereAsAmapCompatibility() {
       this.y = Number.isFinite(Number(y)) ? Number(y) : 0;
     }
   }
-  window.AMap = { Map: MapCompat, Marker: MarkerCompat, Polyline: PolylineCompat, CircleMarker: CircleCompat, InfoWindow: HereInfoWindow, Pixel: PixelCompat, _vrpHereCompatibility: true };
-  return window.AMap;
+  hereCompatibility = { Map: MapCompat, Marker: MarkerCompat, Polyline: PolylineCompat, CircleMarker: CircleCompat, InfoWindow: HereInfoWindow, Pixel: PixelCompat, _vrpHereCompatibility: true };
+  return hereCompatibility;
 }

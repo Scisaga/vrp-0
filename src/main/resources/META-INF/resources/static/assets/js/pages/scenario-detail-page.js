@@ -1992,7 +1992,7 @@ export function scenarioDetailPage() {
       if (!this.mapPicker.map) {
         return null;
       }
-      const AMap = window.AMap;
+      const AMap = this.mapPicker.map._vrpMapSdk || window.AMap;
       if (!this.mapPicker.marker) {
         this.mapPicker.marker = new AMap.Marker({
           draggable: true,

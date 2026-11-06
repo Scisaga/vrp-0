@@ -8,6 +8,12 @@
 
 本次提交只包含 1.5× 图片读取、最终 Map HTML、相关契约与测试；Gantt 字节不变。用户确认本次发布仅为代码和 tag 推送，不构建或推送容器镜像，不执行 Gateway 原子重导入、实际部署或生产配置修改，不宣称真实 GPT 展示已通过。开发 SNAPSHOT 后续重导入仍须显式启用 Gateway 既有开关并生成新 hash。
 
+### 2026-11-06 地图图商隔离源码交付
+
+VRP0 升至 `1.1.5-alpha-SNAPSHOT`，使用新 annotated tag `v1.1.5-alpha-SNAPSHOT`。本轮只交付网页 Scenario UI 的 HERE / AMAP SDK 隔离、覆盖物绑定和回归测试；同步 Gradle、发布 OpenAPI、Gateway 镜像元数据及版本契约断言。求解算法、矩阵/路线计算、REST/MCP 协议不变，Map/Gantt MCP HTML 保持既有字节。
+
+用户本轮授权升版、提交、打 tag 和推送。交付范围不包含容器镜像构建/推送、Gateway 元数据同步、ImageVersion 导入或实际部署；现有任务继续使用原版本组件，线上修复需后续按 ImageVersion 版本规则交付。旧 tag 和历史资源身份保持原样，Gateway 配套说明仅作独立文档提交，不升 Gateway 应用版本。验证结果见[测试说明](testing.md#gateway-任务图商切换回归gateway-80)。
+
 ## 1. 文档目的与边界
 
 本文负责开发运行、JVM/native/container 构建、Docker Compose、文件目录、运行配置、密钥、地图服务、MCP、Metrics 和启动验证。
@@ -48,7 +54,7 @@ java -jar build/quarkus-app/quarkus-run.jar
 
 稳定测试的图商配置独立于开发或部署配置：Gradle `test`、`appTest` 的子进程默认禁用真实地图及地址服务调用，避免场景导入因 `.env` 中 HERE/AMAP 配置而超时。该隔离仅作用于稳定测试，应用打包、实际运行和显式启用的外部测试仍使用各自的既有配置，详见[测试说明](testing.md#4-fixture-与文件隔离)。不通过跳过应用测试或扩大 HTTP 超时掩盖构建失败。
 
-当前工作区版本为 `1.1.4-alpha-SNAPSHOT`，同步维护 Gradle 应用版本、发布 OpenAPI 的 `info.version` 和 Gateway 镜像元数据版本。该版本交付服务端 SVG 地图 View、高清与边界/路段交互，Gantt 语义及 API/MCP Schema 不变；源码交付使用新 annotated tag `v1.1.4-alpha-SNAPSHOT`，配套 Gateway `1.1.1-SNAPSHOT`。本地提交/tag 不代表远端推送、容器镜像发布或 Gateway 导入，既有 tag 不移动或覆盖。
+当前工作区版本为 `1.1.5-alpha-SNAPSHOT`，同步维护 Gradle 应用版本、发布 OpenAPI 的 `info.version` 和 Gateway 镜像元数据版本。该版本在既有 SVG View 能力之上修复网页 Scenario UI 的图商 SDK 隔离，Gantt 语义及 API/MCP Schema 不变；源码交付使用新 annotated tag `v1.1.5-alpha-SNAPSHOT`。容器镜像发布、Gateway 导入及部署仍单独执行，既有 tag 不移动或覆盖。
 
 ```bash
 ./gradlew quarkusBuild -x test
