@@ -181,8 +181,6 @@ public class SolverService {
 
                     logger.info(">>>>>>" + finalBestSolution.getScore());
                     SolverSearchProgressTracker.SearchEnd searchEnd = finishProgressTracking(jobId, System.currentTimeMillis());
-                    HardMediumSoftLongScore score = HardMediumSoftLongScore.parseScore(finalBestSolution.getScore().toString());
-
                     try {
 
                         long t1 = System.currentTimeMillis();
@@ -195,8 +193,13 @@ public class SolverService {
 
                         logger.info("Populate matrix / routes in " + (System.currentTimeMillis() - t1) + "ms");
 
+                        // Matrix enrichment may change travel times, or replace the matrix itself.
+                        // Rebind transient handles and refresh every route (including pinned tickets)
+                        // before scoring; retaining the search-time score would conceal violations.
+                        finalBestSolution.getAgents().forEach(agent -> agent.matrix = finalBestSolution.getMatrix());
+                        finalBestSolution.getTickets().forEach(ticket -> ticket.matrix = finalBestSolution.getMatrix());
+                        RouteScheduleInitializer.initializePreassignedRoutes(finalBestSolution);
                         String summary = solutionManager.explain(finalBestSolution).getSummary();
-                        finalBestSolution.setScore(score);
 
                         var sj = solverJobRepository.finishJob(
                                 jobId,

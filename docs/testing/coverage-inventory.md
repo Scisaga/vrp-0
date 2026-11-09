@@ -27,7 +27,7 @@
 | 领域模型 | `ScenarioDomainTest`、`RoutePlanDomainTest`、`AgentEachDayDomainTest`、`TicketDomainTest` | 初始化、对象关系、可用性、结果应用和指派状态 |
 | 求解约束 | `RoutePlanConstraintProviderTest` | 约束触发、分数、技能要求空数组和部分边界条件 |
 | 规划链 | `ArrivalTimeUpdatingVariableListenerTest`、`InitialArrivalTimeCustomPhaseCommandTest` | 链变化、到达时间和初始阶段处理 |
-| 求解生命周期 | `SolverServiceLifecycleTest`、`SolverServiceTimelineTest`、`SolverSearchProgressTrackerTest` | 调度、终止、指标采样和时间线 |
+| 求解生命周期 | `SolverServiceLifecycleTest`、`SolverServiceTimelineTest`、`SolverSearchProgressTrackerTest` | 调度、终止、指标采样、时间线与道路后处理后的矩阵绑定、排程和最终评分一致性 |
 | 场景处理 | `ScenarioLocationEnricherTest`、`ScenarioReferenceNormalizerTest` | 位置补全和反序列化对象引用归一化 |
 | 基础设施 | `StoragePathResolverTest`、`SingletonOperationCoordinatorTest`、`ExceptionMappersTest` | 路径解析、单实例互斥和错误映射 |
 
