@@ -49,3 +49,5 @@ Gateway 的 OpenAPI 路径和 HTML 资源读取目录是独立约定，不随元
 地图与 Gantt 紧凑布局、路线取景图标及底部说明行清理归入 `1.1.3-alpha-SNAPSHOT`，源码交付使用本地 annotated tag `v1.1.3-alpha-SNAPSHOT`。Gradle、OpenAPI 的 `info.version` 和 `gateway/image-version.yaml` 同步；API 字段、请求/结果 Schema、MCP 公共契约版本及资源声明保持不变。本次不推送提交或 tag，也不发布镜像、部署或导入 Gateway；既有 tag 不移动或覆盖。
 
 服务端 SVG 地图 View、高清与边界/路段交互归入新版本 `1.1.4-alpha-SNAPSHOT`，本地 annotated tag 为 `v1.1.4-alpha-SNAPSHOT`。Gradle、OpenAPI `info.version` 和镜像元数据版本同步，Map/Gantt 两份自包含 HTML 使用新 hash；配套 Gateway `1.1.1-SNAPSHOT` 的 v5/SVG 发布契约，旧 tag/URI 不覆写。本次仅源码提交和本地打 tag，不推送、不构建发布容器、不导入或部署；真实宿主验收仍独立执行。
+
+`1.1.6-alpha-SNAPSHOT` 增加两卡片共享的首次元数据缺失补取，工具名、输入、公共摘要、`_meta.gateway_ui` 和安全模型均保持原契约。Gateway 无需新增 Skill 配置或可执行壳；后续按正常版本流程原子导入两份新 HTML、生成新 hash 并重开卡片。宿主必须提供工具代理能力、可信当前工具身份及原输入，且直接调用返回完整元数据才能恢复展示；Quick 真机兼容仍须验证。该次源码升版按用户确认提交并创建新本地 annotated tag `v1.1.6-alpha-SNAPSHOT`，未推送、发布镜像、导入或部署，详见[组件说明](../../components/mcp-app.md#首次结果缺少元数据时的一次补取)。

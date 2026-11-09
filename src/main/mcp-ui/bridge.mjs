@@ -159,6 +159,8 @@ export function createViewerBridge(handlers = {}, options = {}) {
   let destroying;
   let hostContext = {};
   let jobId;
+  let input;
+  let bootstrap = { attempted: false, closed: false, pending: undefined };
   let epoch = 0;
   let sequence = 0;
   let notificationRevision = 0;
@@ -188,14 +190,95 @@ export function createViewerBridge(handlers = {}, options = {}) {
   };
   const invalidate = () => {
     epoch += 1;
+    const bootstrapping = flight?.kind === 'bootstrap';
     flight?.controller.abort();
     flight = undefined;
+    if (bootstrapping) invoke('onBootstrap', false);
   };
   const mergeContext = (context) => {
     if (!record(context) || destroyed) return;
     hostContext = { ...hostContext, ...context };
     invoke('onHostContext', { ...hostContext });
+    if (flight?.kind === 'bootstrap' && hostContext.toolInfo?.tool?.name !== flight.toolName) {
+      stopBootstrap();
+      bootstrap.closed = true;
+      notifyError(new ViewerBridgeError('MCP_UI_IDENTITY_MISMATCH'));
+    }
   };
+
+  // Only an absent field is recoverable. Null/arrays/invalid envelopes and
+  // business errors must keep the ordinary validation/error path.
+  const metadataAbsent = (result) => record(result) && !own(result, 'error')
+    && (result.isError === undefined || result.isError === false)
+    && (result._meta === undefined || (record(result._meta) && !own(result._meta, 'gateway_ui')));
+  const recoverySummary = (result) => {
+    const summary = result?.structuredContent;
+    return record(summary) && summary.contract_version === CONTRACT
+      && identity(summary.job_id) && VERSION_ID.test(summary.image_version_id)
+      && summary.view === viewKind && summary.ui_available === true && summary.result_summary === null
+      && (summary.engineer_id === null || (viewKind === 'map' && identity(summary.engineer_id)))
+      ? summary : null;
+  };
+  function stopBootstrap() {
+    bootstrap.pending = undefined;
+    if (flight?.kind !== 'bootstrap') return;
+    flight.controller.abort();
+    flight = undefined;
+    invoke('onBootstrap', false);
+  }
+  function deliverPending() {
+    const pending = bootstrap.pending;
+    bootstrap.pending = undefined;
+    bootstrap.closed = true;
+    if (pending) invoke('onResult', pending, { kind: 'notification', requestJobId: jobId, requestEpoch: epoch });
+  }
+  function tryBootstrap() {
+    if (destroyed || !connected || notificationsCancelled || bootstrap.closed || bootstrap.attempted || !bootstrap.pending) return;
+    const summary = recoverySummary(bootstrap.pending);
+    const toolName = hostContext.toolInfo?.tool?.name;
+    const toolMatch = typeof toolName === 'string' ? config.tool.exec(toolName) : null;
+    if (!input || !summary || !record(app.getHostCapabilities?.()?.serverTools)
+        || !toolMatch || toolMatch[1] !== summary.image_version_id
+        || summary.job_id !== input.job_id || summary.engineer_id !== (input.engineer_id ?? null)) {
+      deliverPending();
+      return;
+    }
+    // Mark before sending: duplicate missing-meta notifications never create a
+    // second request or invalidate this one. No inferred names or model text.
+    bootstrap.attempted = true;
+    bootstrap.pending = undefined;
+    const token = {
+      kind: 'bootstrap', epoch, jobId: input.job_id, toolName,
+      revision: notificationRevision, controller: new AbortController(),
+    };
+    const args = { ...input };
+    flight = token;
+    const current = () => !destroyed && token.epoch === epoch && flight === token
+      && token.revision === notificationRevision && jobId === token.jobId
+      && hostContext.toolInfo?.tool?.name === toolName;
+    invoke('onBootstrap', true);
+    void (async () => {
+      try {
+        const result = await app.callServerTool(
+          { name: toolName, arguments: args }, { signal: token.controller.signal, timeout: 10000 },
+        );
+        if (!current()) return;
+        const checked = readEnvelope(result, {
+          viewKind, expectedJobId: token.jobId, expectedVersionId: toolMatch[1], expectedToolName: toolName,
+        });
+        if (checked.engineer_id !== (args.engineer_id ?? null)) throw new ViewerBridgeError('MCP_UI_IDENTITY_MISMATCH');
+        invoke('onResult', result, { kind: 'bootstrap', requestJobId: token.jobId, requestEpoch: token.epoch });
+      } catch (error) {
+        if (current()) notifyError(error, 'MCP_UI_REFRESH_FAILED');
+      } finally {
+        if (flight === token) {
+          flight = undefined;
+          bootstrap.closed = true;
+          invoke('onBootstrap', false);
+        }
+      }
+    })();
+  }
 
   function attach(instance) {
     // App 2.0 validates the handshake shape but not the negotiated version.
@@ -221,22 +304,41 @@ export function createViewerBridge(handlers = {}, options = {}) {
             && (!identity(args.engineer_id) || [...args.engineer_id].length > 128))) {
         invalidate();
         notificationsCancelled = true;
+        bootstrap.closed = true;
+        bootstrap.pending = undefined;
         notifyError(new ViewerBridgeError('MCP_UI_INPUT_INVALID'));
         return;
       }
       invalidate();
       notificationsCancelled = false;
       jobId = args.job_id;
-      invoke('onInput', {
+      input = {
         job_id: args.job_id,
         ...(viewKind === 'map' && args.engineer_id !== undefined ? { engineer_id: args.engineer_id } : {}),
-      }, { requestEpoch: epoch });
+      };
+      bootstrap = { attempted: false, closed: false, pending: undefined };
+      invoke('onInput', { ...input }, { requestEpoch: epoch });
     };
     instance.ontoolresult = (result) => {
       if (destroyed || notificationsCancelled) return;
       const incomingJob = result?._meta?.gateway_ui?.job_id;
       // A late notification for the previous input must not clear the new card.
       if (jobId !== undefined && identity(incomingJob) && incomingJob !== jobId) return;
+      if (metadataAbsent(result)) {
+        const summary = recoverySummary(result);
+        // Some hosts also deliver late notifications without _meta. Their
+        // public task identity must not consume the new input's recovery.
+        if (input && summary && (summary.job_id !== input.job_id
+            || summary.engineer_id !== (input.engineer_id ?? null))) return;
+        if (bootstrap.attempted) return;
+        if (!bootstrap.closed && summary) {
+          bootstrap.pending = result;
+          tryBootstrap();
+          return;
+        }
+      }
+      stopBootstrap();
+      bootstrap.closed = true;
       notificationRevision += 1;
       invoke('onResult', result, { kind: 'notification', requestJobId: jobId, requestEpoch: epoch });
     };
@@ -244,6 +346,8 @@ export function createViewerBridge(handlers = {}, options = {}) {
       if (destroyed) return;
       invalidate();
       notificationsCancelled = true;
+      bootstrap.closed = true;
+      bootstrap.pending = undefined;
       notifyError(new ViewerBridgeError('MCP_UI_TOOL_CANCELLED'));
     };
     instance.onhostcontextchanged = (context) => mergeContext(context);
@@ -265,6 +369,8 @@ export function createViewerBridge(handlers = {}, options = {}) {
       if (destroyed || !connected) return;
       connected = false;
       invalidate();
+      bootstrap.closed = true;
+      bootstrap.pending = undefined;
       notifyError(new ViewerBridgeError('MCP_UI_CONNECTION_CLOSED'));
     };
   }
@@ -290,6 +396,8 @@ export function createViewerBridge(handlers = {}, options = {}) {
       }
       hostContext = {};
       jobId = undefined;
+      input = undefined;
+      bootstrap.pending = undefined;
       if (!teardownCalled) {
         teardownCalled = true;
         try { await handlers.onTeardown?.(); } catch { /* Dispose all remaining bridge state regardless. */ }
@@ -320,6 +428,7 @@ export function createViewerBridge(handlers = {}, options = {}) {
         if (destroyed) { await closeSdk(); return false; }
         connected = true;
         mergeContext(app.getHostContext?.() ?? {});
+        tryBootstrap();
         return true;
       } catch (error) {
         connected = false;

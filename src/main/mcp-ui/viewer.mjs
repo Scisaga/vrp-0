@@ -78,7 +78,7 @@ export function startViewer({ kind, buildModel, validateSemantics, buildReplay, 
     for(const [host,local]of Object.entries(colors)){const value=context.styles?.variables?.[host];if(typeof value==='string'&&CSS.supports('color',value))document.documentElement.style.setProperty(local,value);else document.documentElement.style.removeProperty(local);}
     render();if(mapMode){if(oldLocale!==state.locale)void syncMap({refresh:true,reload:true});else state.map?.resize();}
   }
-  const bridge=createViewerBridge({onInput:acceptInput,onResult:acceptResult,onHostContext:hostContext,onError:handleError,onTeardown:cleanup},{viewKind:kind});
+  const bridge=createViewerBridge({onInput:acceptInput,onResult:acceptResult,onHostContext:hostContext,onBootstrap:(active)=>{state.refreshing=active;render();},onError:handleError,onTeardown:cleanup},{viewKind:kind});
 
   function localize(){
     const labels={refresh:'refresh',fullscreen:state.mode==='fullscreen'?'exitFullscreen':'fullscreen','engineer-label':'engineer','sidebar-toggle':'objects','fit-map-tip':'fit','side-agents':'agents','side-tickets':'tickets','search-label':'search','map-retry':'retryMap','playback-label':'playback',follow:'follow','speed-label':'speed','gantt-title':'ganttTitle','open-gantt':'viewGantt','copy-intent':'copyIntent'};

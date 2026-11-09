@@ -54,7 +54,7 @@ java -jar build/quarkus-app/quarkus-run.jar
 
 稳定测试的图商配置独立于开发或部署配置：Gradle `test`、`appTest` 的子进程默认禁用真实地图及地址服务调用，避免场景导入因 `.env` 中 HERE/AMAP 配置而超时。该隔离仅作用于稳定测试，应用打包、实际运行和显式启用的外部测试仍使用各自的既有配置，详见[测试说明](testing.md#4-fixture-与文件隔离)。不通过跳过应用测试或扩大 HTTP 超时掩盖构建失败。
 
-当前工作区版本为 `1.1.5-alpha-SNAPSHOT`，同步维护 Gradle 应用版本、发布 OpenAPI 的 `info.version` 和 Gateway 镜像元数据版本。该版本在既有 SVG View 能力之上修复网页 Scenario UI 的图商 SDK 隔离，Gantt 语义及 API/MCP Schema 不变；源码交付使用新 annotated tag `v1.1.5-alpha-SNAPSHOT`。容器镜像发布、Gateway 导入及部署仍单独执行，既有 tag 不移动或覆盖。
+当前工作区版本为 `1.1.6-alpha-SNAPSHOT`，同步维护 Gradle 应用版本、发布 OpenAPI 的 `info.version` 和 Gateway 镜像元数据版本。该版本在既有能力之上增加 Map/Gantt 首次成功结果缺少 UI 元数据时的一次只读补取，API/MCP Schema 与数据位置不变。本次按用户确认提交源码并创建新本地 annotated tag `v1.1.6-alpha-SNAPSHOT`；未推送、发布容器镜像、导入 Gateway 或部署，既有 tag 不移动或覆盖。两份 HTML 已重新构建，后续导入产生新资源 hash 并重开卡片；Quick 真机仍单列验收。
 
 ```bash
 ./gradlew quarkusBuild -x test

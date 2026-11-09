@@ -84,10 +84,11 @@ Script 测试当前覆盖 `devctl.sh` 的运行环境隔离、`.env` 加载、�
 | --- | --- |
 | Python 契约 | 同一 59-case 集合的 Map/Gantt 两组 golden、诊断与语义；唯一 Schema；引用 POI 裁剪；Map 几何/回放与 Gantt 空几何/保序段位分离；200/1,000/4,097 大向量 |
 | `model.test.mjs` | 标量、空/未知集合、身份、归属、时间轴、Map 回放资格、阶段边界、原始几何与大结果 |
-| `bridge.test.mjs` | 两种固定工具名与输入 Schema、信封 view/版本/任务/工程师边界、显式刷新、单次 `ui/message`、取消、竞态、显示模式和 teardown |
+| `bridge.test.mjs` / `bootstrap.test.mjs` | 两种固定工具名与输入 Schema、信封 view/版本/任务/工程师边界、首次元数据缺失的一次只读补取及能力/身份/竞态边界、显式刷新、单次 `ui/message`、取消、显示模式和 teardown |
 | 地图 Node | 原安全模型/路线语义、SVG context、Mercator 投影、元素映射与白名单；旧 SDK/iframe 仅作历史源码回归 |
 | `build.test.mjs` / `verify:mcp-app` | SVG render_mode、Map/Gantt 两产物、自包含/确定性/4 MiB、无 renderer/图商网络闭包，SDK/jitless/Ajv 与安全拒绝 |
 | Playwright | SVG 图片/安全/点击/署名、筛选/缩放/平移/fit/全屏/回放、零浏览器网络/iframe/动态编译、多卡片及权限清理；Gantt 全量原行为回归 |
+| `bootstrap.spec.mjs` | 真实构建 Map/Gantt 的首包元数据缺失、工具代理补取后的渲染、完整首包零补取及失败不循环；模拟宿主不代表 Quick 真机 |
 
 模拟测试不读取真实任务或密钥，不证明真实图商授权、目标宿主 data 图片或四客户端验收。首版固定全任务快照，不包含视口出图接口。
 

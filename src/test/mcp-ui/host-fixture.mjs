@@ -34,7 +34,7 @@ window.host={cards,
   spoof(id,result){const frame=document.createElement('iframe');frame.name='rogue';frame.style.display='none';frame.srcdoc='<script>addEventListener("message",event=>{parent.frames[event.data.target].postMessage({jsonrpc:"2.0",method:"ui/notifications/tool-result",params:event.data.result},"*")})<\\/script>';frame.onload=()=>frame.contentWindow.postMessage({target:id,result},'*');document.body.append(frame)},
 };
 addEventListener('message',event=>{const card=[...cards.values()].find(item=>item.frame.contentWindow===event.source);if(!card)return;if(event.data?.mcpTestDynamicCode){card.dynamicCode=event.data.mcpTestDynamicCode;return}if(event.data?.jsonrpc!=='2.0')return;const data=event.data;card.wire.push(data);
-if(data.method==='ui/initialize'){send(card,{jsonrpc:'2.0',id:data.id,result:{protocolVersion:card.initProtocolOverride||data.params.protocolVersion,hostInfo:{name:'synthetic-host',version:'1'},hostCapabilities:{serverTools:{}},hostContext:card.context}})}
+if(data.method==='ui/initialize'){send(card,{jsonrpc:'2.0',id:data.id,result:{protocolVersion:card.initProtocolOverride||data.params.protocolVersion,hostInfo:{name:'synthetic-host',version:'1'},hostCapabilities:card.hostCapabilities,hostContext:card.context}})}
 else if(data.method==='ui/notifications/initialized'){card.initialized=true;if(card.initial!==false){send(card,{jsonrpc:'2.0',method:'ui/notifications/tool-input',params:{arguments:card.input}});if(card.result)send(card,{jsonrpc:'2.0',method:'ui/notifications/tool-result',params:card.result})}}
 else if(data.method==='tools/call'){card.pending.push(data)}
 else if(data.method==='ui/notifications/size-changed'&&card.autoSize&&card.context.displayMode!=='fullscreen'){const height=data.params.height;if(Number.isFinite(height)&&height>0)card.frame.style.height=Math.ceil(height)+'px'}
@@ -109,11 +109,11 @@ export async function openHost(page, { blockImages=false, probeCsp=false, monito
   await page.goto('http://mcp-host.test/');
   return {
     logs,errors,requests,unexpected,
-    async add({id='card',result=message(),width=1100,height=800,context={},input,initial=true,refuseFullscreen=false,initProtocolOverride,expectInitialized=true,inspectFrame=true,autoSize=false}={}) {
+    async add({id='card',result=message(),kind:requestedKind,width=1100,height=800,context={},hostCapabilities={serverTools:{}},input,initial=true,refuseFullscreen=false,initProtocolOverride,expectInitialized=true,inspectFrame=true,autoSize=false}={}) {
       const defaults={theme:'light',locale:'zh-CN',displayMode:'inline',availableDisplayModes:['inline','fullscreen'],toolInfo:{tool:{name:TOOL,inputSchema:{type:'object'}}}};
-      const kind=result?._meta?.gateway_ui?.view==='gantt'?'gantt':'map';
+      const kind=requestedKind??(result?._meta?.gateway_ui?.view==='gantt'?'gantt':'map');
       defaults.toolInfo.tool.name=result?._meta?.gateway_ui?.display_tool_name||TOOL;
-      await page.evaluate(options=>window.host.add(options),{id,result,kind,width,height,autoSize,context:{...defaults,...context},input:input??{job_id:result?._meta?.gateway_ui?.job_id||JOB},initial,refuseFullscreen,initProtocolOverride});
+      await page.evaluate(options=>window.host.add(options),{id,result,kind,width,height,autoSize,context:{...defaults,...context},hostCapabilities,input:input??{job_id:result?._meta?.gateway_ui?.job_id||JOB},initial,refuseFullscreen,initProtocolOverride});
       if(expectInitialized)await expect.poll(()=>page.evaluate(id=>window.host.cards.get(id)?.initialized,id)).toBe(true);
       else await expect.poll(()=>page.evaluate(id=>window.host.cards.get(id)?.wire.some(item=>item.method==='ui/initialize'),id)).toBe(true);
       const frame=page.frame({name:id});
