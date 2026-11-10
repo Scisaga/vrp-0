@@ -195,11 +195,13 @@ export function createViewerBridge(handlers = {}, options = {}) {
     flight = undefined;
     if (bootstrapping) invoke('onBootstrap', false);
   };
+  const hostToolMatches = (toolName, required = false) => hostContext.toolInfo === undefined
+    ? !required : record(hostContext.toolInfo?.tool) && hostContext.toolInfo.tool.name === toolName;
   const mergeContext = (context) => {
     if (!record(context) || destroyed) return;
     hostContext = { ...hostContext, ...context };
     invoke('onHostContext', { ...hostContext });
-    if (flight?.kind === 'bootstrap' && hostContext.toolInfo?.tool?.name !== flight.toolName) {
+    if (flight?.kind === 'bootstrap' && !hostToolMatches(flight.toolName, flight.hostRequired)) {
       stopBootstrap();
       bootstrap.closed = true;
       notifyError(new ViewerBridgeError('MCP_UI_IDENTITY_MISMATCH'));
@@ -219,6 +221,16 @@ export function createViewerBridge(handlers = {}, options = {}) {
       && (summary.engineer_id === null || (viewKind === 'map' && identity(summary.engineer_id)))
       ? summary : null;
   };
+  const recoveryTool = (summary) => {
+    // Gateway emits this explicit route only after authorizing the tool call.
+    // Legacy summaries can still use host identity. Never derive a tool name
+    // from a version, model text, URL, or a host-specific namespace prefix.
+    const hasSummaryTool = own(summary, 'display_tool_name');
+    const toolName = hasSummaryTool ? summary.display_tool_name : hostContext.toolInfo?.tool?.name;
+    const match = typeof toolName === 'string' ? config.tool.exec(toolName) : null;
+    if (!match || match[1] !== summary.image_version_id || !hostToolMatches(toolName, !hasSummaryTool)) return null;
+    return { toolName, versionId: match[1], hostRequired: hostContext.toolInfo !== undefined };
+  };
   function stopBootstrap() {
     bootstrap.pending = undefined;
     if (flight?.kind !== 'bootstrap') return;
@@ -235,27 +247,27 @@ export function createViewerBridge(handlers = {}, options = {}) {
   function tryBootstrap() {
     if (destroyed || !connected || notificationsCancelled || bootstrap.closed || bootstrap.attempted || !bootstrap.pending) return;
     const summary = recoverySummary(bootstrap.pending);
-    const toolName = hostContext.toolInfo?.tool?.name;
-    const toolMatch = typeof toolName === 'string' ? config.tool.exec(toolName) : null;
+    const tool = summary && recoveryTool(summary);
     if (!input || !summary || !record(app.getHostCapabilities?.()?.serverTools)
-        || !toolMatch || toolMatch[1] !== summary.image_version_id
+        || !tool
         || summary.job_id !== input.job_id || summary.engineer_id !== (input.engineer_id ?? null)) {
       deliverPending();
       return;
     }
+    const { toolName, versionId, hostRequired } = tool;
     // Mark before sending: duplicate missing-meta notifications never create a
     // second request or invalidate this one. No inferred names or model text.
     bootstrap.attempted = true;
     bootstrap.pending = undefined;
     const token = {
-      kind: 'bootstrap', epoch, jobId: input.job_id, toolName,
+      kind: 'bootstrap', epoch, jobId: input.job_id, toolName, hostRequired,
       revision: notificationRevision, controller: new AbortController(),
     };
     const args = { ...input };
     flight = token;
     const current = () => !destroyed && token.epoch === epoch && flight === token
       && token.revision === notificationRevision && jobId === token.jobId
-      && hostContext.toolInfo?.tool?.name === toolName;
+      && hostToolMatches(toolName, hostRequired);
     invoke('onBootstrap', true);
     void (async () => {
       try {
@@ -264,7 +276,7 @@ export function createViewerBridge(handlers = {}, options = {}) {
         );
         if (!current()) return;
         const checked = readEnvelope(result, {
-          viewKind, expectedJobId: token.jobId, expectedVersionId: toolMatch[1], expectedToolName: toolName,
+          viewKind, expectedJobId: token.jobId, expectedVersionId: versionId, expectedToolName: toolName,
         });
         if (checked.engineer_id !== (args.engineer_id ?? null)) throw new ViewerBridgeError('MCP_UI_IDENTITY_MISMATCH');
         invoke('onResult', result, { kind: 'bootstrap', requestJobId: token.jobId, requestEpoch: token.epoch });

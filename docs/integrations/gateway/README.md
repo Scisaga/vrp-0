@@ -51,3 +51,5 @@ Gateway 的 OpenAPI 路径和 HTML 资源读取目录是独立约定，不随元
 服务端 SVG 地图 View、高清与边界/路段交互归入新版本 `1.1.4-alpha-SNAPSHOT`，本地 annotated tag 为 `v1.1.4-alpha-SNAPSHOT`。Gradle、OpenAPI `info.version` 和镜像元数据版本同步，Map/Gantt 两份自包含 HTML 使用新 hash；配套 Gateway `1.1.1-SNAPSHOT` 的 v5/SVG 发布契约，旧 tag/URI 不覆写。本次仅源码提交和本地打 tag，不推送、不构建发布容器、不导入或部署；真实宿主验收仍独立执行。
 
 `1.1.6-alpha-SNAPSHOT` 增加两卡片共享的首次元数据缺失补取，工具名、输入、公共摘要、`_meta.gateway_ui` 和安全模型均保持原契约。Gateway 无需新增 Skill 配置或可执行壳；后续按正常版本流程原子导入两份新 HTML、生成新 hash 并重开卡片。宿主必须提供工具代理能力、可信当前工具身份及原输入，且直接调用返回完整元数据才能恢复展示；Quick 真机兼容仍须验证。该次源码升版按用户确认提交并创建新本地 annotated tag `v1.1.6-alpha-SNAPSHOT`，未推送、发布镜像、导入或部署，详见[组件说明](../../components/mcp-app.md#首次结果缺少元数据时的一次补取)。
+
+`1.1.7-alpha-SNAPSHOT` 修正双层宿主的宽度反馈，并兼容 Gateway 成功摘要中的显式 `display_tool_name`。当宿主未提供工具身份时，卡片可使用经原始任务、版本、View 和工程师核对的该字段补取一次；宿主身份若存在必须一致，完整结果仍执行全部校验。Gateway 需同步交付该摘要字段，两份新 HTML 按正常流程成套导入并使用新 hash。既有摘要若同时缺少工具名、宿主身份及元数据，仍需重新调用原任务展示工具，不从版本号或模型文本猜名。详见同一[补取契约](../../components/mcp-app.md#首次结果缺少元数据时的一次补取)。

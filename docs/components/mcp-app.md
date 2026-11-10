@@ -45,11 +45,11 @@ SVG 挂载前解析并逐元素、属性白名单校验；拒绝脚本、事件�
 
 ### 首次结果缺少元数据时的一次补取
 
-从 `1.1.6-alpha-SNAPSHOT` 起，Map/Gantt 共享桥在首次成功工具结果仅缺少 `_meta.gateway_ui` 时，允许通过官方 `App.callServerTool` 补取一次。必须已完成宿主握手、声明 `serverTools` 能力、收到合法的原始 `tool-input`，并从宿主 `toolInfo.tool.name` 确认当前固定展示工具；不猜测工具名或移除宿主前缀。`structuredContent` 中的公共摘要只用于核对契约、任务、版本、view、工程师、`ui_available=true` 和 `result_summary=null`，不能用作绘图数据或绕过信封校验。
+从 `1.1.6-alpha-SNAPSHOT` 起，Map/Gantt 共享桥在首次成功工具结果仅缺少 `_meta.gateway_ui` 时，允许通过官方 `App.callServerTool` 补取一次。必须已完成宿主握手、声明 `serverTools` 能力、收到合法的原始 `tool-input`，并确认当前固定展示工具。从 `1.1.7-alpha-SNAPSHOT` 起，Gateway 成功结果的 `structuredContent.display_tool_name` 也可提供已校验的完整原始工具名，页面严格核对其 Map/Gantt 类型与摘要版本；宿主提供 `toolInfo` 时还必须与该名称一致。旧摘要没有该字段时仍可使用合法的宿主工具名；两者均缺失或任一已提供的身份非法、冲突时不补取，不猜测工具名或移除宿主前缀。公共摘要同时核对契约、任务、版本、view、工程师、`ui_available=true` 和 `result_summary=null`，不能用作绘图数据、授权凭证或绕过信封校验。
 
 补取使用同一工具和原始入参，超时 10 秒，返回值仍从 `_meta.gateway_ui` 读取并执行既有 Schema、身份和业务语义校验。每个卡片、每次合法输入最多一次；重复的缺失元数据通知不能重入或形成循环。新输入、取消、销毁或后续完整/错误通知使旧请求失效，晚到结果不能覆盖当前卡片。补取期间显示既有加载状态；能力/身份不足、补取失败或仍缺少元数据时显示既有安全降级信息。
 
-完整初始结果不增加工具请求；业务/认证/权限错误、存在但非法的元数据及身份不匹配不得触发补取。逻辑随引擎两份 HTML 交付，不通过 Skill 配置，不依赖浏览器 REST、轮询、额外聊天消息或新求解任务。Gateway 继续负责工具授权及只读执行，公共 wire 与数据位置不变。该路径是否能绕过 Quick 的元数据丢失须真实客户端单独验证，模拟宿主通过不表示 Quick 已修复。
+完整初始结果不增加工具请求；业务/认证/权限错误、存在但非法的元数据及身份不匹配不得触发补取。逻辑随引擎两份 HTML 交付，不通过 Skill 配置，不依赖浏览器 REST、轮询、额外聊天消息或新求解任务。Gateway 继续负责工具授权及只读执行，绘图数据位置不变。已有历史卡片若保存的摘要没有工具名、宿主也未提供身份，仍安全降级，需重新调用当前任务展示工具；新页面不能凭空恢复该身份。该路径是否能绕过 Quick 的元数据丢失须真实客户端单独验证，模拟宿主通过不表示 Quick 已修复。
 
 ## 4. Map 交互与生命周期
 
@@ -77,6 +77,8 @@ Gantt 阶段图例和工程师筛选共用同一行，图例左对齐、筛选�
 
 Map/Gantt 顶栏均不显示 VRP-0 Logo 或系统名称；Gantt 仍显示当前视图标题，Map 页面操作并入工具栏。两个 App 都跟随宿主中英文、浅深主题、显示模式和尺寸，保持键盘焦点、读屏名称、非纯色状态表达与 `prefers-reduced-motion` 支持。视觉事实源仍是 [`docs/ui/theme.md`](../ui/theme.md)。
 
+两卡片的可用宽度由宿主容器决定。共享 Viewer 的 `ui/notifications/size-changed` 仅上报内容高度，不将 iframe 的 viewport 宽度作为期望宽度回传；否则宿主按像素应用该值后，代理层滚动条占用的宽度可能在连续测量中被重复扣除。初始化、内容变化、窗口缩放及重新挂载均遵循此规则，高度仍按现有内容布局更新。
+
 
 Map 出图失败不阻断独立 Gantt，Gantt context、业务页面和安全投影不增加 SVG 字段；本轮仅完整回归共享桥、样式及发布清单。
 
@@ -85,6 +87,14 @@ Map 出图失败不阻断独立 Gantt，Gantt context、业务页面和安全投
 默认测试使用合成底图和安全投影，不请求真实图商或读取 `.env`。覆盖快照身份/几何映射、SVG 白名单/XSS、内嵌底图、原路线与回放、固定范围缩放/平移、零浏览器网络/iframe/动态编译、双卡片生命周期、超大集合及完整 Gantt 回归。完整 MCP 工具响应仍受 Gateway 默认 8 MiB 上限约束，不截断路线。
 
 发布前运行 Node、Playwright、17 项 Python 契约与 `./gradlew allStableTest quarkusBuild`，检查 JAR 中两份 HTML 与工作区字节一致、不包含 renderer 或 `static/node_modules`。新 manifest、两份 HTML 与 Gateway SVG 契约须成套导入；内容变化产生新 URI。真实图商配额/署名/缓存授权、目标宿主 data 图片支持及四客户端未验收时明确标注。
+
+### 2026-11-10 1.1.7-alpha-SNAPSHOT 兼容修复验证
+
+最终 Map/Gantt HTML 构建与确定性校验、220 项 Node、119 项串行 Playwright、17 项 Python 展示契约及 4 项元数据目录契约全部通过。新增回归覆盖两层 iframe 宿主按像素应用尺寸通知时的宽度收缩、窗口缩放与重新挂载，以及缺少可选宿主工具身份时使用 Gateway 显式摘要工具名的一次补取；完整首包零补取、身份冲突和错误安全降级保持。Gateway 对应四个专项测试套件共 69 项通过。
+
+`allStableTest quarkusBuild` 通过（142 项单元、81 项应用测试）；最终 `build/quarkus-app/app/vrp-0-1.1.7-alpha-SNAPSHOT.jar` 内两份 MCP HTML 与工作区逐字节一致，且不含 `static/node_modules`。此处记录提交前的验证状态，当时尚未发布 tag、镜像、部署或导入 Gateway；后续交付与真机验收分别在 [宽度问题 #134](https://git.sefo.cc:233/x-force/gateway/-/issues/134) 和 [元数据补取问题 #135](https://git.sefo.cc:233/x-force/gateway/-/issues/135) 跟踪。
+
+真实 Quick 1.2.4308 中使用的仍是已发布的 1.1.6 卡片；临时将宿主 iframe 的 `min-width` 设为 `100%` 后，右侧 Session tabs 的 HERE 地图及路线、Gantt 工程师排程均实际显示。地图首次出现一次 `MAP_SNAPSHOT_UPSTREAM_ERROR`，一次只读重试后恢复。此记录只验证旧版侧边两卡片在临时宿主样式下的显示恢复，不是 1.1.7 完整验收。测试会话中新生成的地图/Gantt 仍出现资源读取失败，前序还观察到 sandbox ready 超时；这两种错误发生在卡片 HTML 执行前，根因尚未确认，不计为宽度或补取修复通过。新版发布导入、会话内与侧边卡片、两卡片重新打开均须单独验收。
 
 ## 7. 历史验证记录（以下 renderer 描述仅对应旧版）
 

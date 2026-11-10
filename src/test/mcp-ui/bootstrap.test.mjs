@@ -16,6 +16,12 @@ const withoutMetadata = (result) => {
   delete missing._meta;
   return missing;
 };
+const withToolRoute = (result) => {
+  const explicit = structuredClone(result);
+  explicit.structuredContent.display_tool_name = explicit._meta.gateway_ui.display_tool_name;
+  explicit.content = [{ type: 'text', text: JSON.stringify(explicit.structuredContent) }];
+  return explicit;
+};
 
 async function setup({ view = 'map', input, hostContext, capabilities = { serverTools: {} }, handshake } = {}) {
   const initial = fixture(view);
@@ -74,6 +80,41 @@ function changeJob(result, id) {
 }
 
 for (const view of ['map', 'gantt']) {
+  test(`${view} bootstraps the explicit Gateway tool route without optional host toolInfo`, async () => {
+    const initial = withToolRoute(fixture(view));
+    const input = { job_id: initial.structuredContent.job_id };
+    if (view === 'map') {
+      const engineer = initial._meta.gateway_ui.engine_view.solver_job.plan.agents[0].id;
+      initial.structuredContent.engineer_id = engineer;
+      initial._meta.gateway_ui.engineer_id = engineer;
+      input.engineer_id = engineer;
+    }
+    const h = await setup({ view, input, hostContext: {} });
+    try {
+      h.input(); h.result(withoutMetadata(initial)); await settled();
+      assert.equal(h.app.calls.length, 1);
+      assert.deepEqual(h.app.calls[0].params, { name: initial.structuredContent.display_tool_name, arguments: input });
+      assert.equal(h.app.calls[0].options.timeout, 10000);
+      h.app.onhostcontextchanged({ theme: 'dark' });
+      assert.equal(h.app.calls[0].options.signal.aborted, false);
+      h.app.calls[0].resolve(initial); await settled();
+      assert.equal(h.results.length, 1);
+      assert.equal(h.results[0][1].kind, 'bootstrap');
+      h.result(withoutMetadata(initial)); await settled();
+      assert.equal(h.app.calls.length, 1);
+      assert.deepEqual(h.loading, [true, false]);
+    } finally { await h.bridge.destroy(); }
+  });
+
+  test(`${view} complete metadata with an explicit route does not need host toolInfo or another call`, async () => {
+    const h = await setup({ view, hostContext: {} });
+    try {
+      h.input(); h.result(withToolRoute(h.initial)); await settled();
+      assert.equal(h.app.calls.length, 0);
+      assert.equal(h.results[0][1].kind, 'notification');
+    } finally { await h.bridge.destroy(); }
+  });
+
   test(`${view} complete initial metadata needs no bootstrap and closes that input's recovery`, async () => {
     const h = await setup({ view });
     try {
@@ -189,6 +230,81 @@ test('bootstrap requires serverTools capability and an exact trusted view/versio
       assert.deepEqual(h.loading, []);
     } finally { await h.bridge.destroy(); }
   }
+});
+
+test('an explicit Gateway route never overrides absent capability or invalid, conflicting host identity', async () => {
+  const initial = withToolRoute(fixture());
+  const name = initial.structuredContent.display_tool_name;
+  const cases = [
+    { capabilities: {}, hostContext: {} },
+    { hostContext: { toolInfo: null } },
+    { hostContext: { toolInfo: {} } },
+    { hostContext: { toolInfo: { tool: {} } } },
+    ...['gateway.solver_jobs.create', fixture('gantt')._meta.gateway_ui.display_tool_name,
+      `gw_map_${'3'.repeat(32)}`, `planly_mcp__${name}`]
+      .map((toolName) => ({ hostContext: { toolInfo: { tool: { name: toolName } } } })),
+  ];
+  for (const options of cases) {
+    const h = await setup(options);
+    try {
+      h.input(); h.result(withoutMetadata(initial)); await settled();
+      assert.equal(h.app.calls.length, 0, JSON.stringify(options));
+      assert.deepEqual(h.loading, []);
+    } finally { await h.bridge.destroy(); }
+  }
+  const matching = await setup();
+  try {
+    matching.input(); matching.result(withoutMetadata(initial)); await settled();
+    assert.equal(matching.app.calls.length, 1, 'Matching host and summary routes remain usable');
+  } finally { await matching.bridge.destroy(); }
+});
+
+test('an explicit summary tool name must be a raw current-view tool for exactly the summary version', async () => {
+  const initial = withToolRoute(fixture());
+  const name = initial.structuredContent.display_tool_name;
+  for (const toolName of [undefined, null, '', 'gateway.solver_jobs.create',
+    fixture('gantt')._meta.gateway_ui.display_tool_name, `gw_map_${'3'.repeat(32)}`,
+    name.slice(0, -1), `${name}a`, name.toUpperCase(), `planly_mcp__${name}`, `${name}\n`]) {
+    // Even a matching host cannot turn an explicitly invalid route into a
+    // legacy summary by ignoring the new field.
+    for (const hostContext of [{}, { toolInfo: { tool: { name } } }]) {
+      const invalid = withoutMetadata(initial);
+      invalid.structuredContent.display_tool_name = toolName;
+      const h = await setup({ hostContext });
+      try {
+        h.input(); h.result(invalid); await settled();
+        assert.equal(h.app.calls.length, 0, String(toolName));
+      } finally { await h.bridge.destroy(); }
+    }
+  }
+});
+
+test('an explicit route does not replace the original validated job and engineer input', async () => {
+  for (const change of [
+    (summary) => { summary.job_id = 'other-job'; },
+    (summary) => { summary.engineer_id = 'other-engineer'; },
+    (summary) => { summary.view = 'gantt'; },
+    (summary) => { summary.ui_available = false; },
+    (summary) => { summary.result_summary = {}; },
+  ]) {
+    const initial = withToolRoute(fixture());
+    const h = await setup({ hostContext: {} });
+    try {
+      change(initial.structuredContent);
+      h.input(); h.result(withoutMetadata(initial)); await settled();
+      assert.equal(h.app.calls.length, 0);
+    } finally { await h.bridge.destroy(); }
+  }
+});
+
+test('a legacy summary without optional host identity stays closed instead of deriving a name', async () => {
+  const h = await setup({ hostContext: {} });
+  try {
+    h.input(); h.result(); await settled();
+    assert.equal(h.app.calls.length, 0);
+    assert.equal(h.results.length, 1);
+    assert.deepEqual(h.loading, []);
+  } finally { await h.bridge.destroy(); }
 });
 
 test('business failures and existing invalid metadata never start or enable a later bootstrap', async () => {
@@ -327,6 +443,52 @@ test('a changed host tool binding cancels bootstrap and rejects its late reply',
     assert.deepEqual(h.results, []);
     h.result(); await settled();
     assert.equal(h.app.calls.length, 1);
+  } finally { await h.bridge.destroy(); }
+});
+
+test('an explicit summary recovery is canceled if the host subsequently declares another tool', async () => {
+  const h = await setup({ hostContext: {} });
+  try {
+    h.input(); h.result(withoutMetadata(withToolRoute(h.initial))); await settled();
+    assert.equal(h.app.calls.length, 1);
+    h.app.onhostcontextchanged({ toolInfo: { tool: { name: fixture('gantt')._meta.gateway_ui.display_tool_name } } });
+    assert.equal(h.app.calls[0].options.signal.aborted, true);
+    h.app.calls[0].resolve(h.initial); await settled();
+    assert.deepEqual(h.results, []);
+    assert.deepEqual(h.errors, [{ code: 'MCP_UI_IDENTITY_MISMATCH', clearData: true }]);
+    assert.deepEqual(h.loading, [true, false]);
+  } finally { await h.bridge.destroy(); }
+});
+
+test('a missing original host binding cancels a recovery that depended on it', async () => {
+  const h = await setup();
+  try {
+    h.input(); h.result(); await settled();
+    h.app.onhostcontextchanged({ toolInfo: undefined });
+    assert.equal(h.app.calls[0].options.signal.aborted, true);
+    h.app.calls[0].resolve(h.initial); await settled();
+    assert.deepEqual(h.results, []);
+    assert.equal(h.errors.at(-1).code, 'MCP_UI_IDENTITY_MISMATCH');
+  } finally { await h.bridge.destroy(); }
+});
+
+test('new input invalidates a summary-routed recovery and a late reply cannot replace the next job', async () => {
+  const h = await setup({ hostContext: {} });
+  const initial = withToolRoute(h.initial);
+  const next = changeJob(initial, 'next-summary-routed-job');
+  try {
+    h.input(); h.result(withoutMetadata(initial)); await settled();
+    assert.equal(h.app.calls.length, 1);
+    h.input({ job_id: next.structuredContent.job_id });
+    assert.equal(h.app.calls[0].options.signal.aborted, true);
+    h.app.calls[0].resolve(initial); await settled();
+    assert.deepEqual(h.results, []);
+    h.result(withoutMetadata(next)); await settled();
+    assert.equal(h.app.calls.length, 2);
+    assert.deepEqual(h.app.calls[1].params.arguments, { job_id: next.structuredContent.job_id });
+    h.app.calls[1].resolve(next); await settled();
+    assert.equal(h.results.length, 1);
+    assert.equal(h.results[0][0]._meta.gateway_ui.job_id, next.structuredContent.job_id);
   } finally { await h.bridge.destroy(); }
 });
 
