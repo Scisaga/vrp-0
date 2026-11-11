@@ -96,9 +96,9 @@ async function openSizingHost(page, kind) {
       // Prove a real successful result reached this specific App instance.
       await expect(frame.locator('#app')).toHaveAttribute('aria-busy', 'false');
       await expect(frame.locator('#notice')).toBeHidden();
-      await expect.poll(() => frame.locator('#engineer option').count()).toBeGreaterThan(1);
+      await expect.poll(() => frame.locator(kind === 'gantt' ? '#engineer option' : '#engineer-options [role=option]').count()).toBeGreaterThan(1);
       if (kind === 'gantt') await expect.poll(() => frame.locator('.gantt-bar').count()).toBeGreaterThan(0);
-      else await expect.poll(() => frame.locator('#map-legend button').count()).toBeGreaterThan(0);
+      else { await expect(frame.locator('#engineer')).toContainText('1'); await expect(frame.locator('#map-legend')).toHaveCount(0); }
       return frame;
     },
     stats:() => page.evaluate(() => window.host.stats()),

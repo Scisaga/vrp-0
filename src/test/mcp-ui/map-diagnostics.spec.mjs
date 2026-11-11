@@ -1,6 +1,6 @@
 import {contractCases} from './model-fixtures.mjs';
 import {withSnapshot} from './snapshot-fixture.mjs';
-import {test,expect,openHost,mapReady,message,fullscreen,AGENT} from './host-fixture.mjs';
+import {test,expect,openHost,mapReady,message,fullscreen,AGENT,chooseEngineer} from './host-fixture.mjs';
 for(const code of ['MAP_SNAPSHOT_NOT_CONFIGURED','MAP_SNAPSHOT_NO_GEOMETRY','MAP_SNAPSHOT_INVALID_GEOMETRY','MAP_SNAPSHOT_UPSTREAM_ERROR','MAP_SNAPSHOT_TOO_LARGE'])test(`${code} preserves safe model and retries through the existing MCP tool`,async({page})=>{
  const result=message();Object.assign(result._meta.gateway_ui.map_context,{enabled:false,snapshot:null,error_code:code});
  const host=await openHost(page),frame=await host.add({result});await expect(frame.locator('#map-message')).toContainText(code);await expect(frame.locator('.snapshot-svg')).toHaveCount(0);
@@ -22,9 +22,9 @@ test('multiple cards isolate SVG ids, clicks, playback projection and teardown',
  const host=await openHost(page),a=await host.add({id:'a'}),b=await host.add({id:'b'});await mapReady(a);await mapReady(b);
  const aId=await a.locator('.snapshot-point').first().getAttribute('id'),bId=await b.locator('.snapshot-point').first().getAttribute('id');expect(aId).not.toBe(bId);
  await a.locator('.snapshot-point[data-kind="ticket"]').first().click();await fullscreen(a);await expect(a.locator('#side-detail')).toContainText('ticket-b');
- await a.locator('#engineer').selectOption(AGENT);await a.locator('#cursor').fill('500');
+ await chooseEngineer(a,AGENT);await a.locator('#cursor').fill('500');
  const moving=a.locator('.snapshot-playback');await expect(moving).toHaveAttribute('display','inline');await expect(moving).not.toHaveAttribute('visibility','hidden');
- expect(await moving.getAttribute('transform')).not.toBe('translate(0 0)');await expect(b.locator('#engineer')).toHaveValue('');
+ expect(await moving.getAttribute('transform')).not.toBe('translate(0 0)');await expect(b.locator('#engineer')).toHaveJSProperty('value','');
  await page.evaluate(()=>window.host.request('a','ui/resource-teardown',{}));await expect(a.locator('.snapshot-svg')).toHaveCount(0);await expect(b.locator('.snapshot-svg')).toBeVisible();await host.assertHealthy();
 });
 
@@ -41,7 +41,7 @@ test('virtual engineer tickets remain neutral while real ownership mismatches ar
 for(const name of ['unknown-owner-is-not-unassigned','invalid-assignment-list-is-not-compacted'])test(`partial Map golden ${name} preserves its visual group without changing business ownership`,async({page})=>{
  const golden=contractCases().find(item=>item.name===name),result=message();expect(golden).toBeTruthy();result._meta.gateway_ui.engine_view=golden.view;
  const host=await openHost(page),frame=await host.add({result:withSnapshot(result)});await mapReady(frame);
- await expect(frame.locator('#map-legend')).toBeVisible();expect(await host.pending('card')).toHaveLength(0);await host.assertHealthy();
+ await expect(frame.locator('#engineer')).toBeEnabled();await expect(frame.locator('#map-legend')).toHaveCount(0);expect(await host.pending('card')).toHaveLength(0);await host.assertHealthy();
 });
 
 test('host blocking embedded images fails visibly without showing a basemap-free route fallback',async({page})=>{
@@ -53,12 +53,12 @@ test('201 engineers and 1001 tickets remain renderable rather than treating fixt
  for(let index=1;index<=200;index++)plan.agents.push({...structuredClone(agent),id:`extra-agent-${index}`,tickets:[],routes:[null]});
  for(let index=2;index<=1000;index++)plan.tickets.push({...structuredClone(ticket),id:`extra-ticket-${index}`,agent:null});
  const host=await openHost(page),frame=await host.add({result:withSnapshot(result)});await mapReady(frame);
- await expect(frame.locator('.snapshot-point[data-kind="ticket"]')).toHaveCount(1001);await expect(frame.locator('#map-legend button')).toHaveCount(201);await host.assertHealthy();
+ await expect(frame.locator('.snapshot-point[data-kind="ticket"]')).toHaveCount(1001);await expect(frame.locator('#engineer-options [role=option]')).toHaveCount(202);await host.assertHealthy();
 });
 
 test('special-character business IDs remain safe opaque mappings and clickable DOM values',async({page})=>{
  const result=message(),plan=result._meta.gateway_ui.engine_view.solver_job.plan,old=plan.agents[0].id,special='engineer\n\u007f\u0001';
  plan.agents[0].id=special;for(const ticket of plan.tickets)if(ticket.agent===old)ticket.agent=special;
  const host=await openHost(page),frame=await host.add({result:withSnapshot(result)});await mapReady(frame);
- await frame.locator('#engineer').selectOption(special);await expect(frame.locator('#engineer')).toHaveValue(special);await expect(frame.locator('.snapshot-point[data-kind="ticket"]')).toHaveCount(2);await host.assertHealthy();
+ await chooseEngineer(frame,special);await expect(frame.locator('#engineer')).toHaveJSProperty('value',special);await expect(frame.locator('.snapshot-point[data-kind="ticket"]')).toHaveCount(2);await host.assertHealthy();
 });

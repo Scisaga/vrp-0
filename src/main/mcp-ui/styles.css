@@ -35,14 +35,34 @@ svg{flex:none}
 .task-heading .metadata>*{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .header-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;margin-left:auto}
 .toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:8px 16px;background:var(--surface-alt);border-block:1px solid var(--line);flex:none}
+.map-app .toolbar{flex-wrap:nowrap}
+.map-app .toolbar>button,.map-app .header-actions{flex:none;white-space:nowrap}
+.map-app .header-actions{flex-wrap:nowrap}
 .view-tabs,.side-tabs,.gantt-tools{display:flex;gap:5px}
 .engineer-filter{display:flex;align-items:center;gap:7px;margin-left:auto;min-width:0;max-width:55%}
 .engineer-filter select{max-width:250px}
-.map-app .engineer-filter{flex:1;max-width:none;margin-left:0}
+.map-app .engineer-filter{flex:1;max-width:none;margin-left:0;order:0}
+.map-app .engineer-filter>span{flex:none;white-space:nowrap}
+.engineer-picker{display:flex;align-items:center;justify-content:space-between;gap:7px;flex:1;min-width:0;max-width:310px;min-height:34px;padding:6px 8px;text-align:left}
+.engineer-value{display:flex;align-items:center;gap:7px;min-width:0}
+.engineer-value>span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.engineer-chevron{width:13px;height:13px;flex:none}
+.engineer-options{position:fixed;z-index:20;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;padding:6px;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;border:1px solid var(--line);border-radius:5px;background:var(--surface);color:var(--ink);box-shadow:0 8px 18px -8px #0f172a40}
+.engineer-options[data-columns="1"]{grid-template-columns:minmax(0,1fr)}
+.engineer-option{display:flex;align-items:center;gap:8px;min-width:0;min-height:42px;padding:6px 8px;border-radius:4px;cursor:pointer;font-size:12px}
+.engineer-option-all{grid-column:1/-1;min-height:32px}
+.engineer-option-copy{flex:1;min-width:0;overflow-wrap:anywhere;line-height:18px}
+.engineer-option-copy>span,.engineer-option-copy>small{display:block}
+.engineer-option-copy>small{color:var(--muted);font-size:11px;line-height:16px}
+.engineer-option:hover{background:var(--surface-alt)}
+.engineer-option[aria-selected="true"]{background:var(--accent-soft);color:var(--accent)}
+.engineer-option[data-active="true"]{outline:2px solid var(--accent);outline-offset:-2px}
+.engineer-check{width:12px;height:12px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;visibility:hidden}
+.engineer-option[aria-selected="true"] .engineer-check{visibility:visible}
 .map-fit-control{position:relative;display:inline-flex;flex:none;align-self:center}
 .map-fit-button{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;min-height:36px;padding:0}
 .map-fit-button svg{display:block;width:20px;height:20px;pointer-events:none}
-.map-fit-tooltip{position:absolute;left:0;top:calc(100% + 8px);z-index:10;padding:6px 8px;border:1px solid var(--line);border-radius:5px;background:var(--ink);color:var(--surface);font-size:12px;white-space:nowrap;visibility:hidden}
+.map-fit-tooltip{position:absolute;right:0;top:calc(100% + 8px);z-index:10;padding:6px 8px;border:1px solid var(--line);border-radius:5px;background:var(--ink);color:var(--surface);font-size:12px;white-space:nowrap;visibility:hidden}
 .map-fit-tooltip::before{content:"";position:absolute;left:0;right:0;top:-8px;height:8px}
 .map-fit-control:not([data-tooltip-dismissed="true"]):hover .map-fit-tooltip,
 .map-fit-control:not([data-tooltip-dismissed="true"]):focus-within .map-fit-tooltip{visibility:visible}
@@ -61,6 +81,7 @@ svg{flex:none}
 .workspace{display:flex;min-height:0;min-width:0;flex:1}
 .stage{display:flex;flex-direction:column;flex:1;min-width:0;min-height:0}
 .map-panel{position:relative;flex:1;min-height:300px;height:400px;background:#162535;overflow:hidden}
+.map-app[data-mode="inline"]{min-height:0}
 .map-app[data-mode="inline"] .map-panel{width:100%;height:auto;min-height:0;flex:none;aspect-ratio:3/2}
 .map-canvas{position:absolute;inset:0;background:var(--surface)}
 .snapshot-frame{position:absolute;inset:0;overflow:hidden;background:var(--surface)}
@@ -88,9 +109,7 @@ svg{flex:none}
 .map-state p{max-width:42ch}
 .map-state .map-diagnostic{font:12px ui-monospace,SFMono-Regular,Consolas,monospace;color:#b8c9da;overflow-wrap:anywhere}
 .map-state button{background:#243b50;color:#fff;border-color:#7090aa}
-.map-legend{flex:none;min-width:0;max-height:96px;overflow:auto;display:flex;flex-wrap:wrap;gap:6px;padding:8px 12px;border-top:1px solid var(--line);background:var(--surface)}
-.map-legend:empty{display:none}
-.map-legend button{display:inline-flex;align-items:center;gap:6px;max-width:100%;overflow-wrap:anywhere;background:var(--surface-alt);color:var(--ink);font-size:12px}
+.map-warnings{border-top:0;border-bottom:1px solid var(--line)}
 .swatch{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--agent-color);flex:none}
 /* Gantt-specific stage shapes; the console and Map presentation stay unchanged. */
 .gantt-app{--gantt-service:#e5ebf6;--gantt-service-ink:#344e76;--gantt-service-edge:#7189b1;--gantt-travel:#4a7fbe;--gantt-wait:#f3f5f8;--gantt-hatch:#e5eaf1;--gantt-wait-ink:#64748b;--gantt-grid:#edf1f6}
@@ -188,7 +207,6 @@ svg{flex:none}
 .app-switch{padding:9px 16px;border-top:1px solid var(--line);display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}
 .app-switch>div{display:flex;gap:8px;flex:1;min-width:min(100%,320px)}
 .app-switch textarea{flex:1;min-width:180px;resize:vertical;border:1px solid var(--line);background:var(--surface-alt);color:var(--ink);padding:7px;font:11px ui-monospace,monospace}
-.map-warning{background:#162535;color:#e2e8f0;padding:5px 8px;font-size:12px}
 .mcp-marker{background:var(--agent-color,#4338ca);border:2px solid #fff;color:#fff;border-radius:18px;min-width:26px;min-height:26px;display:flex;align-items:center;justify-content:center;padding:2px 6px;font-size:12px;box-shadow:0 1px 4px #0005;white-space:nowrap}
 .mcp-marker[data-kind="agent"]{border-radius:5px}
 .mcp-marker[data-selected="true"]{outline:3px solid #fbbf24;outline-offset:1px}
@@ -201,14 +219,14 @@ svg{flex:none}
 .mcp-root[data-mode="fullscreen"] .inline-detail{display:none}
 .mcp-root[data-mode="fullscreen"] .ordered-tickets{display:none}
 
+@media(max-width:400px){.map-app[data-mode="fullscreen"] .engineer-filter>span{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}}
+
 @media(max-width:700px){.app-header{padding:10px;gap:8px}
 .header-actions button{font-size:12px;padding-inline:7px}
 .toolbar{padding:8px 10px;gap:6px}
 .engineer-filter{max-width:100%;flex:1 0 100%;order:2;justify-content:flex-start;font-size:12px;margin-left:0}
 .engineer-filter>span{white-space:nowrap}
 .engineer-filter select{max-width:none;flex:1}
-.map-app .engineer-filter{flex:1 0 100%;order:0}
-.map-app[data-mode="inline"] .map-panel{aspect-ratio:1}
 .summary-strip{grid-template-columns:repeat(3,minmax(0,1fr))}
 .summary-item{display:flex;flex-direction:column}
 .summary-label{border-right:0;padding:6px 8px}
@@ -226,7 +244,6 @@ svg{flex:none}
 .playback-controls{gap:6px}
 .playback-controls output{font-size:11px;width:100%}
 .task-heading h1{font-size:15px}
-.map-legend{padding-inline:10px}
 .detail-grid{grid-template-columns:90px minmax(0,1fr)}
 }
 

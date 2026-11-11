@@ -50,7 +50,7 @@ for (const kind of ['map', 'gantt']) {
     await host.context('card', { theme: 'dark' });
     await host.respond('card', 0, result);
     await rendered(kind, frame);
-    if (kind === 'map') await expect(frame.locator('#engineer')).toHaveValue(AGENT);
+    if (kind === 'map') await expect(frame.locator('#engineer')).toHaveJSProperty('value',AGENT);
     await host.result('card', withoutMeta(result));
     await noMoreRequests(host, frame, 1);
     expect(await host.messages('card')).toEqual([]);
@@ -93,7 +93,7 @@ for (const kind of ['map', 'gantt']) {
 
     await host.respond('card', 0, result);
     await rendered(kind, frame);
-    if (kind === 'map') await expect(frame.locator('#engineer')).toHaveValue(AGENT);
+    if (kind === 'map') await expect(frame.locator('#engineer')).toHaveJSProperty('value',AGENT);
     await noMoreRequests(host, frame, 1);
     expect(await host.messages('card')).toEqual([]);
     await host.assertHealthy();

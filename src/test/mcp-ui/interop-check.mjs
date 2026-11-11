@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {chromium} from '../../main/resources/META-INF/resources/static/node_modules/@playwright/test/index.mjs';
-import {openHost,mapReady,fullscreen,expect} from './host-fixture.mjs';
+import {openHost,mapReady,fullscreen,expect, chooseEngineer} from './host-fixture.mjs';
 assert.ok(process.env.MCP_SVG_INTEROP_FILE,'MCP_SVG_INTEROP_FILE must identify a producer-generated fixture');
 const message=JSON.parse(fs.readFileSync(process.env.MCP_SVG_INTEROP_FILE,'utf8'));
 const envelope=message._meta.gateway_ui,snapshot=envelope.map_context.snapshot;
@@ -11,7 +11,7 @@ try{
  const page=await browser.newPage();const host=await openHost(page),a=await host.add({id:'java-a',result:message}),b=await host.add({id:'java-b',result:message});
  await mapReady(a);await mapReady(b);await expect(a.locator('.snapshot-attribution')).toHaveText(snapshot.attribution);
  const engineer=snapshot.elements.agents[0].engineer_id;
- await a.locator('#engineer').selectOption(engineer);await expect(b.locator('#engineer')).toHaveValue('');
+ await chooseEngineer(a,engineer);await expect(b.locator('#engineer')).toHaveJSProperty('value','');
  // A filtered route can already be at its real-pixel limit (especially at 1.5x).
  // Establish a zoomable viewport instead of treating the correct disabled state as a failure.
  const plus=a.getByRole('button',{name:'放大地图',exact:true}),minus=a.getByRole('button',{name:'缩小地图',exact:true});

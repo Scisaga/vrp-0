@@ -14,6 +14,12 @@ VRP0 升至 `1.1.5-alpha-SNAPSHOT`，使用新 annotated tag `v1.1.5-alpha-SNAPS
 
 用户本轮授权升版、提交、打 tag 和推送。交付范围不包含容器镜像构建/推送、Gateway 元数据同步、ImageVersion 导入或实际部署；现有任务继续使用原版本组件，线上修复需后续按 ImageVersion 版本规则交付。旧 tag 和历史资源身份保持原样，Gateway 配套说明仅作独立文档提交，不升 Gateway 应用版本。验证结果见[测试说明](testing.md#gateway-任务图商切换回归gateway-80)。
 
+### 2026-11-11 会话地图布局开发 SNAPSHOT 重打
+
+按用户本轮“提交并重打 tag”要求，保持 VRP0 `1.1.7-alpha-SNAPSHOT` 与 Gateway `1.1.3-SNAPSHOT`，将本地 annotated tag `v1.1.7-alpha-SNAPSHOT`、`v1.1.3-SNAPSHOT` 移至各自本轮提交。操作前以本地备份 ref 保留原 tag 对象；这是本次开发 SNAPSHOT 对既有 tag 不覆写规则的显式例外，不改变正式版本及历史资源 URI 的不可变约束。
+
+引擎提交包含所有宽度统一 3:2、单行工具栏、顶部姓名/日期/路线色标筛选及底部人名区移除，配套测试、文档和重建后的两份 MCP HTML 一并交付。此次只提交并重打本地 tag，不推送、不发布容器镜像、不导入 Gateway 或部署；真实 GPT/Quick 展示待后续页面更新与重新打开卡片后验收。
+
 ## 1. 文档目的与边界
 
 本文负责开发运行、JVM/native/container 构建、Docker Compose、文件目录、运行配置、密钥、地图服务、MCP、Metrics 和启动验证。

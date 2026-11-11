@@ -146,4 +146,12 @@ export async function mapReady(frame) {
   expect(frame.childFrames()).toHaveLength(0);
   return frame;
 }
+export async function chooseEngineer(frame, id) {
+  const control=frame.locator('#engineer');
+  if(await control.evaluate(el=>el.tagName==='SELECT'))return control.selectOption(id);
+  if(await control.getAttribute('aria-expanded')!=='true')await control.click();
+  const options=frame.locator('#engineer-options [role="option"]');
+  const index=await options.evaluateAll((elements,id)=>elements.findIndex(el=>el.dataset.engineerId===id),id);
+  expect(index).toBeGreaterThanOrEqual(0);await options.nth(index).click();
+}
 export async function fullscreen(frame){await frame.locator('#fullscreen').click();await expect(frame.locator('#app')).toHaveAttribute('data-mode','fullscreen')}

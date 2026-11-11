@@ -1,4 +1,4 @@
-import {test,expect,openHost,message,mapReady,fullscreen,AGENT} from './host-fixture.mjs';
+import {test,expect,openHost,message,mapReady,fullscreen,AGENT, chooseEngineer} from './host-fixture.mjs';
 import {withSnapshot} from './snapshot-fixture.mjs';
 
 const selected=frame=>frame.locator('.snapshot-route[data-selected="true"]');
@@ -81,7 +81,7 @@ test('mouse hit area selects only a route, leaves filter/view unchanged, and has
   const host=await openHost(page),frame=await host.add({result:withSnapshot(result,{density:1.5}),width:920,autoSize:true});await mapReady(frame);
   const before=await view(frame);await routeClick(page,frame,0,4.5);
   await expect(selected(frame)).toHaveCount(1);await expect(selected(frame)).toHaveAttribute('data-route-index','0');
-  await expect(frame.locator('#engineer')).toHaveValue('');await expect(frame.locator('#map-legend button')).toHaveCount(2);
+  await expect(frame.locator('#engineer')).toHaveJSProperty('value','');await expect(frame.locator('#engineer-options [role=option]')).toHaveCount(3);
   expect(await view(frame)).toEqual(before);await expect(frame.locator('#inline-detail,.route-popup,.route-detail')).toHaveCount(0);
   await expect(frame.locator('.snapshot-status')).toBeHidden();expect(await host.pending('card')).toHaveLength(0);
   await routeClick(page,frame,1);await expect(selected(frame)).toHaveCount(1);await expect(selected(frame)).toHaveAttribute('data-route-index','1');
@@ -95,7 +95,7 @@ test('keyboard selection, return dashes, clear actions and card isolation preser
   await last.focus();await last.press('Enter');await expect(selected(a)).toHaveCount(1);await expect(selected(b)).toHaveCount(0);
   expect(await last.locator('.snapshot-route-shape').getAttribute('stroke-dasharray')).toBe(dash);expect(dash).toBeTruthy();
   await expect(last).toHaveAttribute('aria-pressed','true');await last.press('Escape');await expect(selected(a)).toHaveCount(0);
-  await last.press(' ');await expect(selected(a)).toHaveCount(1);await a.locator('#engineer').selectOption(AGENT);await expect(selected(a)).toHaveCount(0);
+  await last.press(' ');await expect(selected(a)).toHaveCount(1);await chooseEngineer(a,AGENT);await expect(selected(a)).toHaveCount(0);
   await routes(a).first().focus();await routes(a).first().press('Enter');await expect(selected(a)).toHaveCount(1);
   await a.locator('.snapshot-point[data-kind="ticket"][display="inline"]').first().click();await expect(selected(a)).toHaveCount(0);
   await a.locator('#fit-map').click();await routes(a).first().focus();await routes(a).first().press('Enter');
@@ -191,7 +191,7 @@ test('pan/keyboard/follow stay inside the image; one edge notice per drag and no
   await page.mouse.move(box.x+box.width*.8,box.y+box.height*.5,{steps:6});await page.mouse.up();
   await expect.poll(()=>frame.evaluate(()=>window.edgeChanges)).toBe(1);await expect(frame.locator('.snapshot-status')).toContainText('快照边界');
   await expect(selected(frame)).toHaveCount(0);await assertBounded(frame);
-  await frame.locator('#engineer').selectOption(AGENT);await fullscreen(frame);await frame.locator('#follow').click();await frame.locator('#cursor').fill('900');await assertBounded(frame);
+  await chooseEngineer(frame,AGENT);await fullscreen(frame);await frame.locator('#follow').click();await frame.locator('#cursor').fill('900');await assertBounded(frame);
   await host.context('card',{locale:'en-US'});await mapReady(frame);await frame.locator('.snapshot-svg').focus();
   for(let i=0;i<30;i++)await frame.locator('.snapshot-svg').press('ArrowLeft');await expect(frame.locator('.snapshot-status')).toContainText('Snapshot edge');
   expect(await host.pending('card')).toHaveLength(0);await host.assertHealthy();

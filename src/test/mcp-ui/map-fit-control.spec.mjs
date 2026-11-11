@@ -1,4 +1,4 @@
-import { test, expect, openHost, mapReady, fullscreen, AGENT } from './host-fixture.mjs';
+import { test, expect, openHost, mapReady, fullscreen, AGENT , chooseEngineer} from './host-fixture.mjs';
 
 test('route-fit icon has an accessible name and a hoverable, dismissible tooltip', async ({page}) => {
   const host=await openHost(page),frame=await host.add({width:920,autoSize:true});await mapReady(frame);
@@ -20,7 +20,7 @@ test('route-fit icon has an accessible name and a hoverable, dismissible tooltip
 
 test('keyboard focus and activation retain the icon and engineer selection and call only the existing fit', async ({page}) => {
   const host=await openHost(page),frame=await host.add();const renderer=await mapReady(frame);
-  await frame.locator('#engineer').selectOption(AGENT);
+  await chooseEngineer(frame,AGENT);
   await expect(renderer.locator('.snapshot-point[data-kind="agent"][data-selected="true"]')).toHaveCount(1);
   const fit=frame.locator('#fit-map'),tip=frame.locator('#fit-map-tip');
   await expect(fit.locator('svg')).toHaveCount(1);
@@ -30,7 +30,7 @@ test('keyboard focus and activation retain the icon and engineer selection and c
   await frame.locator('#engineer').focus();await fit.focus();await expect(tip).toBeVisible();
   await fit.press('Enter');await expect.poll(viewport).toBe(before);
   await fit.click();await expect.poll(viewport).toBe(before);
-  await expect(frame.locator('#engineer')).toHaveValue(AGENT);
+  await expect(frame.locator('#engineer')).toHaveJSProperty('value',AGENT);
   await expect(fit.locator('svg')).toHaveCount(1);
   expect((await host.pending('card')).length).toBe(0);expect((await host.messages('card')).length).toBe(0);
   await host.assertHealthy();
@@ -38,14 +38,14 @@ test('keyboard focus and activation retain the icon and engineer selection and c
 
 test('locale and theme changes update tooltip and accessible name without replacing the icon', async ({page}) => {
   const host=await openHost(page),frame=await host.add();await mapReady(frame);
-  await frame.locator('#engineer').selectOption(AGENT);
+  await chooseEngineer(frame,AGENT);
   await host.context('card',{locale:'en-US',theme:'dark'});await mapReady(frame);
   const fit=frame.locator('#fit-map'),tip=frame.locator('#fit-map-tip');
   await expect(fit).toHaveAccessibleName('Show full routes');
   await expect(fit.locator('svg')).toHaveCount(1);await fit.focus();
   await expect(tip).toBeVisible();await expect(tip).toHaveText('Show full routes');
   await expect(frame.locator('html')).toHaveAttribute('data-theme','dark');
-  await expect(frame.locator('#engineer')).toHaveValue(AGENT);
+  await expect(frame.locator('#engineer')).toHaveJSProperty('value',AGENT);
   await host.context('card',{locale:'zh-CN',theme:'light'});await mapReady(frame);
   await expect(fit).toHaveAccessibleName('显示完整路线');await expect(tip).toHaveText('显示完整路线');
   await expect(fit.locator('svg')).toHaveCount(1);expect((await fit.textContent()).trim()).toBe('');
