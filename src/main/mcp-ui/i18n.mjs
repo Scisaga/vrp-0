@@ -1,4 +1,5 @@
 const zh = {
+ sharedStart:'同一起点',sharedEngineers:'位工程师',closeEngineerList:'关闭工程师列表',
  mapZoomIn:'放大地图',mapZoomOut:'缩小地图',mapGestures:'规划路线，拖动平移，使用加减按钮缩放',
  mapSnapshotEdge:'已到快照边界，请点击“全屏查看”，在更大空间内查看。',mapZoomLimit:'已到当前视图的清晰缩放上限。需要放大查看，请点击“全屏查看”。',
  mapSnapshotEdgeFullscreen:'已到快照边界，可点击“显示完整路线”重新取景。',mapZoomLimitFullscreen:'已到当前底图的清晰缩放上限。',
@@ -9,6 +10,7 @@ const zh = {
  virtual_or_unknown_engineer:'虚拟工程师或类型未知', unknown_assignment:'工单顺序未知', no_tickets:'没有已安排工单', missing_ticket:'工单引用对象缺失', inconsistent_assignment:'工单归属不一致', invalid_schedule_time:'必要排程时间缺失或非法', non_monotonic_schedule:'排程时间先后不一致', missing_location:'公开位置缺失或非法', missing_routes:'路线序列未知', route_count_mismatch:'路线数量与工单顺序不符', invalid_route_geometry:'回放路段几何不可用', route_endpoint_mismatch:'路线端点与工单位置不符', unsupported_route_source:'路线来源不可用于道路回放'
 };
 const en = {
+ sharedStart:'Shared starting point',sharedEngineers:'engineers',closeEngineerList:'Close engineer list',
  mapZoomIn:'Zoom in map',mapZoomOut:'Zoom out map',mapGestures:'Planned routes. Drag to pan; use + and − to zoom.',
  mapSnapshotEdge:'Snapshot edge reached. Choose “Expand” for more viewing space.',mapZoomLimit:'This view has reached its image-resolution zoom limit. Choose “Expand” for more viewing space.',
  mapSnapshotEdgeFullscreen:'Snapshot edge reached. Choose “Show full routes” to refit.',mapZoomLimitFullscreen:'The image resolution limit has been reached.',

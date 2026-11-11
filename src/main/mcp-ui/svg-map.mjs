@@ -3,6 +3,7 @@ import { buildMapScene } from './map-scene.mjs';
 import { poiPosition } from './model.mjs';
 import { translate } from './i18n.mjs';
 import { snapshotFrame, snapshotZoomLimits, constrainSnapshotViewport, sameSnapshotViewport } from './svg-viewport.mjs';
+import { EngineerMarkers } from './svg-engineers.mjs';
 
 const NS = 'http://www.w3.org/2000/svg';
 const TAGS = new Set(['svg','g','image','path','circle','text','title','desc','rect','line','polyline','polygon','ellipse','tspan']);
@@ -84,6 +85,9 @@ export class SvgMapView {
     }
     this.frame.append(this.svg,controls,this.attribution,this.status);
     this.container.replaceChildren(this.frame);
+    this.engineers=new EngineerMarkers({frame:this.frame,svg:this.svg,entries:this.agents,locale,idPrefix:prefix,
+      onSelect:id=>this.onSelect({kind:'agent',id})});
+    if(this.svg.querySelectorAll('*').length>100000)throw safeFailure();
     await this.loadImages();
     if(this.disposed)throw fail('MAP_ABORTED');
     this.bindInteractions();this.update(scene);this.fit();this.container.dataset.svgMap='ready';
@@ -104,10 +108,7 @@ export class SvgMapView {
       playback.setAttribute('display','none');playback.classList.add('snapshot-playback','snapshot-point');
       playback.dataset.kind='agent';playback.dataset.id=agent.id;playback.setAttribute('role','button');
       playback.setAttribute('tabindex','0');playback.setAttribute('aria-label',agent.name||agent.id);
-      const sourceLabel=node.querySelector('text'),replayLabel=sourceLabel?sourceLabel.cloneNode(true):document.createElementNS(NS,'text');
-      for(const label of [replayLabel,...replayLabel.querySelectorAll('[id]')])label.removeAttribute('id');
-      if(!sourceLabel){replayLabel.setAttribute('y','-16');replayLabel.setAttribute('text-anchor','middle');replayLabel.setAttribute('font-size','14');replayLabel.setAttribute('fill','#172c3b');replayLabel.textContent=agent.name||agent.id;}
-      playback.append(replayLabel);this.agents.set(agent.id,{...entry,node,playback});
+      this.agents.set(agent.id,{...entry,node,playback,agent});
     }
     for(const entry of this.snapshot.elements.tickets){
       const ticket=model?.indexes.tickets.get(entry.ticket_id);
@@ -115,6 +116,22 @@ export class SvgMapView {
       this.checkPoint(entry,poiPosition(model.indexes.pois.get(ticket.loc)));
       const node=get(entry.element_id,['g']);node.dataset.kind='ticket';node.dataset.id=ticket.id;node.classList.add('snapshot-point');
       node.setAttribute('role','button');node.setAttribute('tabindex','0');node.setAttribute('aria-label',ticket.id);
+      // Keep the geographic translation on the mapped group. Only its local
+      // symbol counter-scales, so zoom never magnifies the circle or number.
+      const symbol=document.createElementNS(NS,'g');symbol.classList.add('snapshot-ticket-symbol');
+      for(const child of [...node.children])if(!['title','desc'].includes(child.localName))symbol.append(child);
+      const face=symbol.querySelector('circle'),label=symbol.querySelector('text');
+      if(face){
+        face.classList.add('snapshot-ticket-face');face.setAttribute('cx','0');face.setAttribute('cy','0');
+        face.setAttribute('r','10.25');face.setAttribute('stroke','#ffffff');face.setAttribute('stroke-width','1.5');
+      }
+      if(label){
+        label.setAttribute('x','0');label.setAttribute('y','0');label.setAttribute('text-anchor','middle');
+        label.setAttribute('dominant-baseline','central');label.setAttribute('fill','#ffffff');
+        label.setAttribute('font-size',String(Math.min(11,34/Math.max(1,label.textContent.length))));
+      }
+      const hit=document.createElementNS(NS,'circle');hit.classList.add('snapshot-ticket-hit');hit.setAttribute('r','16');
+      symbol.prepend(hit);node.append(symbol);
       this.tickets.set(ticket.id,{...entry,node});
     }
     for(const entry of this.snapshot.elements.routes){
@@ -179,6 +196,8 @@ export class SvgMapView {
     const select=target=>{
       const node=target.closest?.('[data-kind]');
       if(!node||!this.svg.contains(node)){this.onSelect({kind:'clear-route'});return;}
+      if(node.dataset.kind==='engineer-cluster'){this.engineers.toggleCluster(node);return;}
+      this.engineers.closePopup();
       if(node.dataset.kind==='route')this.onSelect({kind:'route',id:node.dataset.id,routeIndex:Number(node.dataset.routeIndex)});
       else if(node.dataset.kind==='agent'||node.dataset.kind==='ticket')this.onSelect({kind:node.dataset.kind,id:node.dataset.id});
     };
@@ -222,10 +241,7 @@ export class SvgMapView {
     const key=JSON.stringify([scene.markers.map(item=>item.key),scene.lines.map(item=>item.key)]);
     const changed=this.sceneKey!==key;this.sceneKey=key;this.scene=scene;
     const markers=new Map(scene.markers.map(item=>[item.key,item])),lines=new Map(scene.lines.map(item=>[item.key,item]));
-    for(const [id,entry]of this.agents){
-      const item=markers.get(`agent:${id}`);entry.node.setAttribute('display',item?'inline':'none');
-      entry.node.dataset.selected=String(Boolean(item?.selected));if(!item)entry.playback.setAttribute('display','none');
-    }
+    this.engineers?.update(scene);
     for(const [id,entry]of this.tickets){
       const item=markers.get(`ticket:${id}`);entry.node.setAttribute('display',item?'inline':'none');entry.node.dataset.selected=String(Boolean(item?.selected));
     }
@@ -241,12 +257,8 @@ export class SvgMapView {
     if(!positions.length)return {left:0,top:0,right:this.snapshot.width,bottom:this.snapshot.height};
     let left=Infinity,right=-Infinity,top=Infinity,bottom=-Infinity;
     for(const [x,y]of positions){left=Math.min(left,x);right=Math.max(right,x);top=Math.min(top,y);bottom=Math.max(bottom,y);}
-    for(const marker of this.scene?.markers||[]){
-      const entry=(marker.kind==='agent'?this.agents:this.tickets).get(marker.id);if(!entry)continue;
-      const box=entry.bounds??(entry.bounds=entry.node.getBBox());
-      left=Math.min(left,Math.max(0,entry.x+box.x));right=Math.max(right,Math.min(this.snapshot.width,entry.x+box.x+box.width));
-      top=Math.min(top,Math.max(0,entry.y+box.y));bottom=Math.max(bottom,Math.min(this.snapshot.height,entry.y+box.y+box.height));
-    }
+    // Fixed-size symbols use fit's screen padding. Names are bounded overlays;
+    // neither feeds counter-scaled DOM bounds back into the geographic extent.
     return {left,top,right,bottom};
   }
   layout() {
@@ -258,6 +270,7 @@ export class SvgMapView {
     return layout;
   }
   fit() {
+    this.engineers?.closePopup();
     if(this.disposed)return;const layout=this.layout();if(!layout)return;
     this.fitted=true;this.applyViewport(layout.fit);
   }
@@ -280,6 +293,7 @@ export class SvgMapView {
     if(!this.status.hidden)this.refreshLimitMessage();
     const rect=this.container.getBoundingClientRect();
     if(!force&&this.containerSize&&Math.abs(rect.width-this.containerSize.width)<.1&&Math.abs(rect.height-this.containerSize.height)<.1&&this.lastDpr===(window.devicePixelRatio||1))return;
+    this.engineers?.closePopup();
     const previous=this.getViewport(),layout=this.layout();if(!layout)return;
     if(this.fitted)this.applyViewport(layout.fit);else this.setViewport(previous);
   }
@@ -287,15 +301,16 @@ export class SvgMapView {
     const active=new Set();
     for(const state of states){
       const entry=this.agents.get(state.id),point=projectSnapshot(state.position,this.snapshot.projection);
-      if(!entry||!point||entry.node.getAttribute('display')==='none')continue;
-      active.add(state.id);entry.playback.removeAttribute('visibility');entry.playback.setAttribute('transform',`translate(${point[0]} ${point[1]})`);
-      entry.playback.setAttribute('display','inline');entry.node.setAttribute('visibility','hidden');
+      if(!entry||!point||!entry.visible)continue;
+      active.add(state.id);entry.replaying=true;entry.playback.setAttribute('transform',`translate(${point[0]} ${point[1]})`);
     }
-    for(const [id,entry]of this.agents)if(!active.has(id)){entry.playback.setAttribute('display','none');entry.node.removeAttribute('visibility');}
+    for(const [id,entry]of this.agents)if(!active.has(id))entry.replaying=false;
+    this.engineers?.sync();
   }
   getViewport() {return this.view?{...this.view,fitted:this.fitted,cssWidth:this.frameSize?.width}:null;}
   setViewport(view,{notify=false}={}) {
     if(!this.svg||this.disposed||!view||!this.frameSize)return;
+    if(notify)this.engineers?.closePopup();
     if(view.fitted===true){this.fit();return;}
     if(view.fitted===false)this.fitted=false;
     if(Number.isFinite(view.cssWidth)&&view.cssWidth>0){
@@ -309,12 +324,16 @@ export class SvgMapView {
     if(notify&&!sameSnapshotViewport(view,next))this.notifyLimit('mapSnapshotEdge');
     this.view=next;
     this.svg.setAttribute('viewBox',`${next.x} ${next.y} ${next.width} ${next.height}`);
+    this.svg.style.setProperty('--snapshot-marker-scale',String(next.width/this.frameSize.width));
+    this.engineers?.layout();
     const {minWidth,maxWidth}=this.limits();
     this.zoomButtons[0].disabled=next.width<=minWidth+1e-6;this.zoomButtons[1].disabled=next.width>=maxWidth-1e-6;
   }
+  closeEngineerOverlays(){this.engineers?.dismiss();}
   dispose() {
     if(this.disposed)return;this.disposed=true;clearTimeout(this.statusTimer);
     for(const remove of this.bindings.splice(0))remove();
+    this.engineers?.dispose();this.engineers=null;
     this.container.replaceChildren();delete this.container.dataset.svgMap;
     this.model=null;this.snapshot=null;this.nodes?.clear();this.agents?.clear();this.tickets?.clear();this.routes=[];
     this.svg=null;this.frame=null;this.attribution=null;this.status=null;this.scene=null;this.drag=null;

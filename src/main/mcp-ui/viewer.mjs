@@ -73,6 +73,7 @@ export function startViewer({ kind, buildModel, validateSemantics, buildReplay, 
   function hostContext(context){
     if(state.destroyed)return;const oldMode=state.mode,oldLocale=state.locale;
     state.locale=supportedLocale(context.locale);state.theme=context.theme==='dark'?'dark':'light';state.mode=context.displayMode==='fullscreen'?'fullscreen':'inline';if(oldMode!==state.mode)engineerPicker?.close();
+    if(oldMode!==state.mode)state.map?.closeEngineerOverlays();
     if(oldMode==='fullscreen'&&state.mode!=='fullscreen')pause();
     document.documentElement.lang=state.locale;document.documentElement.dataset.theme=state.theme;
     const colors={'--color-background-primary':'--surface','--color-background-secondary':'--surface-alt','--color-text-primary':'--ink','--color-text-secondary':'--muted','--color-border-primary':'--line'};
@@ -232,7 +233,7 @@ export function startViewer({ kind, buildModel, validateSemantics, buildReplay, 
   optional('gantt-scroll',el=>el.addEventListener('scroll',()=>{state.scroll={left:el.scrollLeft,top:el.scrollTop};}));
   optional('sidebar-toggle',el=>el.addEventListener('click',()=>{state.sidebarOpen=!state.sidebarOpen;renderSidebar();}));for(const key of['agents','tickets'])optional(`side-${key}`,el=>el.addEventListener('click',()=>{state.sidebar=key;renderSidebar();}));optional('search',el=>el.addEventListener('input',(event)=>{state.search=event.target.value;renderSidebar();}));
   optional('play',el=>el.addEventListener('click',togglePlay));optional('follow',el=>el.addEventListener('click',()=>{state.follow=!state.follow;updatePlayback();}));optional('speed',el=>el.addEventListener('change',(event)=>{state.speed=Number(event.target.value);}));optional('cursor',el=>el.addEventListener('input',(event)=>{pause();const range=replayRange();if(range.start===null)return;state.cursor=range.start+(range.end-range.start)*Number(event.target.value)/1000;updatePlayback();}));
-  const visibility=()=>{if(document.hidden){pause();engineerPicker?.close();}};document.addEventListener('visibilitychange',visibility);const onResize=()=>{renderSidebar();if(!mapMode)renderGantt();else state.map?.resize();};window.addEventListener('resize',onResize);
+  const visibility=()=>{if(document.hidden){pause();engineerPicker?.close();state.map?.closeEngineerOverlays();}};document.addEventListener('visibilitychange',visibility);const onResize=()=>{renderSidebar();if(!mapMode)renderGantt();else state.map?.resize();};window.addEventListener('resize',onResize);
   // The host owns available width; echoing the viewport width can repeatedly
   // subtract a sandbox proxy's scrollbar when the host applies it to the iframe.
   const resizeObserver=new ResizeObserver(()=>{if(state.destroyed)return;state.map?.resize();bridge.reportSize({height:$('app').getBoundingClientRect().height});});resizeObserver.observe($('app'));

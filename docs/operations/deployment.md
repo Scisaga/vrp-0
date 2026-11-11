@@ -20,6 +20,12 @@ VRP0 升至 `1.1.5-alpha-SNAPSHOT`，使用新 annotated tag `v1.1.5-alpha-SNAPS
 
 引擎提交包含所有宽度统一 3:2、单行工具栏、顶部姓名/日期/路线色标筛选及底部人名区移除，配套测试、文档和重建后的两份 MCP HTML 一并交付。此次只提交并重打本地 tag，不推送、不发布容器镜像、不导入 Gateway 或部署；真实 GPT/Quick 展示待后续页面更新与重新打开卡片后验收。
 
+### 2026-11-11 地图标记源码升版交付
+
+按用户本轮升版、提交和打 tag 要求，VRP0 升至 `1.1.8-alpha-SNAPSHOT`，创建新的 annotated tag `v1.1.8-alpha-SNAPSHOT`，保留既有 tag。本轮交付固定屏幕尺寸的工单圆点、工程师人形与按需姓名、精确同起点汇总及列表选择，并同步会话与全屏规划回放；源码、测试、文档和重建后的两份 MCP HTML 一并提交。
+
+同步 Gradle、发布 OpenAPI 的版本字段、Gateway 镜像元数据及版本契约断言；REST/MCP 协议与服务端 SVG 不变。Gateway 仅同步配套契约和测试文档，应用版本保持 `1.1.3-SNAPSHOT`，不移动 Gateway tag。提交前从暂存树导出隔离候选执行稳定 JVM 测试及应用构建，核对最终 JAR 中两份 HTML 与已验证产物逐字节一致。范围仅为本地源码提交和新 tag，后续远端推送、镜像发布、导入、部署及真实 GPT/Quick 验收分别记录。
+
 ## 1. 文档目的与边界
 
 本文负责开发运行、JVM/native/container 构建、Docker Compose、文件目录、运行配置、密钥、地图服务、MCP、Metrics 和启动验证。
