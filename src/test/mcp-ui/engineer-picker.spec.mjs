@@ -75,12 +75,13 @@ test('outside clicks, mode changes and hidden pages close the popup while preser
   await expect(panel).toBeHidden();await expect(control).toHaveJSProperty('value','');await host.assertHealthy();
 });
 
-test('long and malicious labels remain complete text and virtual/unknown options retain their existing scope',async({page})=>{
+test('long and malicious labels remain complete text, unknown types stay visible and virtual engineers are hidden',async({page})=>{
   const result=pickerResult(),agents=result._meta.gateway_ui.engine_view.solver_job.plan.agents;
   agents[1].name='<img src="https://evil.invalid/x" onerror="window.__xss=true"> 长姓名';agents[6].virtual=null;agents[7].virtual=true;
   const host=await openHost(page),frame=await host.add({result:withSnapshot(result),width:320,autoSize:true});await mapReady(frame);
-  await frame.locator('#engineer').click();await expect(frame.locator('#engineer-options [role=option]')).toHaveCount(9);
-  await expect(option(frame,agents[1].id)).toContainText(agents[1].name);await expect(option(frame,agents[6].id)).toContainText(agents[6].name);await expect(option(frame,agents[7].id)).toContainText(agents[7].name);
+  await expect(frame.locator('#engineer')).toContainText('全部工程师 · 7');
+  await frame.locator('#engineer').click();await expect(frame.locator('#engineer-options [role=option]')).toHaveCount(8);
+  await expect(option(frame,agents[1].id)).toContainText(agents[1].name);await expect(option(frame,agents[6].id)).toContainText(agents[6].name);await expect(option(frame,agents[7].id)).toHaveCount(0);
   await option(frame,agents[1].id).click();await expect(frame.locator('#engineer')).toContainText(agents[1].name);
   await expect(frame.locator('img')).toHaveCount(0);expect(await frame.evaluate(()=>window.__xss===true)).toBe(false);
   expect(await frame.evaluate(()=>document.documentElement.scrollWidth>document.documentElement.clientWidth)).toBe(false);await host.assertHealthy();

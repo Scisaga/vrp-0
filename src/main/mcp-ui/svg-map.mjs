@@ -85,7 +85,7 @@ export class SvgMapView {
     }
     this.frame.append(this.svg,controls,this.attribution,this.status);
     this.container.replaceChildren(this.frame);
-    this.engineers=new EngineerMarkers({frame:this.frame,svg:this.svg,entries:this.agents,locale,idPrefix:prefix,
+    this.engineers=new EngineerMarkers({frame:this.frame,svg:this.svg,entries:this.agents,tickets:this.tickets,locale,idPrefix:prefix,
       onSelect:id=>this.onSelect({kind:'agent',id})});
     if(this.svg.querySelectorAll('*').length>100000)throw safeFailure();
     await this.loadImages();
@@ -108,12 +108,12 @@ export class SvgMapView {
       playback.setAttribute('display','none');playback.classList.add('snapshot-playback','snapshot-point');
       playback.dataset.kind='agent';playback.dataset.id=agent.id;playback.setAttribute('role','button');
       playback.setAttribute('tabindex','0');playback.setAttribute('aria-label',agent.name||agent.id);
-      this.agents.set(agent.id,{...entry,node,playback,agent});
+      this.agents.set(agent.id,{...entry,node,playback,agent,position});
     }
     for(const entry of this.snapshot.elements.tickets){
       const ticket=model?.indexes.tickets.get(entry.ticket_id);
       if(!ticket||!ticketOwners.has(ticket.id)||ticketOwners.get(ticket.id)!==entry.engineer_id)throw safeFailure();
-      this.checkPoint(entry,poiPosition(model.indexes.pois.get(ticket.loc)));
+      const position=poiPosition(model.indexes.pois.get(ticket.loc));this.checkPoint(entry,position);
       const node=get(entry.element_id,['g']);node.dataset.kind='ticket';node.dataset.id=ticket.id;node.classList.add('snapshot-point');
       node.setAttribute('role','button');node.setAttribute('tabindex','0');node.setAttribute('aria-label',ticket.id);
       // Keep the geographic translation on the mapped group. Only its local
@@ -132,7 +132,7 @@ export class SvgMapView {
       }
       const hit=document.createElementNS(NS,'circle');hit.classList.add('snapshot-ticket-hit');hit.setAttribute('r','16');
       symbol.prepend(hit);node.append(symbol);
-      this.tickets.set(ticket.id,{...entry,node});
+      this.tickets.set(ticket.id,{...entry,node,position});
     }
     for(const entry of this.snapshot.elements.routes){
       const agent=model?.indexes.agents.get(entry.engineer_id),route=agent?.routes?.[entry.route_index];
@@ -241,7 +241,6 @@ export class SvgMapView {
     const key=JSON.stringify([scene.markers.map(item=>item.key),scene.lines.map(item=>item.key)]);
     const changed=this.sceneKey!==key;this.sceneKey=key;this.scene=scene;
     const markers=new Map(scene.markers.map(item=>[item.key,item])),lines=new Map(scene.lines.map(item=>[item.key,item]));
-    this.engineers?.update(scene);
     for(const [id,entry]of this.tickets){
       const item=markers.get(`ticket:${id}`);entry.node.setAttribute('display',item?'inline':'none');entry.node.dataset.selected=String(Boolean(item?.selected));
     }
@@ -249,6 +248,7 @@ export class SvgMapView {
       const item=lines.get(`${entry.engineer_id}:${entry.route_index}`);entry.node.setAttribute('display',item?'inline':'none');
       entry.node.dataset.selected=String(Boolean(item?.selected));entry.node.setAttribute('aria-pressed',String(Boolean(item?.selected)));
     }
+    this.engineers?.update(scene);
     if(changed&&this.view)this.resize(true);
   }
   sceneBounds() {
@@ -302,9 +302,10 @@ export class SvgMapView {
     for(const state of states){
       const entry=this.agents.get(state.id),point=projectSnapshot(state.position,this.snapshot.projection);
       if(!entry||!point||!entry.visible)continue;
-      active.add(state.id);entry.replaying=true;entry.playback.setAttribute('transform',`translate(${point[0]} ${point[1]})`);
+      active.add(state.id);entry.replaying=true;entry.replayPosition=state.position;
+      entry.playback.setAttribute('transform',`translate(${point[0]} ${point[1]})`);
     }
-    for(const [id,entry]of this.agents)if(!active.has(id))entry.replaying=false;
+    for(const [id,entry]of this.agents)if(!active.has(id)){entry.replaying=false;entry.replayPosition=null;}
     this.engineers?.sync();
   }
   getViewport() {return this.view?{...this.view,fitted:this.fitted,cssWidth:this.frameSize?.width}:null;}

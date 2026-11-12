@@ -16,10 +16,12 @@ async function expectSize(marker,diameter=22,point=null){
     const scale=Math.hypot(matrix.a,matrix.b),stroke=parseFloat(getComputedStyle(face).strokeWidth)*scale;
     if(!point){const [x,y]=node.getAttribute('transform').match(/translate\(([^)]+)\)/)[1].split(/[ ,]+/).map(Number);point={x,y};}
     const center=new DOMPoint(point.x,point.y).matrixTransform(node.ownerSVGElement.getScreenCTM());
-    return {width:rect.width+stroke,height:rect.height+stroke,stroke,hit:hit.getBoundingClientRect().width,dx:rect.x+rect.width/2-center.x,dy:rect.y+rect.height/2-center.y,color:face.getAttribute('fill')};
+    return {width:rect.width+stroke,height:rect.height+stroke,stroke,hit:hit.getBoundingClientRect().width,dx:rect.x+rect.width/2-center.x,dy:rect.y+rect.height/2-center.y,color:face.getAttribute('fill'),side:node.closest('.snapshot-point-composition')?.dataset.side};
   },point);
   expect(data.width).toBeCloseTo(diameter,1);expect(data.height).toBeCloseTo(diameter,1);expect(data.stroke).toBeCloseTo(1.5,2);expect(data.hit).toBeCloseTo(32,1);
-  expect(Math.abs(data.dx)).toBeLessThan(.05);expect(Math.abs(data.dy)).toBeLessThan(.05);return data;
+  // A same-point capsule keeps the geographic anchor and puts the person 34px beside its workorder.
+  const offset=data.side?(data.side==='left'?-34:34):0;
+  expect(Math.abs(data.dx-offset)).toBeLessThan(.05);expect(Math.abs(data.dy)).toBeLessThan(.05);return data;
 }
 async function expectBounded(frame,selector){
   const data=await frame.locator(selector).evaluate(node=>{

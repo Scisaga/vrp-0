@@ -1,5 +1,6 @@
 import {colorFor} from './palette.mjs';
 import {translate} from './i18n.mjs';
+import {PointCompositions} from './svg-point-compositions.mjs';
 
 const NS='http://www.w3.org/2000/svg';
 const person='M0-1a3 3 0 1 0 0-6 3 3 0 0 0 0 6M-5.5 7V4.8C-5.5 2-3.2.2 0 .2S5.5 2 5.5 4.8V7Z';
@@ -22,7 +23,7 @@ function symbol(node,color){
 
 /** Local presentation of already validated engineers; never changes coordinates or fetches data. */
 export class EngineerMarkers {
-  constructor({frame,svg:root,entries,locale,idPrefix,onSelect}){
+  constructor({frame,svg:root,entries,tickets,locale,idPrefix,onSelect}){
     Object.assign(this,{frame,root,entries,locale,onSelect,bindings:[],byNode:new Map(),groups:[],selectedId:null});
     this.name=html('div',undefined,'snapshot-engineer-name');this.name.hidden=true;this.name.id=idPrefix+'engineer-name';this.name.setAttribute('role','tooltip');
     this.popup=html('div',undefined,'snapshot-engineer-popup');this.popup.hidden=true;this.popup.id=idPrefix+'engineer-list';this.popup.setAttribute('role','dialog');
@@ -45,6 +46,12 @@ export class EngineerMarkers {
       const node=svg('g',{transform:`translate(${members[0].x} ${members[0].y})`,role:'button',tabindex:0,'aria-haspopup':'dialog','aria-controls':this.popup.id,'aria-expanded':'false'},'snapshot-engineer-cluster');
       node.dataset.kind='engineer-cluster';this.layer.append(node);this.groups.push({node,entries:members,members:[],key:''});
     }
+    this.compositions=new PointCompositions({root,frame,tickets,points:()=>[
+      ...this.groups.filter(group=>group.members.length>1).map(group=>({node:group.node,position:group.members[0].position})),
+      ...[...entries.values()].filter(entry=>entry.visible&&(entry.replaying||!entry.clustered))
+        .sort((a,b)=>Number(Boolean(a.replaying))-Number(Boolean(b.replaying)))
+        .map(entry=>({node:entry.replaying?entry.playback:entry.node,position:entry.replaying?entry.replayPosition:entry.position}))
+    ]});
     this.bind(root,'pointerover',event=>{
       const node=event.target.closest?.('.snapshot-engineer');if(!this.visible(node))return;
       this.hovered=node;this.dismissed=false;this.renderName();
@@ -162,11 +169,24 @@ export class EngineerMarkers {
     this.name.hidden=false;this.position(this.name,node);
   }
   position(overlay,target,popup=false){
-    const frame=this.frame.getBoundingClientRect(),box=target.getBoundingClientRect(),bottom=this.frame.querySelector('.snapshot-attribution')?.getBoundingClientRect().height||0;
+    const composition=target.closest('.snapshot-point-composition');
+    const frame=this.frame.getBoundingClientRect(),box=(composition||target).getBoundingClientRect(),bottom=this.frame.querySelector('.snapshot-attribution')?.getBoundingClientRect().height||0;
     if(frame.width<80||frame.height<48){overlay.hidden=true;return;}
     overlay.style.maxWidth=`${Math.max(40,Math.min(popup?300:260,frame.width-(popup?68:16)))}px`;
     overlay.style.maxHeight=`${Math.max(32,Math.min(popup?320:frame.height,frame.height-bottom-16))}px`;
     if(popup)overlay.style.width=overlay.style.maxWidth;
+    if(composition){
+      // Names and the shared-start list must leave both capsule hit targets free.
+      const controls=this.frame.querySelector('.snapshot-controls')?.getBoundingClientRect(),width=overlay.offsetWidth;
+      const left=Math.max(8,Math.min(box.left+box.width/2-frame.left-width/2,frame.width-width-(popup?52:8)));
+      const above=box.top-frame.top-16;
+      let below=frame.height-bottom-(box.bottom-frame.top)-16;
+      if(controls&&left+width>controls.left-frame.left-4)below=Math.min(below,controls.top-box.bottom-12);
+      const onTop=above>=overlay.offsetHeight||above>=below,space=onTop?above:below;
+      overlay.style.maxHeight=`${Math.max(32,Math.min(popup?320:frame.height,space))}px`;
+      overlay.style.left=`${left}px`;overlay.style.top=`${Math.max(8,Math.min(onTop?box.top-frame.top-overlay.offsetHeight-8:box.bottom-frame.top+8,frame.height-bottom-overlay.offsetHeight-8))}px`;
+      return;
+    }
     const width=overlay.offsetWidth,height=overlay.offsetHeight,x=box.left+box.width/2-frame.left,y=box.top+box.height/2-frame.top;
     let left=x+20,top=y-height/2;
     if(left+width>frame.width-8)left=x-width-20;
@@ -175,10 +195,11 @@ export class EngineerMarkers {
     if(controls&&left+width>controls.left-frame.left-4&&top+height>controls.top-frame.top-4)top=Math.max(8,controls.top-frame.top-height-8);
     overlay.style.left=`${left}px`;overlay.style.top=`${top}px`;
   }
-  layout(){if(this.activeGroup)this.position(this.popup,this.activeGroup.node,true);this.renderName();}
+  layout(){this.compositions.layout();if(this.activeGroup)this.position(this.popup,this.activeGroup.node,true);this.renderName();}
   dismiss(){this.closePopup();this.hovered=null;this.focused=null;this.hideName();}
   dispose(){
     this.dismiss();for(const remove of this.bindings)remove();this.bindings=[];
+    this.compositions.dispose();
     this.layer.remove();this.groups=[];this.byNode.clear();this.name.remove();this.popup.remove();
   }
 }

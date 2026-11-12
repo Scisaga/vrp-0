@@ -26,6 +26,12 @@ VRP0 升至 `1.1.5-alpha-SNAPSHOT`，使用新 annotated tag `v1.1.5-alpha-SNAPS
 
 同步 Gradle、发布 OpenAPI 的版本字段、Gateway 镜像元数据及版本契约断言；REST/MCP 协议与服务端 SVG 不变。Gateway 仅同步配套契约和测试文档，应用版本保持 `1.1.3-SNAPSHOT`，不移动 Gateway tag。提交前从暂存树导出隔离候选执行稳定 JVM 测试及应用构建，核对最终 JAR 中两份 HTML 与已验证产物逐字节一致。范围仅为本地源码提交和新 tag，后续远端推送、镜像发布、导入、部署及真实 GPT/Quick 验收分别记录。
 
+### 2026-11-12 同点底座与虚拟工程师开发 SNAPSHOT 重打
+
+按用户本轮“提交并重打 tag”及后续“推送”授权，保持 VRP0 `1.1.8-alpha-SNAPSHOT`，将 annotated tag `v1.1.8-alpha-SNAPSHOT` 移至本轮地图提交。覆盖前以本地备份 ref 保留原 tag 对象 `0e287d9f2fb40b44a0417e093e3619c43e829017`；远端 tag 更新使用精确旧对象 lease，并与 main 原子推送，远端已变化则停止。本次显式开发 SNAPSHOT 例外不改变正式 tag 或历史资源 URI 的不可变规则。
+
+本轮包含工程师与同点工单的无连线并排底座、独立点击与姓名避让、筛选/缩放/resize/全屏/规划回放的组合恢复，以及地图虚拟工程师在筛选、计数、对象列表及详情中的隐藏；原未安排工单和类型未知工程师保留。源码、测试、契约和重建后的 Map/Gantt 两份 HTML 成套提交；甘特图名称列仅提供建议，布局未改。Gateway 只提交对应文档，应用版本和 tag 保持不变，其他未提交改动不纳入。此次交付为源码与引擎 tag 推送，镜像发布、ImageVersion 导入、部署及真实 GPT/Quick 宿主验收分别进行。
+
 ## 1. 文档目的与边界
 
 本文负责开发运行、JVM/native/container 构建、Docker Compose、文件目录、运行配置、密钥、地图服务、MCP、Metrics 和启动验证。
@@ -66,7 +72,7 @@ java -jar build/quarkus-app/quarkus-run.jar
 
 稳定测试的图商配置独立于开发或部署配置：Gradle `test`、`appTest` 的子进程默认禁用真实地图及地址服务调用，避免场景导入因 `.env` 中 HERE/AMAP 配置而超时。该隔离仅作用于稳定测试，应用打包、实际运行和显式启用的外部测试仍使用各自的既有配置，详见[测试说明](testing.md#4-fixture-与文件隔离)。不通过跳过应用测试或扩大 HTTP 超时掩盖构建失败。
 
-当前工作区版本为 `1.1.7-alpha-SNAPSHOT`，同步维护 Gradle 应用版本、发布 OpenAPI 的 `info.version` 和 Gateway 镜像元数据版本。本次 Map/Gantt 仅上报内容高度，避免双层宿主的宽度反馈；首次结果补取允许使用 Gateway 成功摘要显式提供的 `display_tool_name`，宿主提供工具身份时仍须一致。须与输出该摘要字段的 Gateway 配套使用，绘图数据继续位于 `_meta.gateway_ui`，不新增 Skill 配置。新版本两份 HTML 需原子导入并生成新资源 hash；旧摘要同时缺元数据和工具身份时需重新调用原任务的展示工具。源码、镜像发布、Gateway 导入和 Quick 真机验收分别验证，既有 tag 与资源 URI 不覆写。
+当前工作区版本为 `1.1.8-alpha-SNAPSHOT`，同步维护 Gradle 应用版本、发布 OpenAPI 的 `info.version` 和 Gateway 镜像元数据版本。本次 Map/Gantt 仅上报内容高度，避免双层宿主的宽度反馈；首次结果补取允许使用 Gateway 成功摘要显式提供的 `display_tool_name`，宿主提供工具身份时仍须一致。须与输出该摘要字段的 Gateway 配套使用，绘图数据继续位于 `_meta.gateway_ui`，不新增 Skill 配置。新版本两份 HTML 需原子导入并生成新资源 hash；旧摘要同时缺元数据和工具身份时需重新调用原任务的展示工具。源码、镜像发布、Gateway 导入和 Quick 真机验收分别验证，既有 tag 与资源 URI 不覆写。
 
 ```bash
 ./gradlew quarkusBuild -x test

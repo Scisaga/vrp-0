@@ -102,6 +102,8 @@ svg{flex:none}
 .snapshot-svg .snapshot-point:focus{outline:none;filter:drop-shadow(0 0 4px #047857)}
 .snapshot-svg .snapshot-point[data-selected="true"]{filter:drop-shadow(0 0 3px #047857)}
 .snapshot-ticket-symbol,.snapshot-marker-symbol{transform:scale(var(--snapshot-marker-scale,1));transform-origin:0 0}
+.snapshot-compositions,.snapshot-composition-base{pointer-events:none}
+.snapshot-composition-base{fill:var(--surface);stroke:var(--line);stroke-width:1}
 .snapshot-ticket-hit{fill:transparent;stroke:none;pointer-events:all}
 .snapshot-point[data-kind="ticket"][data-selected="true"] .snapshot-ticket-face{r:12.25px}
 .snapshot-engineer-hit{fill:transparent;stroke:none;pointer-events:all}
