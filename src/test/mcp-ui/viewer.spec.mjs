@@ -111,7 +111,8 @@ test('Gantt uses readable service blocks without zoom controls, makes no map req
   expect(host.requests.some(url=>url.startsWith('https://'))).toBe(false);
   await expect(frame.locator('#gantt-out,#gantt-in')).toHaveCount(0);
   const size=await frame.locator('.gantt-grid').evaluate(el=>({width:el.getBoundingClientRect().width,available:document.getElementById('gantt-scroll').clientWidth,label:document.querySelector('.gantt-label').getBoundingClientRect().width}));
-  expect(size.width).toBeCloseTo(Math.max(size.label+896,size.available),1);
+  expect(size.width).toBeCloseTo(size.available,1);
+  expect(size.label).toBeLessThan(size.available / 4);
   await fullscreen(frame);await expect(frame.locator('#sidebar')).toBeVisible();expect(await frame.locator('#sidebar').evaluate(el=>getComputedStyle(el).borderLeftWidth)).not.toBe('0px');
   await frame.locator('.gantt-bar').last().click();await expect(frame.locator('#side-detail')).toContainText('ticket-a');await host.assertHealthy();
 });

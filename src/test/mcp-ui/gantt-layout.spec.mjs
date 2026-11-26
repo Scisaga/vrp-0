@@ -14,9 +14,9 @@ async function compactBoxes(frame) {
   });
 }
 
-test('Gantt fills the timeline with independent service blocks, time-only ticks and no footer', async ({page}) => {
+test('a conversation card fits the whole schedule, shares its date and places the legend beside the route action', async ({page}) => {
   const host = await openHost(page);
-  const frame = await host.add({result:ganttLayoutResult([real('real-a'),real('real-b')]),width:1100,autoSize:true});
+  const frame = await host.add({result:ganttLayoutResult([real('real-a'),real('real-b')]),width:736,autoSize:true});
   await expect(agentRows(frame)).toHaveCount(2);
   await expect(frame.locator('#gantt-in,#gantt-out,.gantt-tools,#footer,.app-footer')).toHaveCount(0);
   const sizes = await frame.evaluate(() => ({
@@ -27,20 +27,74 @@ test('Gantt fills the timeline with independent service blocks, time-only ticks 
     visit:document.querySelector('.gantt-visit').getBoundingClientRect().height,
     ticks:[...document.querySelectorAll('.gantt-tick')].map(el => ({text:el.textContent,title:el.title,label:el.getAttribute('aria-label')}))
   }));
-  expect(sizes.grid).toBeCloseTo(Math.max(sizes.label+896,sizes.available),1);
-  expect(sizes.row).toBe(76); expect(sizes.visit).toBe(44);
+  expect(sizes.grid).toBeCloseTo(sizes.available,1);
+  expect(sizes.label).toBeLessThanOrEqual(sizes.available * .22);
+  expect(sizes.row).toBe(30); expect(sizes.visit).toBe(30);
   for (const tick of sizes.ticks) {
     expect(tick.text).toMatch(/^\d{2}:\d{2}(?::\d{2})?$/);
     expect(tick.title).toMatch(/^2026-09-17 \d{2}:\d{2}:\d{2}$/);
     expect(tick.label).toBe(tick.title);
   }
-  await expect(frame.locator('.gantt-date').first()).toHaveText('2026-09-17');
-  await expect(frame.locator('.gantt-date').first()).toHaveAttribute('datetime','2026-09-17');
+  await expect(frame.locator('.gantt-date')).toHaveCount(1);
+  await expect(frame.locator('.gantt-head time')).toHaveText('2026-09-17');
+  await expect(frame.locator('.gantt-head time')).toHaveAttribute('datetime','2026-09-17');
+  await expect(frame.locator('#gantt-heading')).toBeHidden();
+  await expect(frame.locator('#gantt-actions .gantt-phase-key')).toHaveText(['服务','行程','等待']);
+  const legend = await frame.locator('#gantt-legend').boundingBox();
+  const route = await frame.locator('#open-map').boundingBox();
+  expect(legend.x + legend.width).toBeLessThanOrEqual(route.x);
+  expect(legend.y + legend.height / 2).toBeGreaterThan(route.y);
+  expect(legend.y + legend.height / 2).toBeLessThan(route.y + route.height);
   await expect(frame.locator('#gantt-scroll')).toHaveAttribute('aria-label',/业务计划时间/);
   await expect(frame.locator('#inline-detail')).toBeHidden();
   expect(host.requests.some(url => url.startsWith('https://'))).toBe(false);
   await host.assertHealthy();
 });
+
+for (const touch of [false, true]) {
+  test(`inline bands have the approved gap and distinct click targets with ${touch ? 'touch' : 'mouse'} input`, async ({browser}) => {
+    const context = await browser.newContext({hasTouch:touch});
+    try {
+      const page = await context.newPage(), host = await openHost(page);
+      const people = Array.from({length:6}, (_, index) => real('person-' + index));
+      const frame = await host.add({result:ganttLayoutResult(people), width:touch ? 375 : 736, autoSize:true});
+      const rows = agentRows(frame);
+      await expect(rows).toHaveCount(6);
+      await expect(frame.locator('.gantt-gridline,.gantt-row .swatch')).toHaveCount(0);
+      const bands = await rows.evaluateAll(items => items.map(row => {
+        const button = row.querySelector('[data-phase="service"]');
+        const box = button.getBoundingClientRect(), paint = getComputedStyle(button, '::after');
+        const top = box.top + parseFloat(paint.top) + new DOMMatrix(paint.transform).m42;
+        const height = parseFloat(paint.height), rowBox = row.getBoundingClientRect();
+        const name = row.querySelector('.gantt-label button');
+        const labelHit = document.elementFromPoint(name.getBoundingClientRect().left + 4, rowBox.bottom - 2);
+        return {top, bottom:top + height, height, hit:box.height, inside:box.top >= rowBox.top && box.bottom <= rowBox.bottom,
+          ownsLabel:labelHit?.closest('button') === name};
+      }));
+      for (const [i, band] of bands.entries()) {
+        expect(band.height).toBe(touch ? 32 : 22);
+        expect(band.hit).toBe(touch ? 44 : 30);
+        expect(band.inside && band.ownsLabel).toBe(true);
+        if (i) expect(band.top - bands[i-1].bottom).toBe(touch ? 12 : 8);
+      }
+      const tick = frame.locator('.gantt-tick').nth(1);
+      if (touch) await tick.tap(); else { await tick.focus(); await tick.press('Enter'); }
+      await expect(tick).toHaveAttribute('aria-pressed','true');
+      const grid = frame.locator('.gantt-grid');
+      await expect(grid).toHaveAttribute('data-time-guide','');
+      const offset = await tick.evaluate(el => parseFloat(el.style.left) / 100);
+      const guide = await rows.first().locator('.gantt-track').evaluate(el =>
+        parseFloat(getComputedStyle(el,'::before').left) / el.getBoundingClientRect().width);
+      expect(guide).toBeCloseTo(offset, 3);
+      if (touch) await tick.tap(); else await tick.press('Escape');
+      await expect(grid).not.toHaveAttribute('data-time-guide','');
+      await expect(tick).toHaveAttribute('aria-pressed','false');
+      await host.assertHealthy();
+    } finally {
+      await context.close();
+    }
+  });
+}
 
 test('virtual engineers are hidden from rows, filtering and fullscreen lists without dropping unknown types or source data', async ({page}) => {
   const result = ganttLayoutResult([real('real-a','真实工程师'),
@@ -62,10 +116,12 @@ test('virtual engineers are hidden from rows, filtering and fullscreen lists wit
 });
 
 test('selecting an engineer brings details directly below the compact chart and shrinks the host', async ({page}) => {
-  const result = ganttLayoutResult(Array.from({length:8},(_,index) => real(`real-${index}`)));
+  const result = ganttLayoutResult(Array.from({length:14},(_,index) => real(`real-${index}`)));
   const host = await openHost(page), frame = await host.add({result,width:920,autoSize:true});
-  await expect(agentRows(frame)).toHaveCount(8);
-  await expect.poll(async () => (await compactBoxes(frame)).scroll.height).toBe(577);
+  await expect(agentRows(frame)).toHaveCount(14);
+  const initial = await compactBoxes(frame);
+  expect(initial.scroll.height).toBeLessThan(initial.chart.height);
+  expect(initial.scroll.height).toBeLessThan(400);
   const before = (await compactBoxes(frame)).app.height;
   await agentRows(frame).first().locator('.gantt-label button').click();
   await expect(agentRows(frame)).toHaveCount(1);
@@ -78,7 +134,7 @@ test('selecting an engineer brings details directly below the compact chart and 
   expect(boxes.app.height).toBeLessThan(before);
   await expect.poll(() => page.locator('#card').evaluate(el => el.clientHeight)).toBe(Math.ceil(boxes.app.height));
   await frame.locator('#engineer').selectOption('');
-  await expect(agentRows(frame)).toHaveCount(8);
+  await expect(agentRows(frame)).toHaveCount(14);
   await expect(frame.locator('#inline-detail')).toBeHidden();
   expect((await host.pending('card')).length).toBe(0);
   await host.assertHealthy();
@@ -96,6 +152,11 @@ test('narrow English dark Gantt keeps dates separate, scrolls only the chart hor
   expect(widths.body).toBe(widths.available);
   expect(widths.chart).toBeGreaterThan(widths.scroll);
   expect(widths.end).toBeLessThanOrEqual(widths.grid);
+  const label = frame.locator('.gantt-row .gantt-label');
+  const left = (await label.boundingBox()).x;
+  await frame.locator('#gantt-scroll').evaluate(el => {el.scrollLeft = el.scrollWidth;});
+  expect((await label.boundingBox()).x).toBeCloseTo(left,1);
+  expect(await frame.locator('#gantt-scroll').evaluate(el => el.scrollLeft)).toBeGreaterThan(0);
   const inline = (await compactBoxes(frame)).app.height;
   await fullscreen(frame);
   await frame.locator('#sidebar-toggle').click();
@@ -115,6 +176,11 @@ test('multi-day schedules retain left-hand business dates and complete tick time
   await expect(frame.locator('.gantt-tick').first()).toHaveText('08:00');
   await expect(frame.locator('.gantt-tick').last()).toHaveText('09:25');
   await expect(frame.locator('.gantt-tick').last()).toHaveAttribute('title','2026-09-18 09:25:00');
+  await frame.locator('#engineer').selectOption('day-2');
+  await expect(frame.locator('.gantt-head time')).toHaveText('2026-09-18');
+  await expect(frame.locator('.gantt-row time')).toHaveCount(0);
+  await frame.locator('#engineer').selectOption('');
+  await expect(frame.locator('.gantt-head time')).toHaveCount(0);
   await host.context('card',{locale:'en-US',theme:'dark'});
   expect(await frame.locator('.gantt-date').allTextContents()).toEqual(['2026-09-17','2026-09-18']);
   await expect(frame.locator('.gantt-tick').last()).toHaveText('09:25');

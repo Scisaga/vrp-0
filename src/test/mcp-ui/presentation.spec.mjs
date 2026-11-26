@@ -3,10 +3,11 @@ import { test,expect,openHost,message,fullscreen } from './host-fixture.mjs';
 test('Gantt uses independent stage shapes and supports keyboard selection in both themes',async({page})=>{
  const host=await openHost(page),frame=await host.add({result:message('gantt-ready')});
  const service=frame.locator('.gantt-bar[data-phase="service"]').last();
+ const originalColor=await service.evaluate(el=>getComputedStyle(el,'::after').backgroundColor);
  await service.focus();await service.press('Enter');
  await expect(frame.locator('#inline-detail')).toContainText('ticket-a');
  await expect(service).toHaveAttribute('aria-pressed','true');
- expect(await service.evaluate(el=>getComputedStyle(el).boxShadow)).not.toBe('none');
+ expect(await service.evaluate(el=>getComputedStyle(el,'::after').backgroundColor)).not.toBe(originalColor);
  await fullscreen(frame);await host.context('card',{theme:'dark',locale:'en-US'});
  await expect(frame.locator('#fullscreen')).toHaveText('Exit full screen');
  await expect(frame.locator('.gantt-location').first()).toBeVisible();

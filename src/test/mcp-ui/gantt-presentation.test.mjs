@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { shortLocation, ganttDuration, ganttTicks } from '../../main/mcp-ui/gantt-presentation.mjs';
+import { shortLocation, fitBandLabel, ganttDuration, ganttTicks, stageTimeRange } from '../../main/mcp-ui/gantt-presentation.mjs';
 import { parsePlanTime } from '../../main/mcp-ui/model.mjs';
 
 const cases = [
@@ -29,6 +29,19 @@ test('missing addresses fall back to the existing name, never IDs or invented lo
   assert.equal(shortLocation({address:'  ',name:'  Example  Clinic '}),'Example Clinic');
   for(const poi of [null,{}, {address:null,name:null}, {address:' ',name:' ',id:'poi-1'}]) assert.equal(shortLocation(poi),'');
 });
+
+test('band captions use a supplied place name or a complete street abbreviation only when it fits', () => {
+  const poi = Object.freeze({name:'Park Road',address:'Park Road, London'});
+  assert.equal(shortLocation(poi, {usePlaceName:true}), 'Park Road');
+  assert.equal(shortLocation(poi), 'Park Road, London');
+  const unit = {name:'Site', address:'Unit 4, 12 Park Road, London'};
+  assert.equal(shortLocation(unit, {usePlaceName:true}), unit.address);
+  const measure = label => label.length * 5;
+  for (const [width, label] of [[100,'8 Hester Road'], [65,'8 Hester Rd'], [61,'']]) {
+    assert.equal(fitBandLabel('8 Hester Road', width, measure), label);
+  }
+  assert.equal(fitBandLabel('A very long facility name', 65, measure), '');
+});
 test('durations retain short segments, seconds and real zero values in both languages', () => {
   for(const [ms,zh,en] of [[0,'0 分钟','0 minutes'],[30000,'30 秒','30 seconds'],[90000,'1 分钟 30 秒','1 minute 30 seconds'],[5400000,'90 分钟','90 minutes']]){
     assert.equal(ganttDuration(ms,'zh-CN'),zh);assert.equal(ganttDuration(ms,'en-US'),en);
@@ -54,4 +67,22 @@ test('business ticks keep real endpoints, regular interior spacing and full cros
   assert.deepEqual(ganttTicks(end,start),[]);
   assert.deepEqual(ganttTicks(null,end),[]);
   assert.ok(ganttTicks(start,end+400*86400000).length<=13);
+});
+
+test('compact ticks leave room for endpoint seconds on a full-day axis', () => {
+  const start = parsePlanTime('2026-09-17 08:03:12'), end = parsePlanTime('2026-09-17 16:27:34');
+  const ticks = ganttTicks(start, end, 480);
+  assert.equal(ticks[0].text, '08:03:12');
+  assert.equal(ticks.at(-1).text, '16:27:34');
+  assert.ok(ticks.length < ganttTicks(start, end, 1000).length);
+  for (const {time} of ticks.slice(1, -1)) {
+    assert.ok(Math.min(time-start, end-time) / (end-start) * 480 >= 76);
+  }
+});
+
+test('selected stage times retain seconds and disambiguate dates beyond the engineer’s business day', () => {
+  const day = '2026-09-30', start = parsePlanTime(day + ' 23:59:40');
+  assert.equal(stageTimeRange(start, start + 19000, day), '23:59:40–23:59:59');
+  assert.equal(stageTimeRange(start, start + 20000, day), '23:59:40–2026-10-01 00:00');
+  assert.equal(stageTimeRange(start, start + 20000, null), '2026-09-30 23:59:40–2026-10-01 00:00');
 });

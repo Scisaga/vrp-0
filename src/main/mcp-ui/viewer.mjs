@@ -4,17 +4,17 @@ import { parsePlanTime, formatPlanTime, poiPosition } from './model.mjs';
 import { translate, supportedLocale } from './i18n.mjs';
 import { colorFor } from './palette.mjs';
 import { formatOperatingRange } from './gantt-label.mjs';
-import { shortLocation, ganttDuration, ganttTicks } from './gantt-presentation.mjs';
+import { shortLocation, fitBandLabel, ganttDuration, ganttTicks, stageTimeRange } from './gantt-presentation.mjs';
 
 const $ = (id) => document.getElementById(id);
 const record = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
 
-export function startViewer({ kind, buildModel, validateSemantics, buildReplay, mapApi, createEngineerPicker }) {
+export function startViewer({ kind, buildModel, validateSemantics, buildReplay, mapApi, createEngineerPicker, createGanttInteractions }) {
   const mapMode = kind === 'map';
   const viewRequestButton = mapMode ? 'open-gantt' : 'open-map';
   const state = {
     envelope:null, model:null, replay:null, input:null, expectedJob:null, boundVersion:null,
-    engineerId:null, ticketId:null, route:null, missingEngineer:null, locale:'zh-CN', theme:'light', mode:'inline',
+    engineerId:null, ticketId:null, ticketPhase:'service', route:null, missingEngineer:null, locale:'zh-CN', theme:'light', mode:'inline',
     sidebar:'agents', search:'', sidebarOpen:false, scroll:{left:0,top:0}, cursor:null,
     speed:1, playing:false, follow:false, connected:false, refreshing:false, error:null, stale:false, destroyed:false,
     map:null, mapKey:null, mapReady:false, mapError:null, mapLastSuccessfulStage:null, mapEpoch:0, frame:0, lastTick:null,
@@ -31,6 +31,9 @@ export function startViewer({ kind, buildModel, validateSemantics, buildReplay, 
   const selectedTicket = () => state.model?.indexes.tickets.get(state.ticketId);
   const displayAgents = () => {const agents=state.model?.agents;return agents==null?agents:agents.filter(agent=>agent.virtual!==true);};
   const engineerPicker=mapMode?createEngineerPicker({trigger:$('engineer'),panel:$('engineer-options'),onSelect:selectEngineer}):null;
+  const ganttInteractions = createGanttInteractions?.($('gantt-chart'), $('gantt-scroll'), $('gantt-tooltip'));
+  const bandMetrics = mapMode ? null : document.createElement('canvas').getContext('2d');
+  const measureBandLabel = text => bandMetrics?.measureText(text).width ?? Infinity;
 
   function errorKey(error) {
     const code=error?.code||'';
@@ -98,13 +101,90 @@ export function startViewer({ kind, buildModel, validateSemantics, buildReplay, 
     optional('search',el=>{el.placeholder=t('search');});
     optional('map-canvas',el=>el.setAttribute('aria-label',t('mapLabel')));optional('gantt-scroll',el=>el.setAttribute('aria-label',`${t('chartLabel')} · ${t('localTime')}`));
   }
-  function renderEngineerSelect(){const el=$('engineer');if(!el)return;const agents=displayAgents();if(engineerPicker){engineerPicker.update({agents,selectedId:state.engineerId||'',missingId:state.missingEngineer,allLabel:t('allEngineers'),missingLabel:t('missingReference')});return;}const options=[new Option(state.missingEngineer?`${state.missingEngineer} · ${t('missingReference')}`:t('allEngineers'),'')];for(const agent of agents||[])options.push(new Option(`${nameOf(agent)}${agent.date?' · '+agent.date:''}`,agent.id));el.replaceChildren(...options);el.value=state.engineerId||'';el.disabled=!agents||state.missingEngineer!=null;}
+  function commonBusinessDate(agents) {
+    const date = agents?.[0]?.date;
+    return date && agents.every(agent => agent.date === date) ? date : null;
+  }
+  function renderEngineerSelect() {
+    const el = $('engineer');
+    if (!el) return;
+    const agents = displayAgents();
+    if (engineerPicker) {
+      engineerPicker.update({agents,selectedId:state.engineerId||'',missingId:state.missingEngineer,allLabel:t('allEngineers'),missingLabel:t('missingReference')});
+      return;
+    }
+    const sharedDate = state.mode === 'inline' && commonBusinessDate(agents);
+    const options = [new Option(state.missingEngineer ? `${state.missingEngineer} · ${t('missingReference')}` : t('allEngineers'), '')];
+    for (const agent of agents || []) {
+      const suffix = !sharedDate && agent.date ? ' · ' + agent.date : '';
+      options.push(new Option(nameOf(agent) + suffix, agent.id));
+    }
+    el.replaceChildren(...options);
+    el.value = state.engineerId || '';
+    el.disabled = !agents || state.missingEngineer != null;
+  }
   function ticketOrder(ticket){const owner=state.model?.indexes.agents.get(ticket.agent),index=owner?.tickets?.indexOf(ticket.id);return Number.isInteger(index)&&index>=0?index+1:null;}
   function selectEngineer(id){if(state.model?.indexes.agents.get(id)?.virtual===true)return;pause();state.missingEngineer=null;state.engineerId=id||null;state.ticketId=null;state.route=null;state.cursor=null;state.error=null;render();if(mapMode){void syncMap({refresh:true});state.map?.fit();}}
-  function selectTicket(id,ownerId=null){const ticket=state.model?.indexes.tickets.get(id);if(!ticket)return;state.route=null;state.ticketId=id;const agent=state.model.indexes.agents.get(ownerId||ticket.agent);if(agent&&agent.virtual!==true)state.engineerId=agent.id;pause();state.cursor=null;render();if(mapMode){void syncMap({refresh:true});state.map?.focus(poiPosition(state.model.indexes.pois.get(ticket.loc)));}}
+  function selectTicket(id,ownerId=null,phase='service'){const ticket=state.model?.indexes.tickets.get(id);if(!ticket)return;state.route=null;state.ticketId=id;state.ticketPhase=phase;const agent=state.model.indexes.agents.get(ownerId||ticket.agent);if(agent&&agent.virtual!==true)state.engineerId=agent.id;pause();state.cursor=null;render();if(mapMode){void syncMap({refresh:true});state.map?.focus(poiPosition(state.model.indexes.pois.get(ticket.loc)));}}
   function swatch(id){const el=node('span',undefined,'swatch');el.style.setProperty('--agent-color',colorFor(id));el.setAttribute('aria-hidden','true');return el;}
   function ticketRow(id,index,ownerId){const ticket=state.model?.indexes.tickets.get(id),poi=ticket&&state.model.indexes.pois.get(ticket.loc);const row=button('',()=>selectTicket(id,ownerId),'ticket-row');row.dataset.focusKey=`ticket:${ownerId||''}:${id}`;row.setAttribute('aria-pressed',String(state.ticketId===id));row.append(node('span',index===null?'—':index+1,'number'));const copy=node('span',undefined,'row-copy');copy.append(node('span',id),node('small',ticket?`${poi?.name||t('none')} · ${label(ticket.start_service_time)} → ${label(ticket.departure_time)}`:t('missingReference')));row.append(copy);return row;}
-  function renderDetails(box){if(!box)return;box.replaceChildren();const ticket=selectedTicket(),agent=selectedAgent();box.classList.toggle('gantt-ticket-detail',!mapMode&&Boolean(ticket));if(box.id==='inline-detail'){box.hidden=!ticket&&!agent;if(box.hidden)return;}if(!ticket&&!agent){if(mapMode)box.append(node('p',t('choose'),'muted'));return;}box.append(node('h2',ticket?.id||nameOf(agent),'detail-heading'));const dl=node('dl',undefined,'detail-grid');if(ticket){const poi=state.model.indexes.pois.get(ticket.loc),owner=state.model.indexes.agents.get(ticket.agent);if(!mapMode)pair(dl,'address',poi?.address||poi?.name);pair(dl,'owner',ticket.agent===null||mapMode&&owner?.virtual===true?t('unassigned'):owner?nameOf(owner):t('missingReference'));pair(dl,'sequence',ticketOrder(ticket));pair(dl,'arrival',ticket.arrival_time);pair(dl,'start',ticket.start_service_time);pair(dl,'departure',ticket.departure_time);if(!mapMode){const start=parsePlanTime(ticket.start_service_time),end=parsePlanTime(ticket.departure_time);pair(dl,'duration',start!==null&&end!==null&&end>=start?ganttDuration(end-start,state.locale):null);}pair(dl,'location',poi?.name||(ticket.loc?t('missingReference'):null));if(mapMode)pair(dl,'address',poi?.address);}else{pair(dl,'id',agent.id);pair(dl,'date',agent.date);pair(dl,'shift',agent.shift_start_time);if(!mapMode)pair(dl,'shiftEnd',agent.shift_off_time);pair(dl,'assigned',agent.tickets?.length??null);}box.append(dl);}
+  function renderDetails(box, visit) {
+    if (!box) return;
+    const ticket = selectedTicket(), agent = selectedAgent();
+    const inline = box.id === 'inline-detail';
+    const disclosure = box.querySelector('details');
+    const sameTicket = Boolean(ticket && disclosure?.dataset.ticketId === ticket.id);
+    const wasOpen = sameTicket && disclosure.open;
+    const restoreFocus = sameTicket && disclosure.contains(document.activeElement);
+    box.replaceChildren();
+    box.classList.toggle('gantt-ticket-detail', !mapMode && Boolean(ticket));
+    if (inline) box.hidden = !ticket && !agent;
+    if (!ticket && !agent) {
+      if (mapMode) box.append(node('p', t('choose'), 'muted'));
+      return;
+    }
+    const dl = node('dl', undefined, 'detail-grid');
+    if (!ticket) {
+      box.append(node('h2', nameOf(agent), 'detail-heading'), dl);
+      pair(dl, 'id', agent.id);
+      pair(dl, 'date', agent.date);
+      pair(dl, 'shift', agent.shift_start_time);
+      if (!mapMode) pair(dl, 'shiftEnd', agent.shift_off_time);
+      pair(dl, 'assigned', agent.tickets?.length);
+      return;
+    }
+    const poi = state.model.indexes.pois.get(ticket.loc), owner = state.model.indexes.agents.get(ticket.agent);
+    const address = poi?.address || poi?.name;
+    if (inline) {
+      box.append(node('h2', address || t('locationUnknown'), 'detail-heading'));
+      const timing = ({start, end}) => `${stageTimeRange(start, end, owner?.date)} · ${ganttDuration(end-start, state.locale)}`;
+      if (visit) box.append(node('p', `${t(visit.current.key)}  ${timing(visit.current)}`, 'gantt-stage-detail'));
+      const details = node('details'), summary = node('summary', t('ticketDetails'));
+      details.dataset.ticketId = ticket.id;
+      details.open = wasOpen;
+      details.append(summary, dl);
+      box.append(details);
+      pair(dl, 'id', ticket.id);
+      for (const stage of visit?.stages || []) {
+        if (stage.phase !== 'service') pair(dl, stage.key, timing(stage));
+      }
+      if (restoreFocus) summary.focus({preventScroll:true});
+    } else {
+      box.append(node('h2', ticket.id, 'detail-heading'), dl);
+      if (!mapMode) pair(dl, 'address', address);
+    }
+    pair(dl, 'owner', ticket.agent === null || mapMode && owner?.virtual === true ? t('unassigned') : owner ? nameOf(owner) : t('missingReference'));
+    pair(dl, 'sequence', ticketOrder(ticket));
+    pair(dl, 'arrival', ticket.arrival_time);
+    pair(dl, 'start', ticket.start_service_time);
+    pair(dl, 'departure', ticket.departure_time);
+    if (!mapMode) {
+      const start = parsePlanTime(ticket.start_service_time), end = parsePlanTime(ticket.departure_time);
+      pair(dl, 'duration', start !== null && end !== null && end >= start ? ganttDuration(end-start, state.locale) : null);
+    }
+    pair(dl, 'location', poi?.name || (ticket.loc ? t('missingReference') : null));
+    if (mapMode) pair(dl, 'address', poi?.address);
+  }
   function renderSidebar(){const box=$('sidebar');if(!box)return;const narrow=innerWidth<=700;box.hidden=state.mode!=='fullscreen'||(narrow&&!state.sidebarOpen);optional('sidebar-toggle',el=>{el.hidden=state.mode!=='fullscreen'||!narrow;el.setAttribute('aria-expanded',String(state.sidebarOpen));});for(const key of ['agents','tickets'])optional(`side-${key}`,el=>{el.setAttribute('aria-selected',String(state.sidebar===key));el.tabIndex=state.sidebar===key?0:-1;});const list=$('side-list');list.replaceChildren();const query=state.search.toLocaleLowerCase();if(!state.model){list.append(node('p',t('noResult'),'empty'));renderDetails($('side-detail'));return;}const values=state.sidebar==='agents'?displayAgents():state.model.tickets;if(values===null){list.append(node('p',t('unknownCollections'),'empty'));return;}if(state.sidebar==='agents'){for(const agent of values||[]){if(query&&!`${agent.id} ${agent.name||''}`.toLocaleLowerCase().includes(query))continue;const row=button('',()=>selectEngineer(agent.id),'ticket-row');row.setAttribute('aria-pressed',String(agent.id===state.engineerId));row.append(swatch(agent.id));const copy=node('span',undefined,'row-copy');copy.append(node('span',nameOf(agent)),node('small',`${label(agent.date)} · ${t('tickets')} ${agent.tickets?.length??t('unknown')}`));row.append(copy);list.append(row);}}else for(const ticket of values||[]){if(state.engineerId&&ticket.agent!==state.engineerId)continue;const poi=state.model.indexes.pois.get(ticket.loc);if(query&&!`${ticket.id} ${poi?.name||''}`.toLocaleLowerCase().includes(query))continue;const order=ticketOrder(ticket);list.append(ticketRow(ticket.id,order===null?null:order-1,ticket.agent));}if(!list.childNodes.length)list.append(node('p',t(query?'noMatch':'empty'),'empty'));renderDetails($('side-detail'));}
 
   function ganttAgents(){return(displayAgents()||[]).filter((agent)=>!state.engineerId||agent.id===state.engineerId);}
@@ -115,11 +195,16 @@ export function startViewer({ kind, buildModel, validateSemantics, buildReplay, 
     path.setAttribute('d','M5 7l1.4-3h11.2L19 7m-14 0h14l2 4v7H3v-7l2-4Zm-2 5h18M6 15h2m8 0h2M5 18v3m14-3v3');
     svg.append(path);return svg;
   }
-  function renderGantt(){
+  function renderGantt(preserveGuide = false){
     const chart=$('gantt-chart'),scroll=$('gantt-scroll');if(!chart||!scroll)return;
     const focusKey=chart.contains(document.activeElement)?document.activeElement.dataset.focusKey:null;
-    const legend=$('gantt-legend');legend.replaceChildren();
-    for(const [phase,key]of[['travel','travel'],['wait','waitingPhase'],['service','service']]){
+    const compact = state.mode === 'inline';
+    const previousGuide = preserveGuide && chart.querySelector('.gantt-tick[aria-pressed="true"]')?.dataset.focusKey;
+    ganttInteractions.hideHint();
+    const legend = $('gantt-legend'), legendParent = $(compact ? 'gantt-actions' : 'gantt-heading');
+    if (legend.parentElement !== legendParent) legendParent.prepend(legend);
+    legend.replaceChildren();
+    for(const [phase,key]of[['service','service'],['travel','travel'],['wait','waitingPhase']]){
       const item=node('span',undefined,'gantt-phase-key'),mark=node('i',undefined,`gantt-key-${phase}`);
       mark.setAttribute('aria-hidden','true');item.append(mark,node('span',t(key)));legend.append(item);
     }
@@ -133,50 +218,105 @@ export function startViewer({ kind, buildModel, validateSemantics, buildReplay, 
     if(!times.length){chart.append(node('p',t('noSchedule'),'empty'));return;}
     const min=Math.min(...times),max=Math.max(...times),span=max-min,grid=node('div',undefined,'gantt-grid');
     const percent=time=>span===0?50:Math.max(0,Math.min(100,100*(time-min)/span));
-    const ticks=ganttTicks(min,max),head=node('div',undefined,'gantt-head');
-    head.append(node('div',t('engineer'),'gantt-label'));
+    const head=node('div',undefined,'gantt-head'),column=node('div',undefined,'gantt-label');
+    const sharedDate = compact && commonBusinessDate(agents);
+    if (sharedDate) {
+      const stamp = node('time', sharedDate, 'gantt-date');
+      stamp.dateTime = sharedDate;
+      column.append(node('span', t('engineer') + ' · ', 'sr-only'), stamp);
+    } else column.textContent = t('engineer');
     const scale=node('div',undefined,'gantt-scale');
-    for(const {time,full,text}of ticks){const tick=node('span',text,'gantt-tick');tick.title=full;tick.setAttribute('aria-label',full);tick.style.left=`${percent(time)}%`;scale.append(tick);}
-    head.append(scale);grid.append(head);
+    head.append(column,scale);grid.append(head);chart.append(grid);
+    const plotWidth = scale.getBoundingClientRect().width;
+    const ticks = ganttTicks(min, max, compact ? plotWidth : Infinity);
+    if (compact && bandMetrics) bandMetrics.font = getComputedStyle(scale).getPropertyValue('--gantt-band-font').trim();
+    for (const {time, full, text} of ticks) {
+      const tick = node(compact ? 'button' : 'span', text, 'gantt-tick');
+      tick.title = full;
+      tick.setAttribute('aria-label', full);
+      tick.style.left = percent(time) + '%';
+      scale.append(tick);
+      if (compact) {
+        tick.type = 'button';
+        tick.dataset.focusKey = 'tick:' + time;
+        const pinned = tick.dataset.focusKey === previousGuide;
+        tick.setAttribute('aria-pressed', String(pinned));
+        if (pinned) ganttInteractions.showGuide(tick);
+      }
+    }
+    let selectedVisit = null;
+    const bandLabels = [];
     for(const agent of agents){
       const row=node('div',undefined,'gantt-row'),caption=node('div',undefined,'gantt-label'),choose=button('',()=>selectEngineer(agent.id));
-      choose.dataset.focusKey=`engineer:${agent.id}`;choose.append(swatch(agent.id),node('span',nameOf(agent)));
+      choose.dataset.focusKey=`engineer:${agent.id}`;
+      if (!compact) choose.append(swatch(agent.id));
+      choose.append(node('span',nameOf(agent)));
+      choose.title = nameOf(agent);
+      choose.setAttribute('aria-label', [nameOf(agent), label(agent.date)].join(' · '));
       row.dataset.selected=String(state.engineerId===agent.id);
-      const metadata=node('div',undefined,'gantt-meta'),date=node('time',label(agent.date),'gantt-date');if(agent.date)date.dateTime=agent.date;
+      const metadata=node('div',undefined,'gantt-meta');
+      if (!sharedDate) {
+        const stamp = node('time',label(agent.date),'gantt-date');
+        if (agent.date) stamp.dateTime = agent.date;
+        metadata.append(stamp);
+        if (!compact) metadata.append(' · ');
+      }
       const range=formatOperatingRange(agent,state.model.indexes.tickets,state.locale),rangeLabel=node('span',range.text,'gantt-range');
       rangeLabel.setAttribute('role','group');rangeLabel.setAttribute('aria-label',range.accessibleLabel);
-      metadata.append(date,document.createTextNode(' · '),rangeLabel);caption.append(choose,metadata);row.append(caption);
+      metadata.append(rangeLabel);caption.append(choose,metadata);row.append(caption);
       const track=node('div',undefined,'gantt-track');
-      for(const {time}of ticks){const line=node('span',undefined,'gantt-gridline');line.style.left=`${percent(time)}%`;line.setAttribute('aria-hidden','true');track.append(line);}
+      if (!compact) {
+        for (const {time} of ticks) {
+          const line = node('span', undefined, 'gantt-gridline');
+          line.style.left = percent(time) + '%';
+          line.setAttribute('aria-hidden', 'true');
+          track.append(line);
+        }
+      }
       let previous=parsePlanTime(agent.shift_start_time);
       for(const [index,id]of(agent.tickets||[]).entries()){
         const ticket=state.model.indexes.tickets.get(id);if(!ticket)continue;
         const arrival=parsePlanTime(ticket.arrival_time),start=parsePlanTime(ticket.start_service_time),end=parsePlanTime(ticket.departure_time);
         if(arrival===null||start===null||end===null||start<arrival||end<start)continue;
         const stages=[];
-        if(previous!==null&&arrival>previous)stages.push(['travel',previous,arrival]);
-        if(start>arrival)stages.push(['wait',arrival,start]);
-        stages.push(['service',start,end]);
-        const first=Math.min(...stages.map(x=>x[1])),last=Math.max(...stages.map(x=>x[2])),duration=last-first;
-        const poi=state.model.indexes.pois.get(ticket.loc),location=shortLocation(poi)||t('locationUnknown');
+        if (previous !== null && arrival > previous) stages.push({phase:'travel', key:'travel', start:previous, end:arrival});
+        if (start > arrival) stages.push({phase:'waiting', key:'waitingPhase', start:arrival, end:start});
+        const service = {phase:'service', key:'service', start, end};
+        stages.push(service);
+        const first = stages[0].start, duration = end-first;
+        const poi=state.model.indexes.pois.get(ticket.loc),location=shortLocation(poi,{usePlaceName:compact})||t('locationUnknown');
         const fullLocation=poi?.address||poi?.name||t('locationUnknown');
         const group=node('div',undefined,'gantt-visit');
-        group.style.left=`${percent(first)}%`;group.style.width=`${Math.max(0,percent(last)-percent(first))}%`;
-        group.dataset.selected=String(state.ticketId===ticket.id);
-        for(const [phase,a,b]of stages){
-          const bar=button('',()=>selectTicket(ticket.id,agent.id),'gantt-bar');
+        group.style.left=`${percent(first)}%`;group.style.width=`${Math.max(0,percent(end)-percent(first))}%`;
+        const selected = state.ticketId === ticket.id;
+        group.dataset.selected = String(selected);
+        if (selected) selectedVisit = {stages, current:stages.find(stage => stage.phase === state.ticketPhase) || service};
+        for(const stage of stages){
+          const {phase, key, start:a, end:b} = stage;
+          const bar=button('',()=>selectTicket(ticket.id,agent.id,phase),'gantt-bar');
           bar.style.left=`${duration===0?0:100*(a-first)/duration}%`;bar.style.width=`${duration===0?0:100*(b-a)/duration}%`;
-          bar.dataset.phase=phase==='wait'?'waiting':phase;bar.dataset.zero=String(a===b);
+          bar.dataset.phase=phase;bar.dataset.zero=String(a===b);
           bar.dataset.focusKey=`stage:${agent.id}:${ticket.id}:${phase}`;
-          bar.setAttribute('aria-pressed',String(state.ticketId===ticket.id));
-          const description=`${index+1} · ${ticket.id} · ${fullLocation} · ${t(phase==='wait'?'waitingPhase':phase)} · ${ganttDuration(b-a,state.locale)} · ${formatPlanTime(a)} → ${formatPlanTime(b)}`;
-          bar.setAttribute('aria-label',description);bar.title=description;
-          if(phase==='service'&&a!==b){bar.append(node('span',location,'gantt-location'),node('span',ganttDuration(b-a,state.locale),'gantt-duration'));}
+          bar.setAttribute('aria-pressed',String(selected && (!compact || selectedVisit.current === stage)));
+          const description=`${index+1} · ${ticket.id} · ${fullLocation} · ${t(key)} · ${ganttDuration(b-a,state.locale)} · ${formatPlanTime(a)} → ${formatPlanTime(b)}`;
+          bar.setAttribute('aria-label',description);
+          if (compact && phase === 'service') {
+            bar.dataset.serviceAddress = fullLocation;
+            bar.dataset.serviceTime = stageTimeRange(a, b, agent.date);
+          } else bar.title = description;
+          if(phase==='service'&&a!==b){
+            if (compact) bandLabels.push({bar, location});
+            else bar.append(node('span',location,'gantt-location'),node('span',ganttDuration(b-a,state.locale),'gantt-duration'));
+          }
           else if(phase==='travel'){
-            const line=node('span',undefined,'gantt-travel-line'),annotation=node('span',undefined,'gantt-travel-label');
-            line.setAttribute('aria-hidden','true');annotation.setAttribute('aria-hidden','true');
-            annotation.append(carIcon(),node('span',ganttDuration(b-a,state.locale,true)));bar.append(line,annotation);
-          }else if(phase==='wait')bar.append(node('span',`${t('waitingPhase')} ${ganttDuration(b-a,state.locale,true)}`,'gantt-wait-label'));
+            const line=node('span',undefined,'gantt-travel-line');
+            line.setAttribute('aria-hidden','true');bar.append(line);
+            if (!compact) {
+              const annotation=node('span',undefined,'gantt-travel-label');
+              annotation.setAttribute('aria-hidden','true');
+              annotation.append(carIcon(),node('span',ganttDuration(b-a,state.locale,true)));bar.append(annotation);
+            }
+          }else if(phase==='waiting'&&!compact)bar.append(node('span',`${t('waitingPhase')} ${ganttDuration(b-a,state.locale,true)}`,'gantt-wait-label'));
           group.append(bar);
         }
         track.append(group);previous=end;
@@ -184,23 +324,32 @@ export function startViewer({ kind, buildModel, validateSemantics, buildReplay, 
       if(Array.isArray(agent.tickets)&&!agent.tickets.length)track.append(node('span',t('noTickets'),'gantt-missing'));
       row.append(track);grid.append(row);
     }
-    chart.append(grid);
-    // The timeline owns both scroll axes; all sticky captions share the measured width.
-    let labelWidth=244;
-    for(const metadata of grid.querySelectorAll('.gantt-meta')){
-      const style=getComputedStyle(metadata.parentElement);
-      labelWidth=Math.max(labelWidth,metadata.getBoundingClientRect().width+parseFloat(style.paddingLeft)+parseFloat(style.paddingRight));
-    }
-    grid.style.setProperty('--gantt-label-width',`${Math.ceil(labelWidth)}px`);
-    for(const bar of grid.querySelectorAll('.gantt-bar')){
-      const width=bar.getBoundingClientRect().width;
-      if(bar.dataset.phase==='service')bar.dataset.narrow=String(width<75);
-      const wait=bar.querySelector('.gantt-wait-label');if(wait)wait.hidden=width<wait.scrollWidth+16;
-      const travel=bar.querySelector('.gantt-travel-label');
-      if(travel){const track=bar.closest('.gantt-track');if(travel.getBoundingClientRect().right>track.getBoundingClientRect().right){travel.style.left='auto';travel.style.right='0';}}
+    if (compact) {
+      // A vertical scrollbar can narrow the plot once all engineers are present.
+      // Read the actual intervals together before adding any labels.
+      const widths = bandLabels.map(({bar}) => bar.getBoundingClientRect().width);
+      for (const [i, {bar, location}] of bandLabels.entries()) {
+        const caption = fitBandLabel(location, widths[i], measureBandLabel);
+        if (caption) bar.append(node('span', caption, 'gantt-location'));
+      }
+    } else {
+      let labelWidth=244;
+      for(const metadata of grid.querySelectorAll('.gantt-meta')){
+        const style=getComputedStyle(metadata.parentElement);
+        labelWidth=Math.max(labelWidth,metadata.getBoundingClientRect().width+parseFloat(style.paddingLeft)+parseFloat(style.paddingRight));
+      }
+      grid.style.setProperty('--gantt-label-width',`${Math.ceil(labelWidth)}px`);
+      for(const bar of grid.querySelectorAll('.gantt-bar')){
+        const width=bar.getBoundingClientRect().width;
+        if(bar.dataset.phase==='service')bar.dataset.narrow=String(width<75);
+        const wait=bar.querySelector('.gantt-wait-label');if(wait)wait.hidden=width<wait.scrollWidth+16;
+        const travel=bar.querySelector('.gantt-travel-label');
+        if(travel){const track=bar.closest('.gantt-track');if(travel.getBoundingClientRect().right>track.getBoundingClientRect().right){travel.style.left='auto';travel.style.right='0';}}
+      }
     }
     if(focusKey)for(const el of grid.querySelectorAll('[data-focus-key]'))if(el.dataset.focusKey===focusKey){el.focus({preventScroll:true});break;}
     scroll.scrollLeft=state.scroll.left;scroll.scrollTop=state.scroll.top;
+    return selectedVisit;
   }
   function selectRoute(item){
     if(!mapMode||!state.model)return;
@@ -256,7 +405,29 @@ export function startViewer({ kind, buildModel, validateSemantics, buildReplay, 
       if(!state.destroyed&&state.viewRequest===request){state.viewRequest=null;renderIntent();}
     }
   }
-  function render(){if(state.destroyed)return;localize();$('app').dataset.mode=state.mode;$('app').setAttribute('aria-busy',String(!state.envelope&&!state.error));optional('refresh',el=>{el.disabled=!state.connected||!state.envelope||state.refreshing;});optional('fullscreen',el=>{const modes=bridge.getHostContext()?.availableDisplayModes||[];el.disabled=!state.connected||(!modes.includes('fullscreen')&&state.mode!=='fullscreen');});renderNotice();renderEngineerSelect();renderSidebar();if(mapMode){if(!state.model)renderMapWarnings(null);renderMapStatus();updatePlayback();}else{renderGantt();renderDetails($('inline-detail'));}renderIntent();}
+  function render() {
+    if (state.destroyed) return;
+    localize();
+    $('app').dataset.mode = state.mode;
+    $('app').setAttribute('aria-busy', String(!state.envelope && !state.error));
+    optional('refresh', el => {el.disabled = !state.connected || !state.envelope || state.refreshing;});
+    optional('fullscreen', el => {
+      const modes = bridge.getHostContext()?.availableDisplayModes || [];
+      el.disabled = !state.connected || (!modes.includes('fullscreen') && state.mode !== 'fullscreen');
+    });
+    renderNotice();
+    renderEngineerSelect();
+    renderSidebar();
+    if (mapMode) {
+      if (!state.model) renderMapWarnings(null);
+      renderMapStatus();
+      updatePlayback();
+    } else {
+      const selectedVisit = renderGantt();
+      renderDetails($('inline-detail'), selectedVisit);
+    }
+    renderIntent();
+  }
 
   if(!mapMode)optional('engineer',el=>el.addEventListener('change',(event)=>selectEngineer(event.target.value)));
   optional('refresh',el=>el.addEventListener('click',async()=>{if(!state.envelope||state.refreshing)return;pause();state.refreshing=true;render();try{await bridge.refresh(state.envelope,{engineerId:mapMode?state.engineerId:undefined});}finally{state.refreshing=false;render();}}));
@@ -276,11 +447,11 @@ export function startViewer({ kind, buildModel, validateSemantics, buildReplay, 
   optional('gantt-scroll',el=>el.addEventListener('scroll',()=>{state.scroll={left:el.scrollLeft,top:el.scrollTop};}));
   optional('sidebar-toggle',el=>el.addEventListener('click',()=>{state.sidebarOpen=!state.sidebarOpen;renderSidebar();}));for(const key of['agents','tickets'])optional(`side-${key}`,el=>el.addEventListener('click',()=>{state.sidebar=key;renderSidebar();}));optional('search',el=>el.addEventListener('input',(event)=>{state.search=event.target.value;renderSidebar();}));
   optional('play',el=>el.addEventListener('click',togglePlay));optional('follow',el=>el.addEventListener('click',()=>{state.follow=!state.follow;updatePlayback();}));optional('speed',el=>el.addEventListener('change',(event)=>{state.speed=Number(event.target.value);}));optional('cursor',el=>el.addEventListener('input',(event)=>{pause();const range=replayRange();if(range.start===null)return;state.cursor=range.start+(range.end-range.start)*Number(event.target.value)/1000;updatePlayback();}));
-  const visibility=()=>{if(document.hidden){pause();engineerPicker?.close();state.map?.closeEngineerOverlays();}};document.addEventListener('visibilitychange',visibility);const onResize=()=>{renderSidebar();if(!mapMode)renderGantt();else state.map?.resize();};window.addEventListener('resize',onResize);
+  const visibility=()=>{if(document.hidden){pause();engineerPicker?.close();state.map?.closeEngineerOverlays();}};document.addEventListener('visibilitychange',visibility);const onResize=()=>{renderSidebar();if(!mapMode)renderGantt(true);else state.map?.resize();};window.addEventListener('resize',onResize);
   // The host owns available width; echoing the viewport width can repeatedly
   // subtract a sandbox proxy's scrollbar when the host applies it to the iframe.
   const resizeObserver=new ResizeObserver(()=>{if(state.destroyed)return;state.map?.resize();bridge.reportSize({height:$('app').getBoundingClientRect().height});});resizeObserver.observe($('app'));
-  function cleanup(){if(state.destroyed)return;state.destroyed=true;engineerPicker?.destroy();pause();disposeMap();clearIntent();resizeObserver.disconnect();document.removeEventListener('visibilitychange',visibility);document.removeEventListener('keydown',dismissFitTooltip);fitControl?.removeEventListener('mouseenter',restoreFitTooltip);optional('fit-map',el=>el.removeEventListener('focus',restoreFitTooltip));window.removeEventListener('resize',onResize);window.removeEventListener('pagehide',destroy);state.envelope=null;state.model=null;state.replay=null;$('app').replaceChildren();}
+  function cleanup(){if(state.destroyed)return;state.destroyed=true;ganttInteractions?.destroy();engineerPicker?.destroy();pause();disposeMap();clearIntent();resizeObserver.disconnect();document.removeEventListener('visibilitychange',visibility);document.removeEventListener('keydown',dismissFitTooltip);fitControl?.removeEventListener('mouseenter',restoreFitTooltip);optional('fit-map',el=>el.removeEventListener('focus',restoreFitTooltip));window.removeEventListener('resize',onResize);window.removeEventListener('pagehide',destroy);state.envelope=null;state.model=null;state.replay=null;$('app').replaceChildren();}
   function destroy(){cleanup();return bridge.destroy();}window.addEventListener('pagehide',destroy,{once:true});
   render();if(window.parent===window){tell('noHost');render();}else bridge.connect().then((connected)=>{if(state.destroyed)return;state.connected=connected;render();if(connected)bridge.reportSize({height:$('app').getBoundingClientRect().height});});
 }
