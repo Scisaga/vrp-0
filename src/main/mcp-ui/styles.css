@@ -226,9 +226,11 @@ svg{flex:none}
 .playback-controls input{flex:1}
 .speed-label{display:flex;align-items:center;gap:5px;font-size:12px}
 .playback-states{display:flex;gap:5px 12px;flex-wrap:wrap;max-height:46px;overflow:auto;font-size:12px;color:var(--muted);margin-top:6px}
-.app-switch{padding:9px 16px;border-top:1px solid var(--line);display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}
-.app-switch>div{display:flex;gap:8px;flex:1;min-width:min(100%,320px)}
-.app-switch textarea{flex:1;min-width:180px;resize:vertical;border:1px solid var(--line);background:var(--surface-alt);color:var(--ink);padding:7px;font:11px ui-monospace,monospace}
+.app-switch{padding:9px 16px;border-top:1px solid var(--line);display:flex;flex:none;gap:10px;align-items:flex-start;flex-wrap:wrap}
+.app-switch button[aria-disabled="true"]{cursor:wait;opacity:.55}
+.app-switch>div{display:flex;gap:8px;flex:1;min-width:min(100%,320px);flex-wrap:wrap}
+.app-switch p{flex-basis:100%;margin:0;color:var(--muted)}
+.app-switch textarea{flex:1;min-width:min(100%,180px);resize:vertical;border:1px solid var(--line);background:var(--surface-alt);color:var(--ink);padding:7px;font:inherit}
 .mcp-marker{background:var(--agent-color,#4338ca);border:2px solid #fff;color:#fff;border-radius:18px;min-width:26px;min-height:26px;display:flex;align-items:center;justify-content:center;padding:2px 6px;font-size:12px;box-shadow:0 1px 4px #0005;white-space:nowrap}
 .mcp-marker[data-kind="agent"]{border-radius:5px}
 .mcp-marker[data-selected="true"]{outline:3px solid #fbbf24;outline-offset:1px}

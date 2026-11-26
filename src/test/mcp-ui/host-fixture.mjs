@@ -30,6 +30,7 @@ window.host={cards,
   result(id,result){this.notify(id,'ui/notifications/tool-result',result)},
   context(id,context){const card=cards.get(id);Object.assign(card.context,context);this.notify(id,'ui/notifications/host-context-changed',context)},
   respond(id,index,result,error){const card=cards.get(id),request=card.pending[index];send(card,{jsonrpc:'2.0',id:request.id,...(error?{error}:{result})})},
+  respondMessage(id,index,result){const card=cards.get(id);send(card,{jsonrpc:'2.0',id:card.messageRequests[index].id,result})},
   request(id,method,params={}){const requestId=++nextId;send(cards.get(id),{jsonrpc:'2.0',id:requestId,method,params});return requestId},
   spoof(id,result){const frame=document.createElement('iframe');frame.name='rogue';frame.style.display='none';frame.srcdoc='<script>addEventListener("message",event=>{parent.frames[event.data.target].postMessage({jsonrpc:"2.0",method:"ui/notifications/tool-result",params:event.data.result},"*")})<\\/script>';frame.onload=()=>frame.contentWindow.postMessage({target:id,result},'*');document.body.append(frame)},
 };
@@ -38,7 +39,7 @@ if(data.method==='ui/initialize'){send(card,{jsonrpc:'2.0',id:data.id,result:{pr
 else if(data.method==='ui/notifications/initialized'){card.initialized=true;if(card.initial!==false){send(card,{jsonrpc:'2.0',method:'ui/notifications/tool-input',params:{arguments:card.input}});if(card.result)send(card,{jsonrpc:'2.0',method:'ui/notifications/tool-result',params:card.result})}}
 else if(data.method==='tools/call'){card.pending.push(data)}
 else if(data.method==='ui/notifications/size-changed'&&card.autoSize&&card.context.displayMode!=='fullscreen'){const height=data.params.height;if(Number.isFinite(height)&&height>0)card.frame.style.height=Math.ceil(height)+'px'}
-else if(data.method==='ui/message'){card.messages??=[];card.messages.push(data.params);send(card,{jsonrpc:'2.0',id:data.id,result:{}})}
+else if(data.method==='ui/message'){card.messages??=[];card.messages.push(data.params);card.messageRequests??=[];card.messageRequests.push(data);if(!card.holdMessages)send(card,{jsonrpc:'2.0',id:data.id,result:{}})}
 else if(data.method==='ui/request-display-mode'){const mode=card.refuseFullscreen?'inline':data.params.mode;card.context.displayMode=mode;if(card.autoSize&&mode==='fullscreen')card.frame.style.height=card.height+'px';send(card,{jsonrpc:'2.0',id:data.id,result:{mode}})}
 else if(data.id!==undefined&&(!data.method)){card.acks.push(data)}
 });
@@ -109,11 +110,11 @@ export async function openHost(page, { blockImages=false, probeCsp=false, monito
   await page.goto('http://mcp-host.test/');
   return {
     logs,errors,requests,unexpected,
-    async add({id='card',result=message(),kind:requestedKind,width=1100,height=800,context={},hostCapabilities={serverTools:{}},input,initial=true,refuseFullscreen=false,initProtocolOverride,expectInitialized=true,inspectFrame=true,autoSize=false}={}) {
+    async add({id='card',result=message(),kind:requestedKind,width=1100,height=800,context={},hostCapabilities={serverTools:{}},input,initial=true,refuseFullscreen=false,initProtocolOverride,expectInitialized=true,inspectFrame=true,autoSize=false,holdMessages=false}={}) {
       const defaults={theme:'light',locale:'zh-CN',displayMode:'inline',availableDisplayModes:['inline','fullscreen'],toolInfo:{tool:{name:TOOL,inputSchema:{type:'object'}}}};
       const kind=requestedKind??(result?._meta?.gateway_ui?.view==='gantt'?'gantt':'map');
       defaults.toolInfo.tool.name=result?._meta?.gateway_ui?.display_tool_name||TOOL;
-      await page.evaluate(options=>window.host.add(options),{id,result,kind,width,height,autoSize,context:{...defaults,...context},hostCapabilities,input:input??{job_id:result?._meta?.gateway_ui?.job_id||JOB},initial,refuseFullscreen,initProtocolOverride});
+      await page.evaluate(options=>window.host.add(options),{id,result,kind,width,height,autoSize,context:{...defaults,...context},hostCapabilities,input:input??{job_id:result?._meta?.gateway_ui?.job_id||JOB},initial,refuseFullscreen,initProtocolOverride,holdMessages});
       if(expectInitialized)await expect.poll(()=>page.evaluate(id=>window.host.cards.get(id)?.initialized,id)).toBe(true);
       else await expect.poll(()=>page.evaluate(id=>window.host.cards.get(id)?.wire.some(item=>item.method==='ui/initialize'),id)).toBe(true);
       const frame=page.frame({name:id});
@@ -127,6 +128,7 @@ export async function openHost(page, { blockImages=false, probeCsp=false, monito
     result:(id,result)=>page.evaluate(({id,result})=>window.host.result(id,result),{id,result}),
     context:(id,context)=>page.evaluate(({id,context})=>window.host.context(id,context),{id,context}),
     respond:(id,index,result,error)=>page.evaluate(({id,index,result,error})=>window.host.respond(id,index,result,error),{id,index,result,error}),
+    respondMessage:(id,index,result)=>page.evaluate(({id,index,result})=>window.host.respondMessage(id,index,result),{id,index,result}),
     wire:(id)=>page.evaluate(id=>window.host.cards.get(id).wire,id),
     pending:(id)=>page.evaluate(id=>window.host.cards.get(id).pending,id),
     messages:(id)=>page.evaluate(id=>window.host.cards.get(id).messages||[],id),

@@ -25,6 +25,9 @@
     <div class="stage"><section class="map-panel"><div id="map-canvas" class="map-canvas" aria-label="规划路线地图"></div><div id="map-state" class="map-state"><p id="map-message">等待任务结果</p><p id="map-diagnostic" class="map-diagnostic" hidden></p><button type="button" id="map-retry" hidden>重试地图</button></div></section></div>
   </div>
   <section id="playback" class="playback" aria-label="规划回放" hidden><div class="playback-heading"><strong id="playback-label">规划回放 · 非实时位置</strong><span id="playback-scope"></span></div><div class="playback-controls"><button type="button" id="play" disabled>播放</button><button type="button" id="follow" aria-pressed="false" disabled>跟随焦点</button><label class="speed-label"><span id="speed-label">速度</span><select id="speed" aria-labelledby="speed-label"><option value="1">1×</option><option value="10">10×</option><option value="60">60×</option><option value="300">300×</option></select></label><input id="cursor" type="range" min="0" max="1000" value="0" aria-label="规划时间" disabled><output id="playback-time" class="metadata">—</output></div></section>
-  <section class="app-switch"><button type="button" id="open-gantt">查看 Gantt 排程</button><div id="intent-status" hidden><label for="intent-text" class="sr-only">Gantt request</label><textarea id="intent-text" readonly rows="3"></textarea><button type="button" id="copy-intent">复制请求文本</button></div></section>
+  <section class="app-switch">
+    <button type="button" id="open-gantt" disabled>查看 Gantt 排程</button>
+    <div id="intent-status" hidden><p id="intent-result" role="status"></p><label id="intent-label" for="intent-text" class="sr-only">可复制的查看请求</label><textarea id="intent-text" readonly rows="2"></textarea><button type="button" id="copy-intent">复制请求文本</button></div>
+  </section>
 </main><!-- MCP_SCRIPT -->
 </body></html>

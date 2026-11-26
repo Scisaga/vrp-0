@@ -29,11 +29,11 @@ test('scenario map route selects its engineer and opens the schedule by job ID',
   await frame.locator('#open-gantt').click();
   await expect.poll(async () => (await host.messages('card')).length).toBe(1);
   const [request] = await host.messages('card');
-  expect(JSON.parse(request.content[0].text)).toEqual({intent:'gw_gantt', job_id: ui.job_id});
+  expect(request.content[0].text).toBe(`查看任务 ${ui.job_id} 的排程`);
   await host.assertHealthy();
 });
 
-test('map inline hides refresh, stays focused on routes, and sends exact Gantt intent',async({page})=>{
+test('map inline hides refresh, stays focused on routes, and sends a readable schedule request',async({page})=>{
   const host=await openHost(page),frame=await host.add();const renderer=await mapReady(frame);
   await expect(frame.locator('#task-title,#task-meta,#summary,#inline-detail')).toHaveCount(0);
   await chooseEngineer(frame,AGENT);await expect(renderer.locator('.snapshot-point[data-kind="ticket"][display="inline"]')).toHaveCount(2);
@@ -42,9 +42,51 @@ test('map inline hides refresh, stays focused on routes, and sends exact Gantt i
   const call=(await host.pending('card'))[0];expect(call.params).toMatchObject({name:`gw_map_${message()._meta.gateway_ui.image_version_id}`,arguments:{job_id:message()._meta.gateway_ui.job_id,engineer_id:AGENT}});
   await host.respond('card',0,message());await mapReady(frame);
   await frame.locator('#open-gantt').click();await expect.poll(async()=>(await host.messages('card')).length).toBe(1);
-  expect((await host.messages('card'))[0]).toEqual({role:'user',content:[{type:'text',text:JSON.stringify({intent:'show_job_gantt',job_id:message()._meta.gateway_ui.job_id,image_version_id:message()._meta.gateway_ui.image_version_id})}]});
+  expect((await host.messages('card'))[0]).toEqual({role:'user',content:[{type:'text',text:`查看任务 ${message()._meta.gateway_ui.job_id} 的排程`}]});
   await host.assertHealthy();
 });
+
+for (const kind of ['map', 'gantt']) {
+  test(`${kind} switch is available again after message delivery or rejection`, async ({ page }) => {
+    const isMap = kind === 'map';
+    const result = isMap ? message() : asGantt();
+    const jobId = result._meta.gateway_ui.job_id;
+    const text = isMap ? `查看任务 ${jobId} 的排程` : `Show the route for job ${jobId}`;
+    const label = isMap ? '查看 Gantt 排程' : 'View route';
+    const host = await openHost(page);
+    const frame = await host.add({ kind, result, width: 375, holdMessages: true, context: { locale: isMap ? 'zh-CN' : 'en-US' } });
+    const button = frame.locator(isMap ? '#open-gantt' : '#open-map');
+    await expect(button).toBeEnabled();
+    await button.click();
+    await expect(button).toBeDisabled();
+    await expect(button).toBeFocused();
+    await expect(button).toHaveText(isMap ? '正在请求排程…' : 'Requesting route…');
+    await button.dispatchEvent('click');
+    await expect.poll(async () => (await host.messages('card')).length).toBe(1);
+    expect((await host.messages('card'))[0]).toEqual({ role: 'user', content: [{ type: 'text', text }] });
+
+    await host.respondMessage('card', 0, {});
+    await expect(button).toBeEnabled();
+    await expect(button).toHaveText(label);
+    await expect(frame.locator('#intent-status')).toBeHidden();
+
+    await button.click();
+    await expect.poll(async () => (await host.messages('card')).length).toBe(2);
+    await host.respondMessage('card', 1, { isError: true });
+    await expect(button).toBeEnabled();
+    await expect(frame.locator('#intent-text')).toHaveValue(text);
+
+    await button.click();
+    await expect.poll(async () => (await host.messages('card')).length).toBe(3);
+    await host.notify('card', 'ui/notifications/tool-input', { arguments: { job_id: jobId } });
+    await host.result('card', result);
+    await expect(button).toBeEnabled();
+    await host.respondMessage('card', 2, { isError: true });
+    await expect(frame.locator('#intent-status')).toBeHidden();
+    expect(await host.pending('card')).toHaveLength(0);
+    await host.assertHealthy();
+  });
+}
 
 test('map fullscreen provides isolated sidebar, fit, replay and pauses on hide or exit',async({page})=>{
   const host=await openHost(page),frame=await host.add();await mapReady(frame);await chooseEngineer(frame,AGENT);await fullscreen(frame);

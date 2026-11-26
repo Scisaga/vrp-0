@@ -231,24 +231,60 @@ test('refreshes using supplied verified tool only; long engineer IDs are omitted
   await bridge.destroy();
 });
 
-test('map sends one exact user text intent while Gantt has no message or engineer extension', async () => {
+test('both views send only a readable user request, and Gantt still rejects an engineer argument', async () => {
   const { bridge, app } = await setup();
   const data = envelope();
-  const sent = await bridge.sendGanttIntent(data);
-  const text = JSON.stringify({ intent:'show_job_gantt', job_id:data.job_id, image_version_id:data.image_version_id });
-  assert.deepEqual(sent, { sent:true, status:'sent', text });
-  assert.deepEqual(app.messages, [{ message:{ role:'user', content:[{ type:'text', text }] }, options:{ timeout:10000 } }]);
+  const text = `查看任务 ${data.job_id} 的排程`;
+  assert.deepEqual(await bridge.sendViewRequest(data, 'zh-CN'), { status:'sent', text });
+  assert.deepEqual(app.messages.map(entry => entry.message), [{ role:'user', content:[{ type:'text', text }] }]);
+  assert.equal(app.messages[0].options.timeout, 10000);
   await bridge.destroy();
 
   const inputs=[];
   const gantt=createViewerBridge({onInput:value=>inputs.push(value)}, {AppClass:FakeApp,viewKind:'gantt'});
   assert.equal(await gantt.connect(),true);
   const ganttApp=FakeApp.instances.at(-1),ganttResult=sample('gantt-ready'),ganttEnvelope=readEnvelope(ganttResult);
+  const route = `Show the route for job ${ganttEnvelope.job_id}`;
+  assert.deepEqual(await gantt.sendViewRequest(ganttEnvelope, 'en-US'), { status:'sent', text:route });
+  assert.deepEqual(ganttApp.messages.map(entry => entry.message), [{ role:'user', content:[{ type:'text', text:route }] }]);
   ganttApp.ontoolinput({arguments:{job_id:ganttEnvelope.job_id,engineer_id:'forbidden'}});
   assert.deepEqual(inputs,[]);
-  assert.deepEqual(await gantt.sendGanttIntent(ganttEnvelope),{sent:false,status:'failed',text:''});
   const pending=gantt.refresh(ganttEnvelope);assert.deepEqual(ganttApp.calls[0].params.arguments,{job_id:ganttEnvelope.job_id});
   ganttApp.calls[0].resolve(ganttResult);assert.ok(await pending);await gantt.destroy();
+});
+
+test('pending view requests de-duplicate, preserve a fallback on failure and discard old acknowledgements', async () => {
+  const { bridge, app } = await setup();
+  const current = envelope();
+  const text = `查看任务 ${current.job_id} 的排程`;
+  const pending = deferred();
+  app.nextMessageResult = pending.promise;
+  const first = bridge.sendViewRequest(current, 'zh-CN');
+  assert.equal(await bridge.sendViewRequest(current, 'zh-CN'), null);
+  assert.equal(app.messages.length, 1);
+  pending.resolve({ isError: true });
+  assert.deepEqual(await first, { status: 'failed', text });
+
+  const timedOut = deferred();
+  app.nextMessageResult = timedOut.promise;
+  const second = bridge.sendViewRequest(current, 'zh-CN');
+  timedOut.reject(Error('timeout'));
+  assert.deepEqual(await second, { status: 'unknown', text });
+
+  const old = deferred(), replacement = deferred();
+  app.nextMessageResult = old.promise;
+  const previousRequest = bridge.sendViewRequest(current, 'zh-CN');
+  app.ontoolinput({ arguments: { job_id: current.job_id } });
+  assert.equal(app.messages[2].options.signal.aborted, true);
+  app.nextMessageResult = replacement.promise;
+  const replacementRequest = bridge.sendViewRequest(current, 'zh-CN');
+  old.resolve({});
+  assert.equal(await previousRequest, null);
+  assert.equal(await bridge.sendViewRequest(current, 'zh-CN'), null);
+  assert.equal(app.messages.length, 4);
+  replacement.resolve({});
+  assert.deepEqual(await replacementRequest, { status: 'sent', text });
+  await bridge.destroy();
 });
 
 test('refuses tool guessing or in-place mutation to a write tool', async () => {

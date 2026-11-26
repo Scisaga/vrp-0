@@ -1,5 +1,6 @@
 import { validSnapshotContext } from './svg-snapshot.mjs';
-/** MCP Apps boundary. No REST, chat messages, credentials, or shared View state. */
+import { resultViewMessage } from './i18n.mjs';
+/** MCP Apps boundary for result data and explicit user actions. */
 const CONTRACT = 'gateway_mcp_result_v1';
 const validatedCharts = new WeakMap();
 const APP_PROTOCOL = '2026-01-26'; // Negotiated MCP Apps protocol of the pinned official SDK 2.0.
@@ -223,6 +224,8 @@ export function createViewerBridge(handlers = {}, options = {}) {
     const bootstrapping = flight?.kind === 'bootstrap';
     flight?.controller.abort();
     flight = undefined;
+    messageFlight?.controller.abort();
+    messageFlight = undefined;
     if (bootstrapping) invoke('onBootstrap', false);
   };
   const hostToolMatches = (toolName, required = false) => hostContext.toolInfo === undefined
@@ -531,31 +534,34 @@ export function createViewerBridge(handlers = {}, options = {}) {
     } finally { if (flight === token) flight = undefined; }
   }
 
-  async function sendGanttIntent(envelope, { timeout = 10000 } = {}) {
-    const fallback = { sent: false, status: 'failed', text: '' };
-    if (viewKind !== 'map' || destroyed || !connected || messageFlight) return fallback;
+  async function sendViewRequest(envelope, locale, { timeout = 10000 } = {}) {
+    if (destroyed || messageFlight) return null;
     let checked;
     try {
-      checked = readEnvelope({ structuredContent: validatedCharts.get(envelope), _meta: { gateway_ui: envelope } }, { viewKind: 'map', expectedJobId: jobId });
+      checked = readEnvelope({ structuredContent: validatedCharts.get(envelope), _meta: { gateway_ui: envelope } }, {
+        viewKind, expectedJobId: jobId, expectedToolName: hostContext.toolInfo?.tool?.name,
+      });
     } catch (error) {
       notifyError(error);
-      return fallback;
+      return null;
     }
-    const text = JSON.stringify(checked.display_tool_name === 'gw_map' ? { intent: 'gw_gantt', job_id: checked.job_id } : {
-      intent: 'show_job_gantt', job_id: checked.job_id, image_version_id: checked.image_version_id,
-    });
-    messageFlight = (async () => {
-      try {
-        const result = await app.sendMessage({ role: 'user', content: [{ type: 'text', text }] }, { timeout });
-        if (destroyed) return { sent: false, status: 'failed', text };
-        return result?.isError === true
-          ? { sent: false, status: 'rejected', text }
-          : { sent: true, status: 'sent', text };
-      } catch {
-        return { sent: false, status: 'unknown', text };
-      } finally { messageFlight = undefined; }
-    })();
-    return messageFlight;
+    const text = resultViewMessage(locale, viewKind === 'map' ? 'gantt' : 'map', checked.job_id);
+    if (!connected) return { status: 'failed', text };
+
+    const request = { controller: new AbortController() };
+    messageFlight = request;
+    try {
+      const result = await app.sendMessage({ role: 'user', content: [{ type: 'text', text }] }, {
+        signal: request.controller.signal, timeout,
+      });
+      if (messageFlight !== request) return null;
+      return { status: result?.isError === true ? 'failed' : 'sent', text };
+    } catch (error) {
+      if (messageFlight !== request) return null;
+      return { status: [-32601, -32602, -32000].includes(error?.code) ? 'failed' : 'unknown', text };
+    } finally {
+      if (messageFlight === request) messageFlight = undefined;
+    }
   }
 
   async function requestDisplayMode(mode) {
@@ -598,7 +604,7 @@ export function createViewerBridge(handlers = {}, options = {}) {
   }
 
   return {
-    connect, refresh, sendGanttIntent, requestDisplayMode, reportSize,
+    connect, refresh, sendViewRequest, requestDisplayMode, reportSize,
     getHostContext: () => ({ ...hostContext }),
     destroy() { destroying ??= release(true); return destroying; },
   };

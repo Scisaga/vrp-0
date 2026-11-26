@@ -1,4 +1,4 @@
-import { test, expect, openHost, mapReady, fullscreen, message, AGENT, JOB, VERSION , chooseEngineer} from './host-fixture.mjs';
+import { test, expect, openHost, mapReady, fullscreen, message, AGENT, JOB, chooseEngineer } from './host-fixture.mjs';
 async function layout(frame) {return frame.evaluate(()=>{const box=selector=>{const {width,height,top,bottom}=document.querySelector(selector).getBoundingClientRect();return {width,height,top,bottom};};return {canvas:box('#map-canvas'),app:box('#app'),switch:box('.app-switch'),overflow:document.documentElement.scrollWidth>document.documentElement.clientWidth};});}
 async function expectToolbarRow(frame) {
  const data=await frame.evaluate(()=>{
@@ -71,7 +71,7 @@ test('theme and locale keep replay and Gantt intent while attribution remains fi
  await host.context('card',{locale:'zh-CN',theme:'light'});await mapReady(frame);await frame.locator('#fullscreen').click();
  await expect(frame.locator('#open-gantt')).toHaveText('查看 Gantt 排程');await expect(frame.locator('footer,#footer,.app-footer')).toHaveCount(0);
  await frame.locator('#open-gantt').click();await expect.poll(async()=>(await host.messages('card')).length).toBe(1);
- expect(await host.messages('card')).toEqual([{role:'user',content:[{type:'text',text:JSON.stringify({intent:'show_job_gantt',job_id:JOB,image_version_id:VERSION})}]}]);await host.assertHealthy();
+ expect(await host.messages('card')).toEqual([{role:'user',content:[{type:'text',text:`查看任务 ${JOB} 的排程`}]}]);await expect(frame.locator('#open-gantt')).toBeEnabled();await host.assertHealthy();
 });
 
 test('fixed map extent supports local wheel, drag and keyboard pan without MCP calls',async({page})=>{
