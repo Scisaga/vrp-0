@@ -241,14 +241,16 @@ export class SvgMapView {
     const key=JSON.stringify([scene.markers.map(item=>item.key),scene.lines.map(item=>item.key)]);
     const changed=this.sceneKey!==key;this.sceneKey=key;this.scene=scene;
     const markers=new Map(scene.markers.map(item=>[item.key,item])),lines=new Map(scene.lines.map(item=>[item.key,item]));
+    const routePaths=changed?[]:undefined;
     for(const [id,entry]of this.tickets){
       const item=markers.get(`ticket:${id}`);entry.node.setAttribute('display',item?'inline':'none');entry.node.dataset.selected=String(Boolean(item?.selected));
     }
     for(const entry of this.routes){
       const item=lines.get(`${entry.engineer_id}:${entry.route_index}`);entry.node.setAttribute('display',item?'inline':'none');
       entry.node.dataset.selected=String(Boolean(item?.selected));entry.node.setAttribute('aria-pressed',String(Boolean(item?.selected)));
+      if(item&&routePaths)routePaths.push(item.positions.map(position=>projectSnapshot(position,this.snapshot.projection)).filter(Boolean));
     }
-    this.engineers?.update(scene);
+    this.engineers?.update(scene,routePaths);
     if(changed&&this.view)this.resize(true);
   }
   sceneBounds() {

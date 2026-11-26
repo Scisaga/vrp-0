@@ -85,8 +85,15 @@ export function startViewer({ kind, buildModel, validateSemantics, buildReplay, 
   const bridge=createViewerBridge({onInput:acceptInput,onResult:acceptResult,onHostContext:hostContext,onBootstrap:(active)=>{state.refreshing=active;render();},onError:handleError,onTeardown:cleanup},{viewKind:kind});
 
   function localize(){
-    const labels={refresh:'refresh',fullscreen:state.mode==='fullscreen'?'exitFullscreen':'fullscreen','engineer-label':'engineer','sidebar-toggle':'objects','fit-map-tip':'fit','side-agents':'agents','side-tickets':'tickets','search-label':'search','map-retry':'retryMap','playback-label':'playback',follow:'follow','speed-label':'speed','gantt-title':'ganttTitle','intent-label':'viewRequestText','copy-intent':'copyIntent'};
+    const labels={refresh:'refresh','engineer-label':'engineer','sidebar-toggle':'objects','fit-map-tip':'fit','side-agents':'agents','side-tickets':'tickets','search-label':'search','map-retry':'retryMap','playback-label':'playback',follow:'follow','speed-label':'speed','gantt-title':'ganttTitle','intent-label':'viewRequestText','copy-intent':'copyIntent'};
     for(const [id,key]of Object.entries(labels))optional(id,el=>{el.textContent=t(key);});
+    optional('fullscreen',el=>{
+      const label=t(state.mode==='fullscreen'?'exitFullscreen':'fullscreen');
+      if(mapMode){
+        el.setAttribute('aria-label',label);
+        el.title=label;
+      }else el.textContent=label;
+    });
     optional('fit-map',el=>{el.setAttribute('aria-label',t('fit'));});
     optional('search',el=>{el.placeholder=t('search');});
     optional('map-canvas',el=>el.setAttribute('aria-label',t('mapLabel')));optional('gantt-scroll',el=>el.setAttribute('aria-label',`${t('chartLabel')} · ${t('localTime')}`));

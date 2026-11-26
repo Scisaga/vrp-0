@@ -38,9 +38,16 @@ for(const locale of['zh-CN','en-US'])test(`long engineer names keep the ${locale
   await expect(frame.locator('#app')).toHaveAttribute('data-mode',mode);
   await expectToolbarRow(frame);
   await expect(frame.locator('#engineer')).toHaveAccessibleName(locale==='zh-CN'?'工程师':'Engineer');
+  const full=frame.locator('#fullscreen'),enter=mode==='inline';
+  const label=locale==='zh-CN'?(enter?'全屏查看':'退出全屏'):(enter?'Expand':'Exit full screen');
+  await expect(full).toHaveAccessibleName(label);await expect(full).toHaveAttribute('title',label);
+  await expect(full).toHaveText('');
+  await expect(full.locator(enter?'.map-fullscreen-enter':'.map-fullscreen-exit')).toBeVisible();
+  await expect(full.locator(enter?'.map-fullscreen-exit':'.map-fullscreen-enter')).toBeHidden();
+  const bounds=await full.boundingBox();expect(bounds.width).toBe(36);expect(bounds.height).toBe(36);
   await frame.locator('#fit-map').focus();await expect(frame.locator('#fit-map-tip')).toBeVisible();
-  const bounds=await frame.locator('#fit-map-tip').evaluate(el=>{const {left,right}=el.getBoundingClientRect();return {left,right,width:document.documentElement.clientWidth};});
-  expect(bounds.left).toBeGreaterThanOrEqual(0);expect(bounds.right).toBeLessThanOrEqual(bounds.width);
+  const tip=await frame.locator('#fit-map-tip').evaluate(el=>{const {left,right}=el.getBoundingClientRect();return {left,right,width:document.documentElement.clientWidth};});
+  expect(tip.left).toBeGreaterThanOrEqual(0);expect(tip.right).toBeLessThanOrEqual(tip.width);
   await expect(frame.locator('#engineer')).toHaveJSProperty('value',AGENT);
   expect((await layout(frame)).overflow).toBe(false);
  }

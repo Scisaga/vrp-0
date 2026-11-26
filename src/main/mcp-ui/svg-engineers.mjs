@@ -95,7 +95,8 @@ export class EngineerMarkers {
   visible(node){
     const entry=this.byNode.get(node);return Boolean(entry?.visible&&(entry.replaying?node===entry.playback:node===entry.node&&!entry.clustered));
   }
-  update(scene){
+  update(scene,routePaths){
+    if(routePaths)this.compositions.setRoutes(routePaths);
     const markers=new Map(scene.markers.filter(marker=>marker.kind==='agent').map(marker=>[marker.id,marker]));
     const selected=[...markers.values()].find(marker=>marker.selected)?.id||null;
     if(this.selectedId!==selected){this.dismissed=false;this.closePopup();}this.selectedId=selected;
@@ -169,7 +170,7 @@ export class EngineerMarkers {
     this.name.hidden=false;this.position(this.name,node);
   }
   position(overlay,target,popup=false){
-    const composition=target.closest('.snapshot-point-composition');
+    const composition=target.closest('.snapshot-point-composition')?.querySelector('.snapshot-composition-base');
     const frame=this.frame.getBoundingClientRect(),box=(composition||target).getBoundingClientRect(),bottom=this.frame.querySelector('.snapshot-attribution')?.getBoundingClientRect().height||0;
     if(frame.width<80||frame.height<48){overlay.hidden=true;return;}
     overlay.style.maxWidth=`${Math.max(40,Math.min(popup?300:260,frame.width-(popup?68:16)))}px`;
