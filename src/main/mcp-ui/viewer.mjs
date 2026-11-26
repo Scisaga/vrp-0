@@ -377,14 +377,32 @@ export function startViewer({ kind, buildModel, validateSemantics, buildReplay, 
   function updatePlayback(){if(!mapMode)return;const range=replayRange();optional('playback',el=>{el.hidden=state.mode!=='fullscreen';});const playable=range.start!==null&&state.mapReady,canFollow=playable&&Boolean(state.engineerId)&&range.ids.includes(state.engineerId);optional('playback-scope',el=>{el.textContent=t(playable?'eligible':'notPlayable');});optional('play',el=>{el.textContent=t(state.playing?'pause':'play');el.disabled=!playable||range.end===range.start;el.setAttribute('aria-pressed',String(state.playing));});optional('follow',el=>{if(!canFollow)state.follow=false;el.disabled=!canFollow;el.setAttribute('aria-pressed',String(state.follow));});if(range.start===null){optional('playback-time',el=>{el.textContent='—';});return;}state.cursor=Math.max(range.start,Math.min(range.end,state.cursor??range.start));optional('cursor',el=>{el.disabled=!playable;el.value=range.end===range.start?'0':String(Math.round((state.cursor-range.start)/(range.end-range.start)*1000));el.setAttribute('aria-valuetext',formatPlanTime(state.cursor));});optional('playback-time',el=>{el.textContent=formatPlanTime(state.cursor);});if(state.mode!=='fullscreen'&&state.mapReady)state.map.moveAgents([]);if(state.mode==='fullscreen'&&state.mapReady){const positions=state.replay.at(state.cursor,range.ids);state.map.moveAgents(positions);if(state.follow){const focus=positions.find(item=>item.id===state.engineerId);state.map.focus(focus?.position);}}}
   function playbackFrame(now){if(!state.playing||state.destroyed)return;const range=replayRange();if(range.start===null||!state.mapReady){pause();return;}if(state.lastTick!==null)state.cursor=Math.min(range.end,(state.cursor??range.start)+(now-state.lastTick)*state.speed);state.lastTick=now;updatePlayback();if(state.cursor>=range.end){pause();return;}state.frame=requestAnimationFrame(playbackFrame);}
   function togglePlay(){if(state.playing){pause();updatePlayback();return;}const range=replayRange();if(!state.mapReady||range.start===null||state.mode!=='fullscreen')return;if(state.cursor>=range.end)state.cursor=range.start;state.playing=true;state.lastTick=null;state.frame=requestAnimationFrame(playbackFrame);updatePlayback();}
+  function placeMapViewRequest(action, feedback) {
+    const fullscreen = state.mode === 'fullscreen';
+    const footer = $('map-fullscreen-actions');
+    if (footer.hidden === !fullscreen) return;
+    const focused = document.activeElement;
+    if (fullscreen) {
+      footer.append(action, feedback);
+    } else {
+      $('fit-map').parentElement.before(action);
+      $('map-toolbar').after(feedback);
+    }
+    footer.hidden = !fullscreen;
+    if (focused === action || feedback.contains(focused)) focused.focus({ preventScroll: true });
+  }
   function renderIntent(){
     const busy=Boolean(state.viewRequest);
-    const label=mapMode?(busy?'sendingGantt':'viewGantt'):(busy?'sendingMap':'viewMap');
     const action=$(viewRequestButton);
+    const feedback=$('intent-status');
+    const inlineMap=mapMode&&state.mode==='inline';
+    const label=inlineMap?(busy?'sendingSchedule':'viewSchedule'):
+      mapMode?(busy?'sendingGantt':'viewGantt'):(busy?'sendingMap':'viewMap');
+    if(mapMode)placeMapViewRequest(action,feedback);
     action.disabled=!state.connected||!state.envelope;
     action.textContent=t(label);
     if(busy)action.setAttribute('aria-disabled','true');else action.removeAttribute('aria-disabled');
-    $('intent-status').hidden=!state.intentStatus;
+    feedback.hidden=!state.intentStatus;
     $('intent-result').textContent=state.intentStatus?t(state.intentStatus):'';
     $('intent-text').value=state.intentText;
   }

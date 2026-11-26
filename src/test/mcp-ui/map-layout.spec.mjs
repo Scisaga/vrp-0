@@ -1,8 +1,14 @@
 import { test, expect, openHost, mapReady, fullscreen, message, AGENT, JOB, chooseEngineer } from './host-fixture.mjs';
-async function layout(frame) {return frame.evaluate(()=>{const box=selector=>{const {width,height,top,bottom}=document.querySelector(selector).getBoundingClientRect();return {width,height,top,bottom};};return {canvas:box('#map-canvas'),app:box('#app'),switch:box('.app-switch'),overflow:document.documentElement.scrollWidth>document.documentElement.clientWidth};});}
+async function layout(frame) {
+ return frame.evaluate(()=>{
+  const box=selector=>{const {width,height,top,bottom}=document.querySelector(selector).getBoundingClientRect();return {width,height,top,bottom};};
+  return {canvas:box('#map-canvas'),app:box('#app'),toolbar:box('#map-toolbar'),feedback:box('#intent-status'),
+   overflow:document.documentElement.scrollWidth>document.documentElement.clientWidth};
+ });
+}
 async function expectToolbarRow(frame) {
  const data=await frame.evaluate(()=>{
-  const controls=['.engineer-filter','#sidebar-toggle','.map-fit-control','.header-actions']
+  const controls=['.engineer-filter','#sidebar-toggle','#open-gantt','#fit-map','#fullscreen']
    .map(selector=>document.querySelector('.toolbar '+selector)).filter(el=>el&&!el.hidden)
    .map(el=>{const {left,right,top,height}=el.getBoundingClientRect();return {left,right,center:top+height/2};});
   return {controls,width:document.documentElement.clientWidth,selectWidth:document.getElementById('engineer').getBoundingClientRect().width};
@@ -14,17 +20,61 @@ async function expectToolbarRow(frame) {
   if(index)expect(control.left).toBeGreaterThanOrEqual(data.controls[index-1].right);
  }
 }
+async function expectScheduleInToolbar(frame) {
+ const action=frame.locator('.toolbar #open-gantt');
+ await expect(action).toBeVisible();
+ const schedule=await action.boundingBox();
+ const fit=await frame.locator('.toolbar #fit-map').boundingBox();
+ const expand=await frame.locator('.toolbar #fullscreen').boundingBox();
+ const controlGap=expand.x-fit.x-fit.width;
+ const scheduleGap=fit.x-schedule.x-schedule.width;
+ expect(controlGap).toBeGreaterThanOrEqual(0);expect(controlGap).toBeLessThanOrEqual(8);
+ expect(scheduleGap).toBeGreaterThanOrEqual(controlGap+4);
+}
 for(const width of[920,760,701,700,672,444,375,320])for(const locale of['zh-CN','en-US']){
  test(`SVG map at ${width}px in ${locale} keeps 3:2 canvas and one toolbar row without network`,async({page})=>{
   const host=await openHost(page),frame=await host.add({width,autoSize:true,context:{locale}});await mapReady(frame);
   await expect(frame.locator('.toolbar #fullscreen')).toBeVisible();await expect(frame.locator('#map-legend')).toHaveCount(0);
   await expect.poll(async()=>{const data=await layout(frame);return data.canvas.width/data.canvas.height;}).toBeCloseTo(1.5,2);
   await expectToolbarRow(frame);
-  const data=await layout(frame);expect(data.canvas.width).toBe(width);expect(data.overflow).toBe(false);
-  expect(data.switch.top-data.canvas.bottom).toBeLessThan(1);
+  await expectScheduleInToolbar(frame);
+  const data=await layout(frame);
+  expect(data.app.width).toBe(width);expect(data.canvas.width).toBe(width-2);expect(data.overflow).toBe(false);
+  expect(data.app.bottom-data.canvas.bottom).toBeCloseTo(1,1);
+  await expect(frame.locator('#intent-status')).toBeHidden();
+  await expect(frame.locator('#map-fullscreen-actions')).toBeHidden();
   await expect.poll(async()=>await page.locator('#card').evaluate(el=>el.clientHeight)-Math.ceil((await layout(frame)).app.height)).toBe(0);
   await expect(frame.locator('.snapshot-attribution')).toBeVisible();await expect(frame.locator('footer,#footer,.app-footer')).toHaveCount(0);
   expect(frame.childFrames()).toHaveLength(0);expect(host.requests.every(url=>/^http:\/\/mcp-(?:host|app)\.test\//.test(url))).toBe(true);await host.assertHealthy();
+ });
+}
+for(const {width,locale} of[{width:320,locale:'en-US'},{width:760,locale:'zh-CN'}]){
+ test(`map schedule action stays in the toolbar during and after a rejected request at ${width}px`,async({page})=>{
+  const host=await openHost(page),frame=await host.add({width,autoSize:true,holdMessages:true,context:{locale}});
+  await mapReady(frame);
+  const action=frame.locator('#open-gantt');
+  const engineer=frame.locator('#engineer'),fit=frame.locator('#fit-map'),expand=frame.locator('#fullscreen');
+  await engineer.press('Tab');
+  await expect(action).toBeFocused();
+  await action.press('Tab');await expect(fit).toBeFocused();
+  await fit.press('Tab');await expect(expand).toBeFocused();
+  const ready=await layout(frame);
+  await action.press('Enter');await expect(action).toBeDisabled();
+  await expectToolbarRow(frame);await expectScheduleInToolbar(frame);
+  expect((await layout(frame)).app.height).toBeCloseTo(ready.app.height,1);
+  await expect.poll(async()=>(await host.messages('card')).length).toBe(1);
+  await host.respondMessage('card',0,{isError:true});
+  const feedback=frame.locator('#intent-status');
+  await expect(feedback).toBeVisible();await expect(action).toBeEnabled();
+  await expectToolbarRow(frame);await expectScheduleInToolbar(frame);
+  const data=await layout(frame);
+  expect(data.feedback.top).toBeGreaterThanOrEqual(data.toolbar.bottom);
+  expect(data.feedback.bottom).toBeLessThanOrEqual(data.canvas.top);
+  expect(data.app.bottom-data.canvas.bottom).toBeCloseTo(1,1);
+  expect(data.feedback.width).toBe(width-2);
+  await expect(frame.locator('#copy-intent')).toBeVisible();
+  expect(data.overflow).toBe(false);
+  await host.assertHealthy();
  });
 }
 for(const locale of['zh-CN','en-US'])test(`long engineer names keep the ${locale} toolbar usable at 320px in both modes`,async({page})=>{
@@ -37,6 +87,8 @@ for(const locale of['zh-CN','en-US'])test(`long engineer names keep the ${locale
   if(mode!==(await frame.locator('#app').getAttribute('data-mode')))await frame.locator('#fullscreen').click();
   await expect(frame.locator('#app')).toHaveAttribute('data-mode',mode);
   await expectToolbarRow(frame);
+  if(mode==='inline')await expectScheduleInToolbar(frame);
+  else await expect(frame.locator('#map-fullscreen-actions > #open-gantt')).toBeVisible();
   await expect(frame.locator('#engineer')).toHaveAccessibleName(locale==='zh-CN'?'工程师':'Engineer');
   const full=frame.locator('#fullscreen'),enter=mode==='inline';
   const label=locale==='zh-CN'?(enter?'全屏查看':'退出全屏'):(enter?'Expand':'Exit full screen');
@@ -53,6 +105,30 @@ for(const locale of['zh-CN','en-US'])test(`long engineer names keep the ${locale
  }
  await host.assertHealthy();
 });
+test('inline map uses the Planly surface, outline and links in both host themes',async({page})=>{
+ const host=await openHost(page),frame=await host.add({width:760,height:900,autoSize:true});await mapReady(frame);
+ const app=frame.locator('#app');
+ const palettes=[
+  {theme:'light',surface:'rgb(255, 255, 255)',line:'rgb(217, 222, 219)',muted:'rgb(82, 96, 90)',accent:'rgb(22, 119, 77)'},
+  {theme:'dark',surface:'rgb(28, 28, 28)',line:'rgb(57, 57, 57)',muted:'rgb(171, 178, 174)',accent:'rgb(62, 207, 142)'}
+ ];
+ for(const {theme,surface,line,muted,accent} of palettes){
+  await host.context('card',{theme});
+  await expect(app).toHaveCSS('background-color',surface);await expect(app).toHaveCSS('border-radius','8px');
+  await expect(app).toHaveCSS('border-top','1px solid '+line);
+  await expect(frame.locator('body')).toHaveCSS('background-color','rgba(0, 0, 0, 0)');
+  await expect(frame.locator('.toolbar')).toHaveCSS('background-color',surface);
+  await expect(frame.locator('.toolbar')).toHaveCSS('border-top-width','0px');
+  await expect(frame.locator('.snapshot-attribution')).toBeVisible();
+  await expect(frame.locator('.snapshot-attribution')).toHaveCSS('color',muted);
+  await expect(frame.locator('#open-gantt')).toHaveCSS('color',accent);
+ }
+ await fullscreen(frame);
+ await expect(app).toHaveCSS('border-top-width','0px');
+ await expect(app).toHaveCSS('background-color','rgba(0, 0, 0, 0)');
+ await frame.locator('#fullscreen').click();await expect(app).toHaveCSS('background-color',palettes[1].surface);
+ await host.assertHealthy();
+});
 for(const provider of ['AMAP','HERE'])test(`${provider} SVG fit and local zoom preserve whole existing route geometry`,async({page})=>{
  const result=message();result._meta.gateway_ui.task.map_provider=provider;result._meta.gateway_ui.map_context.provider=provider;
  const host=await openHost(page),frame=await host.add({result,width:444,autoSize:true});await mapReady(frame);
@@ -67,7 +143,9 @@ test('resizing and fullscreen preserve selection, SVG instance and viewport',asy
  const camera=()=>frame.locator('.snapshot-svg').evaluate(el=>{const [x,y,width,height]=el.getAttribute('viewBox').split(/\s+/).map(Number);return {x:x+width/2,y:y+height/2,scale:el.getBoundingClientRect().width/width};});
  const view=await camera();await frame.locator('.snapshot-svg').evaluate(el=>el.dataset.instanceProbe='kept');
  await fullscreen(frame);await expect(frame.locator('#sidebar')).toBeVisible();await expect.poll(async()=>(await layout(frame)).app.height).toBe(900);
- await frame.locator('#fullscreen').click();await page.locator('#card').evaluate(el=>el.style.width='375px');await expect.poll(async()=>(await layout(frame)).canvas.height).toBe(250);
+ await frame.locator('#fullscreen').click();await page.locator('#card').evaluate(el=>el.style.width='375px');
+ await expect.poll(async()=>(await layout(frame)).canvas.width).toBe(373);
+ expect((await layout(frame)).canvas.height).toBeCloseTo(373/1.5,1);
  await expect(frame.locator('#engineer')).toHaveJSProperty('value',AGENT);await expect(frame.locator('.snapshot-svg')).toHaveAttribute('data-instance-probe','kept');
  const resized=await camera();expect(resized.x).toBeCloseTo(view.x,4);expect(resized.y).toBeCloseTo(view.y,4);expect(resized.scale).toBeCloseTo(view.scale,4);await host.assertHealthy();
 });
@@ -75,8 +153,9 @@ test('theme and locale keep replay and Gantt intent while attribution remains fi
  const host=await openHost(page),frame=await host.add({width:920,height:900,autoSize:true});await mapReady(frame);await chooseEngineer(frame,AGENT);
  await host.context('card',{locale:'en-US',theme:'dark'});await mapReady(frame);await fullscreen(frame);
  await expect(frame.locator('#playback-label')).toHaveText('Planned replay · Not live tracking');await expect(frame.locator('.snapshot-attribution')).toBeVisible();
+ await expect(frame.locator('#map-fullscreen-actions > #open-gantt')).toHaveText('View Gantt schedule');
  await host.context('card',{locale:'zh-CN',theme:'light'});await mapReady(frame);await frame.locator('#fullscreen').click();
- await expect(frame.locator('#open-gantt')).toHaveText('查看 Gantt 排程');await expect(frame.locator('footer,#footer,.app-footer')).toHaveCount(0);
+ await expect(frame.locator('.toolbar #open-gantt')).toHaveText('查看排程');await expect(frame.locator('footer,#footer,.app-footer')).toHaveCount(0);
  await frame.locator('#open-gantt').click();await expect.poll(async()=>(await host.messages('card')).length).toBe(1);
  expect(await host.messages('card')).toEqual([{role:'user',content:[{type:'text',text:`查看任务 ${JOB} 的排程`}]}]);await expect(frame.locator('#open-gantt')).toBeEnabled();await host.assertHealthy();
 });

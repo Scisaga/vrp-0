@@ -69,7 +69,9 @@ for(const dpr of [1,2])test.describe(`same-point compositions DPR ${dpr}`,()=>{
     await chooseEngineer(frame,'');await origin(frame).focus();await origin(frame).press('Enter');await expect(frame.locator('#engineer')).toHaveJSProperty('value',AGENT);await expectPair(frame);
     await frame.locator('#fit-map').click();const fitted=await frame.locator('.snapshot-svg').getAttribute('viewBox');await frame.locator('#fit-map').click();expect(await frame.locator('.snapshot-svg').getAttribute('viewBox')).toBe(fitted);
     await fullscreen(frame);await expectPair(frame);await frame.locator('#fullscreen').click();await expectPair(frame);
-    await page.locator('#card').evaluate((node,width)=>node.style.width=width+'px',width===320?760:375);await expect.poll(()=>frame.locator('#map-canvas').evaluate(node=>node.getBoundingClientRect().width)).toBe(width===320?760:375);await expectPair(frame);
+    const resized=width===320?760:375;
+    await page.locator('#card').evaluate((node,width)=>node.style.width=width+'px',resized);
+    await expect.poll(()=>frame.locator('#map-canvas').evaluate(node=>node.getBoundingClientRect().width)).toBe(resized-2);await expectPair(frame);
     const ticket=compositions(frame).locator('[data-kind="ticket"]').first();await ticket.click();await expect(ticket).toHaveAttribute('data-selected','true');await ticket.focus();await ticket.press('Enter');await expectPair(frame);
     expect(await host.pending('card')).toHaveLength(0);await host.assertHealthy();
   });
@@ -109,7 +111,7 @@ test('callout stays inside the viewport at the edge and retains its workorder an
   const result=coincident(),plan=result._meta.gateway_ui.engine_view.solver_job.plan;plan.pois.find(poi=>poi.id==='poi-b').location='120.2,30.05';
   const host=await openHost(page),frame=await host.add({result:productionOrder(result),width:320,autoSize:true});await mapReady(frame);
   const initial=await expectPair(frame);
-  await page.locator('#card').evaluate(node=>node.style.width='920px');await expect.poll(()=>frame.locator('#map-canvas').evaluate(node=>node.getBoundingClientRect().width)).toBe(920);
+  await page.locator('#card').evaluate(node=>node.style.width='920px');await expect.poll(()=>frame.locator('#map-canvas').evaluate(node=>node.getBoundingClientRect().width)).toBe(918);
   for(const {base,frame:bounds}of [initial,await expectPair(frame)]){
     expect(base.x).toBeGreaterThanOrEqual(bounds.x);expect(base.y).toBeGreaterThanOrEqual(bounds.y);
     expect(base.x+base.width).toBeLessThanOrEqual(bounds.x+bounds.width);

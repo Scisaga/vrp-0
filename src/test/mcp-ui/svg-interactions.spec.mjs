@@ -114,16 +114,19 @@ test('route highlighting and clearing do not pause an active replay',async({page
 for(const theme of ['light','dark'])test(`route selection and keyboard focus emphasize the polyline, never its bounding rectangle (${theme})`,async({page})=>{
   const host=await openHost(page),frame=await host.add({result:withSnapshot(message(),{density:1.5}),width:920,height:900,context:{theme}});await mapReady(frame);
   const route=routes(frame).last(),shape=route.locator('.snapshot-route-shape'),halo=route.locator('.snapshot-route-halo');
+  const stroke=await shape.getAttribute('stroke');
+  const haloColor=theme==='light'?'color(srgb 0.415216 0.658667 0.553255)':'color(srgb 0.515608 0.879529 0.716392)';
   await routeClick(page,frame,await routes(frame).count()-1);
   await expect(selected(frame)).toHaveCount(1);
   expect(await route.evaluate(node=>getComputedStyle(node).outlineStyle)).toBe('none');
-  await expect(shape).toHaveCSS('stroke-width','6px');await expect(halo).toHaveCSS('display','inline');await expect(halo).toHaveCSS('stroke','rgb(255, 255, 255)');
+  await expect(shape).toHaveCSS('stroke-width','6px');await expect(halo).toHaveCSS('display','inline');await expect(halo).toHaveCSS('stroke',haloColor);
   expect(await halo.getAttribute('d')).toEqual(await shape.getAttribute('d'));
-  const stroke=await shape.getAttribute('stroke');
+  expect(await shape.getAttribute('stroke')).toBe(stroke);
   await frame.locator('#engineer').focus();await route.focus();await route.press('Escape');
   await expect(selected(frame)).toHaveCount(0);expect(await route.evaluate(node=>node.matches(':focus-visible'))).toBe(true);
   expect(await route.evaluate(node=>getComputedStyle(node).outlineStyle)).toBe('none');
   await expect(shape).toHaveCSS('stroke-width','6px');await expect(halo).toHaveCSS('display','inline');
+  await expect(halo).toHaveCSS('stroke',haloColor);
   expect(await shape.getAttribute('stroke')).toBe(stroke);
   const svg=frame.locator('.snapshot-svg'),box=await svg.boundingBox();await page.mouse.click(box.x+4,box.y+4);
   expect(await svg.evaluate(node=>getComputedStyle(node).outlineStyle)).toBe('none');

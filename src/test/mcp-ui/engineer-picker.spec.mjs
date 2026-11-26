@@ -61,7 +61,10 @@ test('keyboard navigation previews, cancels, commits, searches by name and conti
   await control.press('Home');await control.press(' ');await expect(control).toHaveJSProperty('value','');
   await control.press('n');await control.press('Enter');await expect(control).toContainText('Nadia Hussain');
   await control.press('ArrowDown');await control.press('Home');await control.press('Tab');
-  await expect(control).toHaveJSProperty('value','');await expect(panel).toBeHidden();await expect(frame.locator('#fit-map')).toBeFocused();
+  await expect(control).toHaveJSProperty('value','');await expect(panel).toBeHidden();
+  const schedule=frame.locator('#open-gantt');
+  await expect(schedule).toBeFocused();
+  await schedule.press('Tab');await expect(frame.locator('#fit-map')).toBeFocused();
   expect(await host.pending('card')).toHaveLength(0);await host.assertHealthy();
 });
 

@@ -72,7 +72,7 @@ java -jar build/quarkus-app/quarkus-run.jar
 
 稳定测试的图商配置独立于开发或部署配置：Gradle `test`、`appTest` 的子进程默认禁用真实地图及地址服务调用，避免场景导入因 `.env` 中 HERE/AMAP 配置而超时。该隔离仅作用于稳定测试，应用打包、实际运行和显式启用的外部测试仍使用各自的既有配置，详见[测试说明](testing.md#4-fixture-与文件隔离)。不通过跳过应用测试或扩大 HTTP 超时掩盖构建失败。
 
-VRP0 `1.2.1` 同步维护 Gradle 应用版本、发布 OpenAPI 的 `info.version` 和 Gateway 镜像元数据版本。镜像 `x-force/vrp-0:1.2.1` 与代码 tag `v1.2.1` 使用同一份源码。Gateway 从该 tag 成套导入场景版地图和甘特图，生成各自的新资源标识。场景绑定新版本后，通过 `gw_map` 和 `gw_gantt` 打开新卡片验收。
+VRP0 `1.2.2` 同步维护 Gradle 应用版本、发布 OpenAPI 的 `info.version` 和 Gateway 镜像元数据版本。源码 tag `v1.2.2` 对应镜像版本 `x-force/vrp-0:1.2.2`，包含 Planly 明暗主题、会话地图顶部排程入口和统一蓝色的甘特图服务带。Gateway 从该 tag 成套导入场景版地图和甘特图，生成各自的新资源标识。场景绑定新版本后，通过 `gw_map` 和 `gw_gantt` 打开新卡片验收。
 
 ```bash
 ./gradlew quarkusBuild -x test

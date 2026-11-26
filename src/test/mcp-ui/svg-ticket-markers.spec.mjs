@@ -46,7 +46,7 @@ for(const dpr of [1,2])test.describe(`ticket markers DPR ${dpr}`,()=>{
     await expect(frame.locator('#side-detail')).toContainText(point.ticket_id);
     await frame.locator('#fullscreen').click();const resized=width===320?760:375;
     await page.locator('#card').evaluate((el,width)=>el.style.width=width+'px',resized);
-    await expect.poll(()=>frame.locator('#map-canvas').evaluate(el=>el.getBoundingClientRect().width)).toBe(resized);
+    await expect.poll(()=>frame.locator('#map-canvas').evaluate(el=>el.getBoundingClientRect().width)).toBe(resized-2);
     const after=await expectSize(marker,point,26);
     expect(after.color).toBe(initial.color);expect(after.label).toBe(initial.label);expect(after.transform).toBe(initial.transform);expect(after.font).toBeCloseTo(11,2);
     await chooseEngineer(frame,'');await expect(marker).toHaveAttribute('data-selected','false');await expectSize(marker,point);

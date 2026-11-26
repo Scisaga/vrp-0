@@ -52,7 +52,7 @@ for (const kind of ['map', 'gantt']) {
     const result = isMap ? message() : asGantt();
     const jobId = result._meta.gateway_ui.job_id;
     const text = isMap ? `查看任务 ${jobId} 的排程` : `Show the route for job ${jobId}`;
-    const label = isMap ? '查看 Gantt 排程' : 'View route';
+    const label = isMap ? '查看排程' : 'View route';
     const host = await openHost(page);
     const frame = await host.add({ kind, result, width: 375, holdMessages: true, context: { locale: isMap ? 'zh-CN' : 'en-US' } });
     const button = frame.locator(isMap ? '#open-gantt' : '#open-map');
@@ -60,7 +60,7 @@ for (const kind of ['map', 'gantt']) {
     await button.click();
     await expect(button).toBeDisabled();
     await expect(button).toBeFocused();
-    await expect(button).toHaveText(isMap ? '正在请求排程…' : 'Requesting route…');
+    await expect(button).toHaveText(isMap ? '请求中…' : 'Requesting route…');
     await button.dispatchEvent('click');
     await expect.poll(async () => (await host.messages('card')).length).toBe(1);
     expect((await host.messages('card'))[0]).toEqual({ role: 'user', content: [{ type: 'text', text }] });

@@ -51,6 +51,53 @@ test('a conversation card fits the whole schedule, shares its date and places th
   await host.assertHealthy();
 });
 
+test('the conversation theme uses one panel and one blue for all unselected service bands', async ({page}) => {
+  const host = await openHost(page);
+  const frame = await host.add({result:ganttLayoutResult([real('real-a'),real('real-b')]),width:760,autoSize:true});
+  const app = frame.locator('#app');
+  const bands = frame.locator('.gantt-bar[data-phase="service"]');
+  const selected = frame.locator('.gantt-bar[data-phase="service"][aria-pressed="true"]');
+  const themes = [
+    {name:'light', surface:'rgb(255, 255, 255)', header:'rgb(240, 242, 241)', line:'rgb(217, 222, 219)',
+      blue:'rgb(119, 148, 188)', accent:'rgb(22, 119, 77)', selection:'rgb(229, 245, 235)'},
+    {name:'dark', surface:'rgb(28, 28, 28)', header:'rgb(36, 36, 36)', line:'rgb(57, 57, 57)',
+      blue:'rgb(148, 177, 213)', accent:'rgb(62, 207, 142)', selection:'rgb(22, 51, 41)'},
+  ];
+
+  for (const theme of themes) {
+    await page.mouse.move(0,0);
+    await host.context('card',{theme:theme.name});
+    await expect(frame.locator('html')).toHaveAttribute('data-theme',theme.name);
+    await expect(agentRows(frame)).toHaveCount(2);
+    await expect(selected).toHaveCount(0);
+    await expect(frame.locator('body')).toHaveCSS('background-color','rgba(0, 0, 0, 0)');
+    await expect(app).toHaveCSS('background-color',theme.surface);
+    await expect(app).toHaveCSS('border-top-width','1px');
+    await expect(app).toHaveCSS('border-top-color',theme.line);
+    await expect(app).toHaveCSS('border-top-left-radius','8px');
+    await expect(frame.locator('.gantt-head')).toHaveCSS('background-color',theme.header);
+    await expect(frame.locator('#open-map')).toHaveCSS('color',theme.accent);
+    await expect(frame.locator('.gantt-key-service')).toHaveCSS('background-color',theme.blue);
+    expect(await bands.evaluateAll(elements => elements.map(el => getComputedStyle(el,'::after').backgroundColor)))
+      .toEqual(Array(4).fill(theme.blue));
+
+    await bands.first().click();
+    await expect(selected).toHaveCount(1);
+    await expect.poll(() => selected.evaluateAll(elements => elements.map(el => {
+      const fill = getComputedStyle(el,'::after');
+      return {background:fill.backgroundColor, outline:fill.boxShadow};
+    }))).toEqual([{background:theme.selection, outline:expect.stringContaining(theme.accent)}]);
+    await expect(frame.locator('#inline-detail')).toBeVisible();
+    await frame.locator('#engineer').selectOption('');
+    await expect(frame.locator('#inline-detail')).toBeHidden();
+  }
+
+  await fullscreen(frame);
+  await expect(app).toHaveCSS('border-top-width','0px');
+  await expect(frame.locator('body')).toHaveCSS('background-color','rgb(23, 32, 47)');
+  await host.assertHealthy();
+});
+
 for (const touch of [false, true]) {
   test(`inline bands have the approved gap and distinct click targets with ${touch ? 'touch' : 'mouse'} input`, async ({browser}) => {
     const context = await browser.newContext({hasTouch:touch});

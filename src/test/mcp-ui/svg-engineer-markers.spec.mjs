@@ -50,7 +50,7 @@ for(const dpr of [1,2])test.describe(`engineer markers DPR ${dpr}`,()=>{
     expect((await expectSize(moving,26)).color).toBe(color);
     await frame.locator('#fullscreen').click();await expect(marker).not.toHaveAttribute('visibility','hidden');await expectSize(marker,26,point);
     const resized=width===320?760:375;await page.locator('#card').evaluate((el,w)=>el.style.width=w+'px',resized);
-    await expect.poll(()=>frame.locator('#map-canvas').evaluate(el=>el.getBoundingClientRect().width)).toBe(resized);await expectSize(marker,26,point);
+    await expect.poll(()=>frame.locator('#map-canvas').evaluate(el=>el.getBoundingClientRect().width)).toBe(resized-2);await expectSize(marker,26,point);
     await frame.locator('#fit-map').click();const fitted=await frame.locator('.snapshot-svg').getAttribute('viewBox');await frame.locator('#fit-map').click();expect(await frame.locator('.snapshot-svg').getAttribute('viewBox')).toBe(fitted);
     expect(await host.pending('card')).toHaveLength(0);await host.assertHealthy();
   });
