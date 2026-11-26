@@ -14,6 +14,23 @@ const deferred = () => {
 };
 const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
 
+test('fixed view binds the scene version and clears previous data on a text-only authorization error', () => {
+  const message = sample();
+  const data = message._meta.gateway_ui;
+  data.display_tool_name = 'gw_map';
+  data.scenario_version_id = 'a'.repeat(32);
+  data.task.scenario_version_id = data.scenario_version_id;
+  delete data.image_version_id;
+  delete data.task.image_version_id;
+  message.structuredContent = {job_id: data.job_id, routes: []};
+  const view = readEnvelope(message, { expectedVersionId: data.scenario_version_id });
+  assert.equal(view.engine_view.solver_job.plan.agents.length, 0);
+  assert.throws(() => readEnvelope(message, { expectedVersionId: 'b'.repeat(32) }),
+    error => error.code === 'MCP_UI_IDENTITY_MISMATCH');
+  assert.throws(() => readEnvelope({isError: true, content: [{type:'text', text:'{"code":"FORBIDDEN"}'}]}),
+    error => error.code === 'FORBIDDEN' && error.clearData);
+});
+
 class FakeApp {
   static instances = [];
   constructor(info, capabilities, options) {

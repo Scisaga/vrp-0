@@ -271,3 +271,18 @@ svg{flex:none}
 
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}
 }
+
+
+/* Keep the engineer selector and fullscreen action reachable inside narrow host cards. */
+.gantt-app .app-header { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
+.gantt-app .app-header .engineer-filter { margin: 0; max-width: 100%; order: 0; }
+.gantt-app .app-header .engineer-filter select { min-width: 0; max-width: 100%; }
+.gantt-app .app-header h1 { text-align: center; }
+.gantt-app .app-header .header-actions { justify-self: end; }
+@media (max-width: 700px) {
+  .gantt-app .app-header { grid-template-columns: minmax(0, 1fr) auto auto; }
+  .gantt-app .app-header .engineer-filter > span {
+    position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%);
+  }
+  .gantt-app .app-header .header-actions { flex-wrap: nowrap; }
+}

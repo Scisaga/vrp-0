@@ -170,24 +170,25 @@ test('zero-duration services stay visible and centered in the independent servic
 
 for (const {width,locale} of [{width:920,locale:'zh-CN'},{width:760,locale:'en-US'},
   {width:375,locale:'zh-CN'},{width:320,locale:'en-US'}]) {
-  test(`Gantt at ${width}px places the ${locale} engineer filter on the legend row's right`, async ({page}) => {
+  test(`Gantt at ${width}px places the ${locale} engineer filter and fullscreen action at opposite ends of the top toolbar`, async ({page}) => {
     const host=await openHost(page),frame=await host.add({result:ganttLayoutResult([real('real-a')]),width,autoSize:true,context:{locale}});
     await expect(agentRows(frame)).toHaveCount(1);
     await expect(frame.locator('.toolbar')).toHaveCount(0);
-    await expect(frame.locator('.gantt-heading #engineer')).toBeVisible();
+    await expect(frame.locator('.app-header #engineer')).toBeVisible();
     await expect(frame.locator('.app-header #sidebar-toggle')).toHaveCount(1);
     await expect(frame.getByRole('combobox',{name:locale==='en-US'?'Engineer':'工程师',exact:true})).toBeVisible();
     const boxes=await frame.evaluate(()=>{
       const rect=selector=>{const {top,bottom,left,right}=document.querySelector(selector).getBoundingClientRect();return {top,bottom,left,right};};
-      return {row:rect('.gantt-heading'),legend:rect('#gantt-legend'),filter:rect('.gantt-heading .engineer-filter'),
+      return {row:rect('.app-header'), filter:rect('.app-header .engineer-filter'),
+        title:rect('#gantt-title'), full:rect('#fullscreen'),
         overflow:document.documentElement.scrollWidth>document.documentElement.clientWidth};
     });
-    expect(boxes.filter.left).toBeGreaterThanOrEqual(boxes.legend.right);
-    expect(boxes.filter.top).toBeGreaterThanOrEqual(boxes.row.top);
-    expect(boxes.filter.bottom).toBeLessThanOrEqual(boxes.row.bottom);
-    expect(boxes.filter.right).toBeGreaterThan(boxes.row.right-20);
-    expect(boxes.filter.top).toBeLessThan(boxes.legend.bottom);
-    expect(boxes.filter.bottom).toBeGreaterThan(boxes.legend.top);
+    expect(boxes.filter.left).toBeLessThan(boxes.row.left + 20);
+    expect(boxes.filter.right).toBeLessThanOrEqual(boxes.title.left);
+    expect(boxes.full.left).toBeGreaterThanOrEqual(boxes.title.right);
+    expect(boxes.full.right).toBeGreaterThan(boxes.row.right - 20);
+    expect(boxes.filter.top).toBeLessThan(boxes.full.bottom);
+    expect(boxes.filter.bottom).toBeGreaterThan(boxes.full.top);
     expect(boxes.overflow).toBe(false);
     await host.assertHealthy();
   });

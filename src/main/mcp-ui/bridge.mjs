@@ -1,16 +1,17 @@
 import { validSnapshotContext } from './svg-snapshot.mjs';
 /** MCP Apps boundary. No REST, chat messages, credentials, or shared View state. */
 const CONTRACT = 'gateway_mcp_result_v1';
+const validatedCharts = new WeakMap();
 const APP_PROTOCOL = '2026-01-26'; // Negotiated MCP Apps protocol of the pinned official SDK 2.0.
 const VERSION_ID = /^[0-9a-f]{32}$/;
 const RESULT_STATES = new Set(['ready', 'running', 'not_ready', 'failed', 'canceled', 'timed_out', 'archive_failed']);
 const AUTH_CODES = new Set(['UNAUTHORIZED', 'FORBIDDEN', 'INVALID_TOKEN', 'INVALID_PAT', 'INSUFFICIENT_SCOPE', 'USER_DISABLED']);
 const GATEWAY_CODES = new Set([
-  ...AUTH_CODES, 'MCP_UI_TOOL_MISMATCH', 'MCP_UI_UNAVAILABLE', 'MCP_UI_VIEW_UNSUPPORTED',
+  ...AUTH_CODES, 'VIEW_UNAVAILABLE', 'RESULT_NOT_READY', 'SOLVER_JOB_NOT_FOUND', 'MCP_UI_TOOL_MISMATCH', 'MCP_UI_UNAVAILABLE', 'MCP_UI_VIEW_UNSUPPORTED',
   'MCP_UI_RESOURCE_STALE', 'REQUEST_SCHEMA_INVALID', 'SOLVER_JOB_NOT_FOUND', 'MCP_RATE_LIMITED', 'MCP_UI_RESULT_TOO_LARGE',
 ]);
 const CLEAR_CODES = new Set([
-  ...AUTH_CODES, 'MCP_UI_TOOL_MISMATCH', 'MCP_UI_UNAVAILABLE', 'MCP_UI_RESOURCE_STALE',
+  ...AUTH_CODES, 'VIEW_UNAVAILABLE', 'RESULT_NOT_READY', 'SOLVER_JOB_NOT_FOUND', 'MCP_UI_TOOL_MISMATCH', 'MCP_UI_UNAVAILABLE', 'MCP_UI_RESOURCE_STALE',
   'SOLVER_JOB_NOT_FOUND', 'MCP_UI_META_MISSING', 'MCP_UI_ENVELOPE_INVALID',
   'MCP_UI_IDENTITY_MISMATCH', 'MCP_UI_MODEL_INVALID', 'MCP_UI_INPUT_INVALID',
   'MCP_UI_PROTOCOL_UNSUPPORTED',
@@ -65,11 +66,19 @@ export function readEnvelope(result, {
   const config = viewConfig(viewKind);
   if (!record(result)) throw new ViewerBridgeError('MCP_UI_ENVELOPE_INVALID');
   if (record(result.error)) throw gatewayError(result.error.data);
-  if (result.isError === true) throw gatewayError(result.structuredContent);
-  const envelope = result._meta?.gateway_ui;
+  if (result.isError === true) {
+    let error = result.structuredContent;
+    if (!record(error) && typeof result.content?.[0]?.text === 'string') {
+      try { error = JSON.parse(result.content[0].text); } catch { /* Unstructured tool failure. */ }
+    }
+    throw gatewayError(error);
+  }
+  let envelope = result._meta?.gateway_ui;
   if (!record(envelope)) throw new ViewerBridgeError('MCP_UI_META_MISSING');
+  const scenarioTool = envelope.display_tool_name === 'gw_' + viewKind;
+  const versionKey = scenarioTool ? 'scenario_version_id' : 'image_version_id';
   if (envelope.contract_version !== CONTRACT || !identity(envelope.job_id)
-      || !VERSION_ID.test(envelope.image_version_id)
+      || !VERSION_ID.test(envelope[versionKey])
       || !RESULT_STATES.has(envelope.result_state) || envelope.view !== viewKind
       || !(envelope.engineer_id === null || identity(envelope.engineer_id))
       || envelope.platform_timezone !== '+08:00' || !record(envelope.task)
@@ -106,11 +115,31 @@ export function readEnvelope(result, {
   }
   const toolMatch = typeof envelope.display_tool_name === 'string'
     ? config.tool.exec(envelope.display_tool_name) : null;
-  if (!toolMatch || toolMatch[1] !== envelope.image_version_id
+  if (scenarioTool) {
+    const chart = result.structuredContent;
+    const rows = viewKind === 'map' ? chart?.routes : chart?.rows;
+    if (!record(chart) || chart.job_id !== envelope.job_id || !Array.isArray(rows)
+        || (viewKind === 'gantt' && !Array.isArray(chart.work_orders))) {
+      throw new ViewerBridgeError('MCP_UI_IDENTITY_MISMATCH');
+    }
+    const plan = envelope.engine_view?.solver_job?.plan;
+    if (!Array.isArray(plan?.agents) || !Array.isArray(plan?.tickets)) throw new ViewerBridgeError('MCP_UI_MODEL_INVALID');
+    const allowedEngineers = new Set(rows.map(row => row.engineer_id));
+    const orders = viewKind === 'map' ? rows.flatMap(route => route.stops) : chart.work_orders;
+    const allowedOrders = new Set(orders.map(order => order.work_order_id));
+    const filtered = {
+      ...plan,
+      agents: plan.agents.filter(agent => !agent.virtual && allowedEngineers.has(agent.id)),
+      tickets: plan.tickets.filter(ticket => allowedOrders.has(ticket.id)),
+    };
+    const engine = envelope.engine_view;
+    envelope = { ...envelope, engine_view: { ...engine, solver_job: { ...engine.solver_job, plan: filtered } } };
+  }
+  if ((!scenarioTool && (!toolMatch || toolMatch[1] !== envelope.image_version_id))
       || envelope.task.job_id !== envelope.job_id
-      || envelope.task.image_version_id !== envelope.image_version_id
+      || envelope.task[versionKey] !== envelope[versionKey]
       || (expectedJobId !== undefined && envelope.job_id !== expectedJobId)
-      || (expectedVersionId !== undefined && envelope.image_version_id !== expectedVersionId)
+      || (expectedVersionId !== undefined && envelope[versionKey] !== expectedVersionId)
       || (expectedToolName !== undefined && envelope.display_tool_name !== expectedToolName)) {
     throw new ViewerBridgeError('MCP_UI_IDENTITY_MISMATCH');
   }
@@ -138,6 +167,7 @@ export function readEnvelope(result, {
       }
     }
   }
+  if (scenarioTool) validatedCharts.set(envelope, result.structuredContent);
   return envelope;
 }
 
@@ -215,6 +245,10 @@ export function createViewerBridge(handlers = {}, options = {}) {
     && (result._meta === undefined || (record(result._meta) && !own(result._meta, 'gateway_ui')));
   const recoverySummary = (result) => {
     const summary = result?.structuredContent;
+    if (record(summary) && identity(summary.job_id) && hostContext.toolInfo?.tool?.name === 'gw_' + viewKind
+        && (viewKind === 'map' ? Array.isArray(summary.routes) : Array.isArray(summary.rows) && Array.isArray(summary.work_orders))) {
+      return { job_id: summary.job_id, engineer_id: null, display_tool_name: 'gw_' + viewKind };
+    }
     return record(summary) && summary.contract_version === CONTRACT
       && identity(summary.job_id) && VERSION_ID.test(summary.image_version_id)
       && summary.view === viewKind && summary.ui_available === true && summary.result_summary === null
@@ -227,6 +261,9 @@ export function createViewerBridge(handlers = {}, options = {}) {
     // from a version, model text, URL, or a host-specific namespace prefix.
     const hasSummaryTool = own(summary, 'display_tool_name');
     const toolName = hasSummaryTool ? summary.display_tool_name : hostContext.toolInfo?.tool?.name;
+    if (toolName === 'gw_' + viewKind && hostToolMatches(toolName, true)) {
+      return { toolName, versionId: undefined, hostRequired: true };
+    }
     const match = typeof toolName === 'string' ? config.tool.exec(toolName) : null;
     if (!match || match[1] !== summary.image_version_id || !hostToolMatches(toolName, !hasSummaryTool)) return null;
     return { toolName, versionId: match[1], hostRequired: hostContext.toolInfo !== undefined };
@@ -458,7 +495,7 @@ export function createViewerBridge(handlers = {}, options = {}) {
     if (flight) { notifyError(new ViewerBridgeError('MCP_UI_REFRESH_BUSY')); return null; }
     let checked;
     try {
-      checked = readEnvelope({ _meta: { gateway_ui: envelope } }, { viewKind, expectedJobId: jobId });
+      checked = readEnvelope({ structuredContent: validatedCharts.get(envelope), _meta: { gateway_ui: envelope } }, { viewKind, expectedJobId: jobId });
       if (viewKind === 'gantt' && engineerId !== undefined && engineerId !== null) {
         throw new ViewerBridgeError('MCP_UI_INPUT_INVALID');
       }
@@ -474,7 +511,7 @@ export function createViewerBridge(handlers = {}, options = {}) {
     flight = token;
     const args = { job_id: checked.job_id };
     // Long IDs remain intact in local UI state; the optional input is omitted.
-    if (viewKind === 'map' && identity(engineerId) && [...engineerId].length <= 128) args.engineer_id = engineerId;
+    if (viewKind === 'map' && checked.display_tool_name !== 'gw_map' && identity(engineerId) && [...engineerId].length <= 128) args.engineer_id = engineerId;
     const current = () => !destroyed && token.epoch === epoch
       && token.revision === notificationRevision && flight === token && jobId === token.jobId;
     try {
@@ -483,7 +520,7 @@ export function createViewerBridge(handlers = {}, options = {}) {
       );
       if (!current()) return null;
       readEnvelope(result, {
-        viewKind, expectedJobId: checked.job_id, expectedVersionId: checked.image_version_id,
+        viewKind, expectedJobId: checked.job_id, expectedVersionId: checked.scenario_version_id ?? checked.image_version_id,
         expectedToolName: checked.display_tool_name,
       });
       invoke('onResult', result, { kind: 'refresh', requestJobId: token.jobId, requestEpoch: token.epoch });
@@ -499,12 +536,12 @@ export function createViewerBridge(handlers = {}, options = {}) {
     if (viewKind !== 'map' || destroyed || !connected || messageFlight) return fallback;
     let checked;
     try {
-      checked = readEnvelope({ _meta: { gateway_ui: envelope } }, { viewKind: 'map', expectedJobId: jobId });
+      checked = readEnvelope({ structuredContent: validatedCharts.get(envelope), _meta: { gateway_ui: envelope } }, { viewKind: 'map', expectedJobId: jobId });
     } catch (error) {
       notifyError(error);
       return fallback;
     }
-    const text = JSON.stringify({
+    const text = JSON.stringify(checked.display_tool_name === 'gw_map' ? { intent: 'gw_gantt', job_id: checked.job_id } : {
       intent: 'show_job_gantt', job_id: checked.job_id, image_version_id: checked.image_version_id,
     });
     messageFlight = (async () => {

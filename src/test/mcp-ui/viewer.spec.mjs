@@ -4,6 +4,35 @@ import { largeView } from './model-fixtures.mjs';
 
 function asGantt(result=message('gantt-ready')) { return result; }
 
+test('scenario map route selects its engineer and opens the schedule by job ID', async ({page}) => {
+  const result = withSnapshot(message());
+  const ui = result._meta.gateway_ui;
+  ui.display_tool_name = 'gw_map';
+  ui.scenario_version_id = 'a'.repeat(32);
+  ui.task.scenario_version_id = ui.scenario_version_id;
+  delete ui.image_version_id;
+  delete ui.task.image_version_id;
+  const plan = ui.engine_view.solver_job.plan;
+  result.structuredContent = {
+    job_id: ui.job_id,
+    routes: plan.agents.filter(agent => !agent.virtual).map(agent => ({
+      engineer_id: agent.id,
+      stops: agent.tickets.map(id => ({work_order_id: id})),
+    })),
+  };
+  const host = await openHost(page);
+  const frame = await host.add({result});
+  await mapReady(frame);
+  const route = frame.locator('.snapshot-svg [data-kind="route"]').first();
+  await route.dispatchEvent('click');
+  await expect(frame.locator('#engineer')).toHaveJSProperty('value', AGENT);
+  await frame.locator('#open-gantt').click();
+  await expect.poll(async () => (await host.messages('card')).length).toBe(1);
+  const [request] = await host.messages('card');
+  expect(JSON.parse(request.content[0].text)).toEqual({intent:'gw_gantt', job_id: ui.job_id});
+  await host.assertHealthy();
+});
+
 test('map inline hides refresh, stays focused on routes, and sends exact Gantt intent',async({page})=>{
   const host=await openHost(page),frame=await host.add();const renderer=await mapReady(frame);
   await expect(frame.locator('#task-title,#task-meta,#summary,#inline-detail')).toHaveCount(0);
