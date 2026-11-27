@@ -45,6 +45,8 @@
 
 ## 4. Fixture 与文件隔离
 
+矩阵请求优化的离线回归包括 `HttpRequesterTest`、`MatrixTransitLookupTest`、`GeoUtilRoutingTest`、`MapTransportTest` 和既有 HERE、AMap、GeoUtil 单元测试。HTTP 用例只访问本地临时端口；并发用例使用有界同步屏障，不以真实图商响应速度作为断言。覆盖连接复用、请求隔离、显式重定向、原有限流配额路径、有向键、同时请求合并、失败重试、中断释放、构建间隔离和配置并发 8/16。AMap 的旧缓存命中、过期和估算值复用保持现状；合成 30 单、8 人、13 地点的 HERE 用例验证无失败重试时非零有向对首次加载不超过 156 次。离线通过仅证明请求合并与并发行为，镜像和真实求解耗时需分别验证。
+
 * 可重复使用的测试输入放在 `src/test/resources/fixtures/`，场景样例放在其 `scenarios/` 子目录。
 * 公开演示场景可以从仓库 `scenarios/` 读取，但测试不得修改源 Fixture。
 * test profile 将场景和任务仓库指向 `build/test-data/scenarios/` 与 `build/test-data/solver_jobs/`。

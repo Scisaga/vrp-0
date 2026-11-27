@@ -63,7 +63,7 @@ class OpenApiLocationContractTest {
     }
 
     private void assertLocationContract(JsonNode openApi) {
-        assertEquals("1.2.2", openApi.at("/info/version").asText());
+        assertEquals("1.2.3", openApi.at("/info/version").asText());
 
         JsonNode schemas = openApi.at("/components/schemas");
         assertEquals(Set.of("depos", "agents", "tickets"), textSet(schemas.path("RoutePlan").path("required")));

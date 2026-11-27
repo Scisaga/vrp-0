@@ -58,6 +58,12 @@ Resource 负责 HTTP 输入输出、OpenAPI 注解和状态码，不直接组织
 
 `MapAdapterSelector` 为当前运行配置选择地图适配器，现有适配器提供地址、路线和矩阵相关能力。主要地图调用通过选择器取得适配器；应用门面仍直接依赖具体适配器处理配置和浏览器地图上下文。Resource 不直接调用外部地图服务。
 
+HERE 和 AMap 适配器共用延迟初始化的 `HttpRequester.shared()`，保留逐请求的 URL、头、正文、超时和显式重定向处理；求解结果回调仍使用原调用方式。共享实例只复用客户端和连接，不保存图商密钥或请求参数。
+
+普通 `ROUTING` 矩阵构建使用单次构建独占的执行器和 `MatrixTransitLookup`。有向请求键由适配器提供，包含图商、默认驾车策略和实际坐标；AMap 还包含发送给图商的起终点 POI ID。HERE 坐标沿用其 `Coordinate` 解析与回退规则。同一键的首个调用在当前工作线程加载，其他调用等待同一完成结果，避免在同一线程池嵌套调度。HERE 只复用成功道路和零距离结果，估算或异常结果完成当前等待者后移除；AMap 仍通过 `AmapTransitCalculator` 使用原有按 ID 保存 7 天的缓存，保留其估算值复用及读写接口，本次构建缓存不改变旧缓存失效规则。
+
+并发配置见[部署说明](../operations/deployment.md#8-配置与密钥)。构建结束或中断时取消未完成的工作并关闭执行器；中断标志保留。日志记录图商、并发、请求数、合并数、加载次数和耗时；加载次数包括 AMap 旧缓存查询，不等于底层 HTTP 次数，也不包含适配器内部重试的逐次计数。抽样、线性修正、增量矩阵复用、MANHATTAN、HERE 批量矩阵分支和求解后的道路绘制流程不变。
+
 ### 3.6 MCP 层
 
 MCP Servlet 通过 Streamable HTTP 接收调用，认证过滤器执行 Bearer Token 检查，`McpServerRuntime` 注册 Tool 并将调用转交应用门面。Tool 契约见 [MCP 参考](../reference/mcp.md)。

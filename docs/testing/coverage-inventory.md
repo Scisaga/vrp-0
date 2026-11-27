@@ -24,6 +24,8 @@
 | --- | --- | --- |
 | AMap/HERE | `AmapAdapter*Test`、`HereAdapterTest`、`MapProviderTest` | 配置、地址解析、路线、矩阵、降级和响应处理 |
 | 地理与矩阵 | `GeoUtilTest`、`TransitMatrixTest`、`AddressUtilTest` | 距离、矩阵、地址和时间等纯逻辑 |
+| 矩阵请求复用 | `MatrixTransitLookupTest`、`GeoUtilRoutingTest` | HERE/AMap 有向键、单次缓存和并发合并、失败与中断、AMap 7 天缓存兼容、并发上限、合成 30 单请求预算 |
+| HTTP 连接与图商限流 | `HttpRequesterTest`、`MapTransportTest` | 本地 HTTP 连接复用、并发请求隔离、显式重定向及 HERE/AMap 原有配额路径 |
 | 领域模型 | `ScenarioDomainTest`、`RoutePlanDomainTest`、`AgentEachDayDomainTest`、`TicketDomainTest` | 初始化、对象关系、可用性、结果应用和指派状态 |
 | 求解约束 | `RoutePlanConstraintProviderTest` | 约束触发、分数、技能要求空数组和部分边界条件 |
 | 规划链 | `ArrivalTimeUpdatingVariableListenerTest`、`InitialArrivalTimeCustomPhaseCommandTest` | 链变化、到达时间和初始阶段处理 |

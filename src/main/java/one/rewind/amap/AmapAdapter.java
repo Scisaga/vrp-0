@@ -308,7 +308,7 @@ public class AmapAdapter implements MapAdapter {
                 "&page=" + page +
                 "&extensions=all";
 
-        HttpResponsePayload r = rle.exec(() -> new HttpRequester().req(url).orElseThrow(IOException::new));
+        HttpResponsePayload r = rle.exec(() -> HttpRequester.shared().req(url).orElseThrow(IOException::new));
 
         ObjectMapper mapper = new ObjectMapper();
 
@@ -644,7 +644,7 @@ public class AmapAdapter implements MapAdapter {
      * Isolated for fixture-backed routing tests. Do not log the URL because it contains the AMap key.
      */
     protected HttpResponsePayload requestDirection(String url) throws Exception {
-        return rle.exec(() -> new HttpRequester().req(url).orElseThrow(IOException::new));
+        return rle.exec(() -> HttpRequester.shared().req(url).orElseThrow(IOException::new));
     }
 
     private RoutingFailure responseFailure(JsonNode bodyJson, DirectionApi api, String vehicleType, String endpoint) {
@@ -847,7 +847,7 @@ public class AmapAdapter implements MapAdapter {
                 "&address=" + address +
                 "&city=" + city;
 
-        HttpResponsePayload r = rle.exec(() -> new HttpRequester().req(url).orElseThrow(IOException::new));
+        HttpResponsePayload r = rle.exec(() -> HttpRequester.shared().req(url).orElseThrow(IOException::new));
 
         ObjectMapper mapper = new ObjectMapper();
 
@@ -884,7 +884,7 @@ public class AmapAdapter implements MapAdapter {
                 "&address=" + address +
                 "&city=" + city;
 
-        HttpResponsePayload r = rle.exec(() -> new HttpRequester().req(url).orElseThrow(IOException::new));
+        HttpResponsePayload r = rle.exec(() -> HttpRequester.shared().req(url).orElseThrow(IOException::new));
 
         ObjectMapper mapper = new ObjectMapper();
         JsonNode geocodes = mapper.readTree(r.rBody).get("geocodes");
@@ -929,7 +929,7 @@ public class AmapAdapter implements MapAdapter {
         String connector = addressResolverUrl.contains("?") ? "&" : "?";
         String url = addressResolverUrl + connector + "addr=" + URLEncoder.encode(keyword, StandardCharsets.UTF_8);
 
-        HttpResponsePayload response = new HttpRequester().req(url).orElseThrow(() ->
+        HttpResponsePayload response = HttpRequester.shared().req(url).orElseThrow(() ->
                 new IOException("Address resolver request failed")
         );
         if (response.statusCode < 200 || response.statusCode >= 300) {
@@ -1059,7 +1059,7 @@ public class AmapAdapter implements MapAdapter {
                 "&extensions=all" +
                 "&location=" + location;
 
-        HttpResponsePayload r = rle.exec(() -> new HttpRequester().req(url).orElseThrow(IOException::new));
+        HttpResponsePayload r = rle.exec(() -> HttpRequester.shared().req(url).orElseThrow(IOException::new));
 
         ObjectMapper mapper = new ObjectMapper();
         JsonNode root = mapper.readTree(r.rBody);

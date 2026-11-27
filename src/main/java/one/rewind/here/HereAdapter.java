@@ -13,6 +13,7 @@ import one.rewind.xforce.geo.RouteSource;
 import one.rewind.xforce.geo.RoutingFailure;
 import one.rewind.xforce.geo.map.MapAdapter;
 import one.rewind.xforce.geo.map.MapProvider;
+import one.rewind.xforce.geo.map.MatrixRoutingKey;
 import one.rewind.xforce.geo.transit.Transit;
 import one.rewind.xforce.geo.transit.TransitCalculator;
 import one.rewind.xforce.geo.transit.TransitMatrix;
@@ -63,7 +64,7 @@ public class HereAdapter implements MapAdapter {
     @Inject
     public HereAdapter(
             @ConfigProperty(name = "here.api-key", defaultValue = "change-me") String apiKey,
-            @ConfigProperty(name = "here.qps", defaultValue = "10") int qps,
+            @ConfigProperty(name = "here.qps", defaultValue = "200") int qps,
             @ConfigProperty(name = "here.quota", defaultValue = "10000") long quota,
             @ConfigProperty(name = "here.interval", defaultValue = "86400") long intervalSeconds,
             @ConfigProperty(name = "here.wait-timeout", defaultValue = "10") long waitTimeoutSeconds,
@@ -160,6 +161,15 @@ public class HereAdapter implements MapAdapter {
     @Override
     public Route routing(POI origin, POI destination) {
         return routingInternal(null, origin, destination);
+    }
+
+    @Override
+    public MatrixRoutingKey matrixRoutingKey(POI origin, POI destination) {
+        Coordinate from = Coordinate.fromPoi(origin);
+        Coordinate to = Coordinate.fromPoi(destination);
+        return new MatrixRoutingKey(provider(), "car|departureTime=any|traffic=disabled|return=summary,polyline",
+                new MatrixRoutingKey.Point(from.longitude, from.latitude, null),
+                new MatrixRoutingKey.Point(to.longitude, to.latitude, null));
     }
 
     @Override
@@ -366,19 +376,19 @@ public class HereAdapter implements MapAdapter {
 
     protected HttpResponsePayload get(String url) throws RateLimitExecutor.QuotaExhaustedException,
             InterruptedException, ExecutionException, TimeoutException, IOException {
-        return rateLimitExecutor.exec(() -> new HttpRequester().req(withApiKey(url)).orElseThrow(IOException::new));
+        return rateLimitExecutor.exec(() -> HttpRequester.shared().req(withApiKey(url)).orElseThrow(IOException::new));
     }
 
     protected HttpResponsePayload post(String url, byte[] body) throws RateLimitExecutor.QuotaExhaustedException,
             InterruptedException, ExecutionException, TimeoutException, IOException {
-        return rateLimitExecutor.exec(() -> new HttpRequester().req(withApiKey(url), "POST",
+        return rateLimitExecutor.exec(() -> HttpRequester.shared().req(withApiKey(url), "POST",
                 Map.of("Content-Type", "application/json", "Accept", "application/json"), body).orElseThrow(IOException::new));
     }
 
     /** Follows a signed object-storage matrix result URL without leaking the HERE API key to that origin. */
     protected HttpResponsePayload getWithoutApiKey(String url) throws RateLimitExecutor.QuotaExhaustedException,
             InterruptedException, ExecutionException, TimeoutException, IOException {
-        return rateLimitExecutor.exec(() -> new HttpRequester().req(url).orElseThrow(IOException::new));
+        return rateLimitExecutor.exec(() -> HttpRequester.shared().req(url).orElseThrow(IOException::new));
     }
 
     private String withApiKey(String url) {

@@ -13,7 +13,24 @@ public class HttpRequester {
 
     private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(20);
 
+    private static volatile HttpRequester sharedInstance;
+
     private final HttpClient client;
+
+    /** Created on first use so native-image initialization does not open HTTP client resources. */
+    public static HttpRequester shared() {
+        HttpRequester requester = sharedInstance;
+        if (requester == null) {
+            synchronized (HttpRequester.class) {
+                requester = sharedInstance;
+                if (requester == null) {
+                    requester = new HttpRequester();
+                    sharedInstance = requester;
+                }
+            }
+        }
+        return requester;
+    }
 
     public HttpRequester() {
         this.client = HttpClient.newBuilder()

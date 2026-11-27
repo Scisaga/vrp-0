@@ -6,8 +6,7 @@ import one.rewind.here.HereAdapter;
 import one.rewind.xforce.geo.POI;
 import one.rewind.xforce.geo.Route;
 import one.rewind.xforce.geo.map.MapAdapter;
-import one.rewind.xforce.geo.map.MapProvider;
-import one.rewind.xforce.geo.transit.AmapTransitCalculator;
+import one.rewind.xforce.geo.transit.Transit;
 import one.rewind.xforce.geo.transit.TransitMatrix;
 import one.rewind.xforce.vehicle_routing.domain.RoutePlan;
 import one.rewind.xforce.vehicle_routing.domain.agent.Agent;
@@ -19,11 +18,14 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.eclipse.microprofile.config.Config;
+import org.eclipse.microprofile.config.ConfigProvider;
 
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -43,8 +45,6 @@ public class GeoUtil {
             return mode == AMAP ? ROUTING : mode;
         }
     }
-
-    private static ExecutorService buildMatrixExecutor = Executors.newFixedThreadPool(3);
 
     /**
      *
@@ -342,9 +342,7 @@ public class GeoUtil {
         // 1.5 初始化距离矩阵
         TransitMatrix matrix_new = TransitMatrix.init(new_pois);
 
-        AtomicInteger i = new AtomicInteger(0);
         // 2. 距离修正
-        List<Future<?>> futures = new ArrayList<>();
         if (MatrixMode.MANHATTAN.equals(matrixMode)) {
             // 不做任何操作，TransitMatrix.init(new_pois) 已是曼哈顿距离估算
             logger.info("Build ticket matrix by manhattan...");
@@ -354,25 +352,7 @@ public class GeoUtil {
             plan.setMatrix(hereAdapter.matrixRouting(new_pois));
             return;
         } else {
-            for (Ticket t : plan.getTickets()) {
-                futures.add(buildMatrixExecutor.submit(() ->
-                        buildTicketMatrixByRouting(plan, t, pois_to_add, matrix_new, i.incrementAndGet(), adapter)));
-            }
-        }
-
-        // TODO 推荐使用 ForkJoinPool
-        // 阻塞直到所有任务完成
-        for (Future<?> future : futures) {
-            try {
-                try {
-                    future.get(); // 阻塞直到任务完成
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-            } catch (ExecutionException e) {
-                // 处理任务执行过程中抛出的异常
-                logger.error("Task execution error", e.getCause());
-            }
+            buildMatrixByRouting(plan, pois_to_add, matrix_new, adapter, matrixConcurrency(ConfigProvider.getConfig()));
         }
 
         // 赋值
@@ -380,7 +360,51 @@ public class GeoUtil {
         plan.setMatrix(matrix_new);
     }
 
-    private static void buildTicketMatrixByRouting(RoutePlan plan, Ticket t, List<POI> pois_to_add, TransitMatrix matrix_new, int ticketIndex, MapAdapter adapter) {
+    static int matrixConcurrency(Config config) {
+        int concurrency = config.getOptionalValue("map.matrix-concurrency", Integer.class).orElse(16);
+        if (concurrency <= 0) {
+            throw new IllegalArgumentException("map.matrix-concurrency must be a positive integer");
+        }
+        return concurrency;
+    }
+
+    static void buildMatrixByRouting(RoutePlan plan, List<POI> poisToAdd, TransitMatrix matrix,
+                                     MapAdapter adapter, int concurrency) {
+        if (concurrency <= 0) {
+            throw new IllegalArgumentException("map.matrix-concurrency must be a positive integer");
+        }
+        long started = System.nanoTime();
+        MatrixTransitLookup routing = new MatrixTransitLookup(adapter);
+        ExecutorService executor = Executors.newFixedThreadPool(concurrency);
+        List<Future<?>> futures = new ArrayList<>();
+        AtomicInteger ticketIndex = new AtomicInteger();
+        try {
+            for (Ticket ticket : plan.getTickets()) {
+                futures.add(executor.submit(() -> buildTicketMatrixByRouting(
+                        plan, ticket, poisToAdd, matrix, ticketIndex.incrementAndGet(), routing)));
+            }
+            for (Future<?> future : futures) {
+                try {
+                    future.get();
+                } catch (ExecutionException error) {
+                    logger.error("Task execution error", error.getCause());
+                }
+            }
+        } catch (InterruptedException error) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Matrix build interrupted", error);
+        } finally {
+            futures.stream().filter(future -> !future.isDone()).forEach(future -> future.cancel(true));
+            executor.shutdownNow();
+            MatrixTransitLookup.Stats stats = routing.stats();
+            logger.info("Routing matrix: provider={}, concurrency={}, requests={}, merged={}, loader_calls={}, elapsed_ms={}",
+                    adapter.provider(), concurrency, stats.requests(), stats.merged(), stats.loads(),
+                    TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started));
+        }
+    }
+
+    private static void buildTicketMatrixByRouting(RoutePlan plan, Ticket t, List<POI> pois_to_add, TransitMatrix matrix_new,
+                                                   int ticketIndex, BiFunction<POI, POI, Transit> routing) {
 
         logger.info("Ticket-{}", ticketIndex);
 
@@ -397,9 +421,9 @@ public class GeoUtil {
             // 仓库 或 ticket 是新增的，需要重新计算；否则复制前值
             boolean useRouting = pois_to_add.contains(depo_poi) || pois_to_add.contains(ticket_poi);
             // 回程赋值
-            matrix_new.put(ticket_poi.id, depo_poi.id, useRouting ? transit(adapter, ticket_poi, depo_poi) : plan.getMatrix().get(ticket_poi.id, depo_poi.id));
+            matrix_new.put(ticket_poi.id, depo_poi.id, useRouting ? routing.apply(ticket_poi, depo_poi) : plan.getMatrix().get(ticket_poi.id, depo_poi.id));
             // 去程赋值
-            matrix_new.put(depo_poi.id, ticket_poi.id, useRouting ? transit(adapter, depo_poi, ticket_poi) : plan.getMatrix().get(depo_poi.id, ticket_poi.id));
+            matrix_new.put(depo_poi.id, ticket_poi.id, useRouting ? routing.apply(depo_poi, ticket_poi) : plan.getMatrix().get(depo_poi.id, ticket_poi.id));
         }
 
         // 2.2 工程师距离修正
@@ -409,7 +433,7 @@ public class GeoUtil {
                 .map(Agent::getStartLoc)
                 .collect(Collectors.toList());
 
-        matrix_new.routingLinearTransform(ticket_poi, agent_pois, pois_to_add, Math.min(2, agent_pois.size()), (origin, destination) -> transit(adapter, origin, destination));
+        matrix_new.routingLinearTransform(ticket_poi, agent_pois, pois_to_add, Math.min(2, agent_pois.size()), routing);
 
         // 2.3 工单距离修正
         List<POI> ticket_pois = plan.getTickets().stream()
@@ -417,13 +441,6 @@ public class GeoUtil {
                 .map(Ticket::getLoc)
                 .collect(Collectors.toList());
 
-        matrix_new.routingLinearTransform(ticket_poi, ticket_pois, pois_to_add, Math.min(5, ticket_pois.size()), (origin, destination) -> transit(adapter, origin, destination));
-    }
-
-    private static one.rewind.xforce.geo.transit.Transit transit(MapAdapter adapter, POI origin, POI destination) {
-        if (adapter.provider() == MapProvider.AMAP) {
-            return AmapTransitCalculator.inst().calc(origin, destination);
-        }
-        return adapter.routing(origin, destination).transit;
+        matrix_new.routingLinearTransform(ticket_poi, ticket_pois, pois_to_add, Math.min(5, ticket_pois.size()), routing);
     }
 }

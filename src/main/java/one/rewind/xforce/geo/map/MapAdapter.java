@@ -37,5 +37,12 @@ public interface MapAdapter {
 
     Route routing(POI origin, POI destination);
 
+    /** Matches the default AMap driving inputs; providers with different inputs override this key. */
+    default MatrixRoutingKey matrixRoutingKey(POI origin, POI destination) {
+        return new MatrixRoutingKey(provider(), "car|strategy=32|show_fields=cost,polyline",
+                MatrixRoutingKey.Point.fromLocation(origin.location, String.valueOf(origin.id)),
+                MatrixRoutingKey.Point.fromLocation(destination.location, String.valueOf(destination.id)));
+    }
+
     Route routing(Agent agent, POI origin, POI destination);
 }
